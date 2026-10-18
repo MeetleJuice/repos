@@ -1,0 +1,206 @@
+{
+  "title": "Neon Dodge with Shield Pickup",
+  "summary": "A local Canvas arcade game with keyboard/touch controls, pause, restart and a browser-local high score. No database or external assets.",
+  "features": [
+    "Local server and game assets",
+    "Start, keyboard/touch movement, pause/resume and restart",
+    "Falling obstacles, collisions, score and bounded increasing difficulty",
+    "High score in localStorage, responsive neon interface and safe storage failure handling",
+    "Cyan shield pickup with collision protection and active indicator"
+  ],
+  "out_of_scope": [
+    "Multiplayer",
+    "Accounts",
+    "Score API or database",
+    "External packages or assets"
+  ],
+  "risks": [
+    "HTTP tests prove delivery, not gameplay. Complete the manual checklist.",
+    "Private browsing or disabled storage may prevent saving high scores.",
+    "Shield pickup spawn rate needs tuning for fair play"
+  ],
+  "tasks": [
+    {
+      "title": "Adapt the reviewed arcade foundation",
+      "instructions": "Keep the tested arcade server and complete working Neon Dodge assets. Preserve all existing gameplay and the explicit route allowlist. Make only changes needed for this approved scope.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "title": "Implement shield pickup mechanics",
+      "instructions": "Add cyan-colored circular pickup objects that spawn randomly during gameplay (10-20% chance per obstacle spawn). When ship collides with shield, set shield_active=true for one obstacle hit, then reset to false. Add visual indicator showing active status. Ensure shield only provides one protection before disappearing.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "title": "Verify delivery and document play-testing",
+      "instructions": "Preserve foundation tests. Test local asset serving, health, unknown/private-path rejection and CLI startup. Keep manual gameplay checks explicit; do not fake APIs or claim source strings prove gameplay.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "title": "Test shield pickup spawning and collection",
+      "instructions": "Run the game for several minutes to observe shield spawns. Collect a shield and verify it appears as cyan circle. After collecting, deliberately let an obstacle hit the ship - it should survive. Then let another obstacle hit - game should end normally.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "title": "Test shield indicator and persistence",
+      "instructions": "Collect a shield pickup and observe the shield status indicator. Verify it shows active state. After one collision protection, verify indicator disappears. Pause during gameplay and confirm pickups freeze. Restart clears all pickups and resets shield state.",
+      "feature_indexes": [
+        4
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "Game page delivered (not gameplay proof)",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "feature_indexes": [
+        0
+      ],
+      "contains": "<canvas"
+    },
+    {
+      "name": "Local game script delivered",
+      "method": "GET",
+      "path": "/game.js",
+      "status": 200,
+      "feature_indexes": [
+        0
+      ],
+      "contains": "requestAnimationFrame"
+    }
+  ],
+  "app_kind": "browser",
+  "manual_checks": [
+    {
+      "name": "Start, movement and touch controls",
+      "steps": [
+        "Run the downloaded app and click Start game.",
+        "Move left/right with A/D and arrow keys. On a touch device, hold Left and Right."
+      ],
+      "expected": "The ship moves in the requested direction and stays inside the arena. Touch release stops movement.",
+      "feature_indexes": [
+        1
+      ]
+    },
+    {
+      "name": "Pause, resume and restart",
+      "steps": [
+        "Start playing, press P or Pause, and wait.",
+        "Resume, then click Restart. Also switch browser tabs during play."
+      ],
+      "expected": "Pause freezes motion and score; resume continues. Restart resets the score and obstacles. Switching away pauses the game.",
+      "feature_indexes": [
+        1
+      ]
+    },
+    {
+      "name": "Obstacles, collisions and difficulty",
+      "steps": [
+        "Survive for at least 30 seconds by dodging obstacles.",
+        "Then deliberately let an obstacle hit the ship."
+      ],
+      "expected": "Score grows while playing, difficulty increases within a cap, collision shows Game over and final score, and Play again starts a fresh run.",
+      "feature_indexes": [
+        2
+      ]
+    },
+    {
+      "name": "High score and interface",
+      "steps": [
+        "Earn a score and refresh the page.",
+        "Check the saved best score. Resize the browser or open on a mobile screen."
+      ],
+      "expected": "Best score survives refresh, the layout remains usable, and controls are readable. If storage is disabled, a notice appears and the game still runs.",
+      "feature_indexes": [
+        3
+      ]
+    },
+    {
+      "name": "Shield pickup collection",
+      "steps": [
+        "Start playing and wait for cyan shield to appear.",
+        "Move ship into the shield pickup.",
+        "Let an obstacle hit the ship after collecting shield."
+      ],
+      "expected": "Shield appears as cyan circle, collects when touched, provides one collision protection, shows active indicator, then disappears after use.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Shield UI indicator",
+      "steps": [
+        "Collect a shield pickup.",
+        "Observe the shield status indicator."
+      ],
+      "expected": "A visible indicator shows when shield is active (e.g., 'SHIELD' text or icon). Indicator disappears after one collision protection.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Shield pause behavior",
+      "steps": [
+        "Start playing and wait for a shield to spawn.",
+        "Press Pause button.",
+        "Wait 5 seconds, then Resume."
+      ],
+      "expected": "The shield remains visible and stationary while paused. After resuming, it continues moving normally with other pickups.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Shield restart behavior",
+      "steps": [
+        "Collect a shield pickup during gameplay.",
+        "Click Restart button or press R key.",
+        "Observe the game state after restart."
+      ],
+      "expected": "All pickups including shields are cleared. Shield indicator disappears. Game starts fresh with no active protection.",
+      "feature_indexes": [
+        4
+      ]
+    }
+  ],
+  "api_contracts": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "response_kind": "object",
+      "required_fields": [
+        "status"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "response_kind": "text",
+      "required_fields": []
+    },
+    {
+      "method": "GET",
+      "path": "/game.js",
+      "status": 200,
+      "response_kind": "text",
+      "required_fields": []
+    }
+  ]
+}

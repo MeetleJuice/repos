@@ -1,0 +1,209 @@
+{
+  "title": "Neon Dodge — repair shield implementation",
+  "summary": "Repair the existing incomplete shield code while preserving the verified base game and every inherited acceptance check.",
+  "features": [
+    "Local server and game assets",
+    "Start, keyboard/touch movement, pause/resume and restart",
+    "Falling obstacles, collisions, score and bounded increasing difficulty",
+    "High score in localStorage, responsive neon interface and safe storage failure handling",
+    "Cyan shield pickup with collision protection and active indicator"
+  ],
+  "out_of_scope": [
+    "Multiplayer",
+    "Accounts",
+    "Score API or database",
+    "External packages or assets"
+  ],
+  "risks": [
+    "HTTP tests prove delivery, not gameplay. Complete the manual checklist.",
+    "Private browsing or disabled storage may prevent saving high scores.",
+    "Shield pickup spawn rate needs tuning for fair play"
+  ],
+  "tasks": [
+    {
+      "title": "Repair actual shield logic in game.js",
+      "instructions": "Work on the existing copied game.js. It currently declares shield=null but never creates or collects a pickup. Implement a separate pickups array and boolean shieldActive. Spawn cyan circular pickups occasionally (fixed 15% chance per obstacle spawn), move them while playing, collect by ship overlap, and expire off-screen pickups. Collection sets shieldActive=true, never increments a charge counter. On a shielded obstacle collision remove that obstacle immediately, set shieldActive=false and continue; that obstacle cannot collide again. A subsequent unshielded hit ends the game. Draw active protection at the moving ship position and show a readable active indicator. Freeze pickup spawning/movement/collisions while paused. Reset pickups and shieldActive in start/restart/Play again. Preserve controls, scoring, difficulty, localStorage, safe storage failure behavior, server and assets. Deliver working implementation, not placeholders or declarations alone.",
+      "feature_indexes": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "title": "Preserve regression tests and prepare shield acceptance",
+      "instructions": "Keep all inherited acceptance checks and trusted Python tests unchanged. Do not rebuild the server. Keep the frontend dependency-free and local. Check that pickup creation, update, collection, drawing, one-hit consumption/removal and restart paths all exist and connect to the main loop. Deliver any final source corrections needed for the complete approved scope and document manual shield checks. Do not claim you ran or observed a game: only write files; behavioral execution and user play-testing happen separately.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "Game page delivered (not gameplay proof)",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "feature_indexes": [
+        0
+      ],
+      "contains": "<canvas"
+    },
+    {
+      "name": "Local game script delivered",
+      "method": "GET",
+      "path": "/game.js",
+      "status": 200,
+      "feature_indexes": [
+        0
+      ],
+      "contains": "requestAnimationFrame"
+    }
+  ],
+  "app_kind": "browser",
+  "manual_checks": [
+    {
+      "name": "Start, movement and touch controls",
+      "steps": [
+        "Run the downloaded app and click Start game.",
+        "Move left/right with A/D and arrow keys. On a touch device, hold Left and Right."
+      ],
+      "expected": "The ship moves in the requested direction and stays inside the arena. Touch release stops movement.",
+      "feature_indexes": [
+        1
+      ]
+    },
+    {
+      "name": "Pause, resume and restart",
+      "steps": [
+        "Start playing, press P or Pause, and wait.",
+        "Resume, then click Restart. Also switch browser tabs during play."
+      ],
+      "expected": "Pause freezes motion and score; resume continues. Restart resets the score and obstacles. Switching away pauses the game.",
+      "feature_indexes": [
+        1
+      ]
+    },
+    {
+      "name": "Obstacles, collisions and difficulty",
+      "steps": [
+        "Survive for at least 30 seconds by dodging obstacles.",
+        "Then deliberately let an obstacle hit the ship."
+      ],
+      "expected": "Score grows while playing, difficulty increases within a cap, collision shows Game over and final score, and Play again starts a fresh run.",
+      "feature_indexes": [
+        2
+      ]
+    },
+    {
+      "name": "High score and interface",
+      "steps": [
+        "Earn a score and refresh the page.",
+        "Check the saved best score. Resize the browser or open on a mobile screen."
+      ],
+      "expected": "Best score survives refresh, the layout remains usable, and controls are readable. If storage is disabled, a notice appears and the game still runs.",
+      "feature_indexes": [
+        3
+      ]
+    },
+    {
+      "name": "Shield pickup collection",
+      "steps": [
+        "Start playing and wait for cyan shield to appear.",
+        "Move ship into the shield pickup.",
+        "Let an obstacle hit the ship after collecting shield."
+      ],
+      "expected": "Shield appears as cyan circle, collects when touched, provides one collision protection, shows active indicator, then disappears after use.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Shield UI indicator",
+      "steps": [
+        "Collect a shield pickup.",
+        "Observe the shield status indicator."
+      ],
+      "expected": "A visible indicator shows when shield is active (e.g., 'SHIELD' text or icon). Indicator disappears after one collision protection.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Shield pause behavior",
+      "steps": [
+        "Start playing and wait for a shield to spawn.",
+        "Press Pause button.",
+        "Wait 5 seconds, then Resume."
+      ],
+      "expected": "The shield remains visible and stationary while paused. After resuming, it continues moving normally with other pickups.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Shield restart behavior",
+      "steps": [
+        "Collect a shield pickup during gameplay.",
+        "Click Restart button or press R key.",
+        "Observe the game state after restart."
+      ],
+      "expected": "All pickups including shields are cleared. Shield indicator disappears. Game starts fresh with no active protection.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Blocked obstacle removal and next unshielded collision",
+      "steps": [
+        "Collect a shield and deliberately hit one obstacle.",
+        "Confirm that obstacle disappears and the game continues.",
+        "Without collecting a new pickup, collide with a different obstacle."
+      ],
+      "expected": "The blocked obstacle is removed immediately, the single charge and indicator are consumed, and the next unshielded collision ends the run normally.",
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Shield protection does not stack",
+      "steps": [
+        "Collect one shield, then another while already protected.",
+        "Take one obstacle hit, then a second without collecting a new pickup."
+      ],
+      "expected": "There is still only one charge: the first collision consumes it and the second unshielded collision ends the run.",
+      "feature_indexes": [
+        4
+      ]
+    }
+  ],
+  "api_contracts": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "response_kind": "object",
+      "required_fields": [
+        "status"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "response_kind": "text",
+      "required_fields": []
+    },
+    {
+      "method": "GET",
+      "path": "/game.js",
+      "status": 200,
+      "response_kind": "text",
+      "required_fields": []
+    }
+  ]
+}

@@ -215,3 +215,21 @@ Final release packaging changes only validation documentation after the extracte
 No user project files or approved checks are changed by this patch. Existing repair history
 is preserved. A diagnostic retry with repairs set to zero can verify the current project
 without spending further model requests.
+
+## Version 0.7.3 — repeated shield repair plan
+
+169 automated tests passed in 72.310 seconds from a fresh updater-validated distribution on
+Linux Python 3.12. New tests cover bounded relevance-ranked source excerpts, explicit truncation,
+repeated repair-task rejection, controlled correction with real source evidence in the payload,
+and persisted reviewed edits without model calls, source writes or approval. Inherited features,
+HTTP/manual acceptance and original source remain protected.
+
+A real browser reproduces the older saved five-task proposal, imports the reviewed two-task
+repair, checks that task cards update immediately and survive reload, explicitly saves another
+edit, verifies check-button feedback, then approves with no inference or execution. The token
+boundary, repeated-plan rejection and mobile layout pass. The existing arcade pipeline/broken
+Start-button test, planning/fallback controls and update/search/backup/consent browser flows pass.
+Six typed modules pass strict mypy. No live model-compliance or shield implementation success
+is claimed; the downloadable artifact is a reviewed proposal, not generated application code.
+
+Final release packaging changes only this validation documentation after the source test.

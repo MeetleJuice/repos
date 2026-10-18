@@ -211,6 +211,15 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("approve").disabled = true;
     proposalReviewTimer = setTimeout(reviewEditor, 500);
   });
-  document.getElementById("review-proposal-button").onclick =
-    handle(reviewEditor);
+  document.getElementById("review-proposal-button").onclick = handle(
+    async () => {
+      await reviewEditor();
+      if (current && reviewedProposal?.id === current.id) {
+        document.getElementById("proposal-edit-feedback").textContent =
+          reviewedProposal.result.passed
+            ? "Checked: valid. Save edited proposal to update the plan cards, or approve when ready. No model request."
+            : "Check found errors. Resolve the findings above before saving or approving.";
+      }
+    },
+  );
 });

@@ -259,6 +259,24 @@
               Use standard Neon Dodge plan
             </button>
           </div>
+          <div id="proposal-edit-tools" class="runtime-readiness" hidden>
+            <strong>Use a reviewed proposal</strong>
+            <p>
+              Import JSON or save editor changes to update the visible plan.
+              This checks and saves the proposal only; approval and execution
+              stay separate.
+            </p>
+            <label for="proposal-import">Proposal JSON file</label>
+            <input
+              id="proposal-import"
+              type="file"
+              accept=".json,application/json"
+            />
+            <button id="save-proposal-edits" type="button" class="secondary">
+              Save edited proposal
+            </button>
+            <p id="proposal-edit-feedback" role="status"></p>
+          </div>
           <div id="proposal-loading" class="empty">
             Your planner is shaping the idea. Local models may take a few
             minutes.

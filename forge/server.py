@@ -182,6 +182,8 @@ def make_server(port=8765, workbench=None):
                 self.json(bench.record_manual(ident, body["results"]))
             elif post and action == "starter-plan":
                 self.json(bench.load_starter_plan(ident))
+            elif post and action == "proposal":
+                self.json(bench.save_proposal(ident, body["plan"]))
             elif post and action == "review":
                 self.json(bench.review_proposal(ident, body["plan"]))
             elif post and action == "approve":

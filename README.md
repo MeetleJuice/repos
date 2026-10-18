@@ -1,10 +1,17 @@
-# Idea Foundry 0.7.2
+# Idea Foundry 0.7.3
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.7.3 improvement planning and proposal imports
+
+Improvement planning now receives bounded current-source evidence instead of relying only on
+promised features. Repeated repair task lists are rejected. **Import proposal JSON** and
+**Save edited proposal** explicitly save reviewed edits and update visible task cards without
+inference, approval or execution. See [the repair guide](docs/RELEASE-0.7.3.md).
 
 ## 0.7.2 Windows verification fix
 

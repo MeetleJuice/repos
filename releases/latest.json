@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.7.2",
+  "version": "0.7.3",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.2.zip",
-  "sha256": "050b1a9a8e4ca11178789a0edd94e9d64747dd886cbdbc574ba102caf5fb8e67",
-  "notes": "Fix Windows verification cleanup: restore cwd/import path before deleting disposable workspaces, preserve infrastructure failure reports, and stop model repairs for cleanup errors. Passed asset checks no longer cause a false missing-asset diagnosis. Existing projects are preserved."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.3.zip",
+  "sha256": "ff49238575884ec541818efc7a1af4aaa98d5df4afaf591ab8f19ae855f147d2",
+  "notes": "Source-aware improvement planning with bounded excerpts and repeated-task rejection; import and save reviewed proposal JSON with visible task-card updates, no inference or execution. Existing projects and acceptance checks remain protected."
 }

@@ -181,6 +181,9 @@ function render() {
   $("standard-plan-recovery").hidden =
     p.starter !== "arcade" || p.approved || !!p.parent_id || !!p.baseline_plan;
   $("recover-standard-game").disabled = busy;
+  $("proposal-edit-tools").hidden = p.approved;
+  $("proposal-import").disabled = busy;
+  $("save-proposal-edits").disabled = busy || !p.plan;
   $("proposal-content").hidden = !p.plan;
   if (p.plan) {
     fillList("features", p.plan.features);
@@ -947,4 +950,34 @@ $("create-standard-game").onclick = handle(async () => {
   } finally {
     $("create-standard-game").disabled = false;
   }
+});
+
+async function saveReviewedProposal(plan) {
+  const id = current.id;
+  const saved = await api(`/api/projects/${id}/proposal`, { plan });
+  if (current?.id !== id) return;
+  current = saved;
+  reviewedProposal = null;
+  lastPlan = "";
+  render();
+  $("proposal-edit-feedback").textContent =
+    `Saved ${saved.plan.tasks.length} tasks. No model request. Review the updated plan below before approving.`;
+  await listProjects();
+}
+$("save-proposal-edits").onclick = handle(async () => {
+  await saveReviewedProposal(JSON.parse($("plan-editor").value));
+});
+$("proposal-import").onchange = handle(async () => {
+  const file = $("proposal-import").files[0];
+  const projectId = current?.id;
+  if (!file || !projectId) return;
+  if (file.size > 50000)
+    throw new Error("Proposal JSON is too large (maximum file size 50 KB).");
+  const plan = JSON.parse(await file.text());
+  if (current?.id !== projectId)
+    throw new Error(
+      "Project changed. Select the proposal file again for the intended project.",
+    );
+  await saveReviewedProposal(plan);
+  $("proposal-import").value = "";
 });

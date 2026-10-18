@@ -3,6 +3,7 @@ import ast
 import hashlib
 import json
 import re
+from pathlib import Path
 
 SOURCE_LIMIT = 36000
 
@@ -35,3 +36,41 @@ def failure_feedback(result):
 
 def fingerprint(files):
     return hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
+
+
+def planning_context(files, request, budget=8000):
+    """Relevance-ranked excerpts, not inferred implementation claims or execution."""
+    query = request.lower()
+    words = {word for word in re.findall(r'[a-z][a-z0-9_]{2,}', query) if word not in {'the', 'and', 'with', 'from', 'this', 'that', 'app', 'code', 'file', 'existing', 'preserve'}}
+    def rank(item):
+        name, text = item
+        score = (100 if name.lower() in query else 0) + sum(min(8, text.lower().count(word)) for word in words)
+        if Path(name).name.startswith('test_') and name.lower() not in query:
+            score -= 20
+        return (-score, name)
+    excerpts, remaining = [], budget
+    for name, text in sorted(files.items(), key=rank)[:3]:
+        if remaining <= 0:
+            break
+        excerpt = text[:remaining]
+        excerpts.append({'file': name, 'content': excerpt, 'truncated': len(excerpt) < len(text)})
+        remaining -= len(excerpt)
+    mapping = []
+    for item in source_map(files):
+        item = {**item, 'symbols': [name[:80] for name in item.get('symbols', [])[:12]]}
+        if len(json.dumps(mapping + [item])) > 2500:
+            break
+        mapping.append(item)
+    return {'source_map': mapping, 'map_files_omitted': len(files) - len(mapping),
+            'excerpts': excerpts, 'source_characters': budget - remaining,
+            'files_omitted_from_excerpts': len(files) - len(excerpts),
+            'meaning': 'Current source excerpts; truncation/omissions are explicit. Approved features are requirements, not proof they were implemented.'}
+
+
+def same_tasks(first, second):
+    def signature(tasks):
+        if not isinstance(tasks, list) or not tasks or not all(isinstance(t, dict) and isinstance(t.get('title'), str) and isinstance(t.get('instructions'), str) for t in tasks):
+            return None
+        return [(re.sub(r'\s+', ' ', t['title']).strip().casefold(), re.sub(r'\s+', ' ', t['instructions']).strip().casefold()) for t in tasks]
+    left, right = signature(first), signature(second)
+    return left is not None and left == right

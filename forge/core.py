@@ -24,7 +24,7 @@ from .inspection import inspect_files
 from .runner import verify, require_runtime, verify_milestone, require_browser_runtime
 from .scaffolds import CATALOG, starter_files
 from .evidence import manual_document
-from .context import SOURCE_LIMIT, source_map, failure_feedback, fingerprint
+from .context import SOURCE_LIMIT, source_map, failure_feedback, fingerprint, planning_context, same_tasks
 
 OWNED = {"readme.md", "project.md", "tasks.md", "checks.json", "run.bat", "run.sh", "launch.py", "browser-checks.json", "manual-checks.md"}
 ACTIVE = {"planning", "building", "checking", "repairing", "queued"}
@@ -213,6 +213,8 @@ class Workbench:
         if baseline:
             if plan.get("features", [])[:len(baseline["features"])] != baseline["features"]:
                 raise ValueError("A change must preserve the original features in their original order, then append new features.")
+            if state.get("change_request") and plan.get("features") == baseline["features"] and same_tasks(plan.get("tasks"), baseline.get("tasks")):
+                raise ValueError("This improvement repeats the previous build tasks. Plan targeted changes for the current request using implementation_context; do not replay the old build or assign manual play-testing to the coding model.")
             for kind in ("manual_checks", "browser_checks"):
                 for check in baseline.get(kind, []):
                     if check not in plan.get(kind, []):
@@ -369,6 +371,23 @@ class Workbench:
                 # until the actual approved app passes verification.
                 state.setdefault("frozen_tests", {})["test_foundation.py"] = hashlib.sha256(files["test_foundation.py"].encode()).hexdigest()
             self.event(state, "Proposal approved. Requirements and acceptance checks frozen.")
+            return state
+
+    def save_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:
+        """Persist explicit reviewed edits without approval, inference or source writes."""
+        with self.lock:
+            if self.maintenance:
+                raise ValueError("An update is being installed. Wait for the restart.")
+            state = self.load(ident)
+            if state["approved"] or state["status"] in ACTIVE:
+                raise ValueError("Only an idle, unapproved proposal can be edited.")
+            candidate = self.revision_plan(state, plan)
+            review = require_consistent(candidate, state.get("starter"))
+            state.update(plan=candidate, title=candidate["title"], status="proposed", error=None,
+                         plan_review=review.to_dict(), failed_candidate=None, plan_is_previous=False,
+                         proposal_source={"kind": "user_edit"},
+                         planning_stats={"attempts": 0, "fallback_used": False, "source": "user_edit"})
+            self.event(state, "Reviewed proposal edits saved. No model call, source change, approval or execution.")
             return state
 
     def load_starter_plan(self, ident: str) -> dict[str, Any]:
@@ -666,6 +685,8 @@ class Workbench:
                 state["last_revision"] = revision
                 request = {"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"],
                            "existing_project": state.get("baseline_plan"), "change_request": state.get("change_request"),
+                           "implementation_context": planning_context(self.context_files(state["id"]), (state.get("change_request") or "") + " " + revision) if state.get("baseline_plan") else None,
+                           "baseline_evidence": {"parent_id": state.get("parent_id"), "note": "The baseline proposal lists required features. It does not prove the copied code implements them. Use current source and the reported bug."} if state.get("baseline_plan") else None,
                            "starter": CATALOG.get(state.get("starter")),
                            "starter_api_contracts": starter_contracts(state.get("starter")),
                            "verification_capabilities": {"http": True, "manual": True, "browser": "optional local Chromium; request browser_checks only when explicitly asked", "browser_starter": state.get("starter") == "arcade"},
