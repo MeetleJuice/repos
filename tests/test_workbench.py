@@ -12,7 +12,7 @@ import urllib.error
 import urllib.request
 import zipfile
 
-from forge.core import Workbench, validate_plan, safe_file, ACTIVE
+from forge.core import Workbench, validate_plan, safe_file, ACTIVE, preflight
 from forge.models import ModelClient, extract_json
 from forge.runner import verify
 from forge.server import make_server
@@ -105,7 +105,8 @@ class WorkbenchTests(unittest.TestCase):
         bench.start(ident, "build", {"execute": True, "consent": True, "runtime": "local", "repairs": 0})
         state = await_job(bench, ident)
         self.assertEqual(state["status"], "needs_attention")
-        self.assertIn("at least one test", state["checks"]["log"])
+        self.assertIsNone(state["checks"])
+        self.assertIn("Missing unittest", " ".join(state["preflight"]["issues"]))
 
     def test_early_zero_exit_is_not_success(self):
         early_exit = APP + '\nif __name__ == "foundry_generated_app":\n    import sys\n    sys.exit(0)\n'
@@ -129,6 +130,7 @@ class WorkbenchTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             bench.apply(state, {"files": {"app.py": APP, "../escape.py": "bad"}})
         self.assertNotIn("app.py", bench.files(ident))
+        bench.apply(state, {"files": {"test_app.py": TEST}})
         with self.assertRaises(ValueError):
             bench.apply(state, {"files": {"CHECKS.json": "[]"}})
         with self.assertRaises(ValueError):
@@ -136,6 +138,52 @@ class WorkbenchTests(unittest.TestCase):
         for name in ["../x.py", "/x.py", ".env", "C:/x.py", "a\\x.py", "CON.py", "x./a.py"]:
             with self.subTest(name=name), self.assertRaises(ValueError):
                 safe_file(self.root, name)
+
+    def test_static_repair_adds_missing_tests_without_execution(self):
+        bench, ident, _ = self.create([
+            {"files": {"app.py": "def create_server(:\n"}},
+            {"files": {"app.py": APP, "test_app.py": TEST}},
+        ])
+        bench.verifier = lambda *a: self.fail("Static repair must not execute code")
+        bench.start(ident, "build", {"execute": False, "repairs": 1})
+        state = await_job(bench, ident)
+        self.assertEqual(state["status"], "generated", state.get("error"))
+        self.assertTrue(state["preflight"]["passed"])
+        self.assertEqual(state["repair_count"], 1)
+        self.assertIsNone(state["checks"])
+        self.assertIn("test_app.py", bench.files(ident))
+
+    def test_static_and_runtime_repairs_share_one_budget(self):
+        bench, ident, models = self.create([
+            {"files": {"app.py": BROKEN}},
+            {"files": {"test_app.py": TEST}},
+        ])
+        bench.start(ident, "build", {"execute": True, "consent": True, "runtime": "local", "repairs": 1})
+        state = await_job(bench, ident)
+        self.assertEqual(state["status"], "needs_attention")
+        self.assertEqual(state["repair_count"], 1)
+        self.assertFalse(state["checks"]["passed"])
+        self.assertEqual(len(models.calls), 3)
+
+    def test_incomplete_plan_is_rejected_and_planner_retries(self):
+        invalid = copy.deepcopy(PLAN)
+        invalid["tasks"][0]["feature_indexes"] = [0]
+        with self.assertRaisesRegex(ValueError, "Missing feature indexes"):
+            validate_plan(invalid)
+        models = ScriptedModels([invalid, PLAN])
+        bench = Workbench(self.root, models)
+        cfg = {"provider": "ollama", "model": "test"}
+        state = bench.create("Make a task tracker", cfg, cfg)
+        state = await_job(bench, state["id"])
+        self.assertEqual(state["status"], "proposed")
+        self.assertIn("validation_error", models.calls[1])
+        self.assertEqual(len(models.calls), 2)
+
+    def test_missing_test_methods_and_syntax_are_detected(self):
+        result = preflight({"app.py": "def create_server(:\n", "test_app.py": "import unittest\n"})
+        self.assertFalse(result["passed"])
+        self.assertTrue(any("syntax error" in issue for issue in result["issues"]))
+        self.assertTrue(any("test_ methods" in issue for issue in result["issues"]))
 
     def test_approval_is_required_and_frozen(self):
         bench, ident, _ = self.create([])

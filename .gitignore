@@ -5,3 +5,6 @@ __pycache__/
 data/
 artifacts/
 .pytest_cache/
+*.db
+*.db-shm
+*.db-wal

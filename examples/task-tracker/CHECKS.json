@@ -1,0 +1,23 @@
+[
+  {
+    "name": "Health check",
+    "method": "GET",
+    "path": "/health",
+    "status": 200,
+    "json_contains": {
+      "status": "ok"
+    }
+  },
+  {
+    "name": "Create task",
+    "method": "POST",
+    "path": "/api/tasks",
+    "body": {
+      "title": "Buy milk"
+    },
+    "status": 201,
+    "json_contains": {
+      "title": "Buy milk"
+    }
+  }
+]

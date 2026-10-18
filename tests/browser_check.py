@@ -41,7 +41,7 @@ def main():
                 expect(page.locator("#features")).to_contain_text("Create a task")
                 page.get_by_role("button", name="Approve this project").click()
                 page.get_by_role("button", name="Generate / resume code").click()
-                expect(page.locator("#project-status")).to_have_text("generated", timeout=15000)
+                expect(page.locator("#project-status")).to_have_text("Files ready · not tested", timeout=15000)
                 expect(page.locator("#test-badge")).to_have_text("Not verified")
                 page.locator("#runtime").select_option("local")
                 expect(page.locator("#runtime-note")).to_contain_text("NOT a security sandbox")

@@ -5,7 +5,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parent
 TOP = {".env.example", ".gitignore", "LICENSE", "README.md", "Start-Foundry.bat", "run.py", "package.py"}
-DIRECTORIES = {"forge", "docs", "tests", ".github"}
+DIRECTORIES = {"forge", "docs", "tests", "examples", ".github"}
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(ROOT.rglob("*")):
             relative = path.relative_to(ROOT)
-            if not path.is_file() or path.is_symlink() or "__pycache__" in relative.parts or path.suffix == ".pyc":
+            if not path.is_file() or path.is_symlink() or "__pycache__" in relative.parts or path.suffix in {".pyc", ".db"} or path.name.endswith((".db-wal", ".db-shm")):
                 continue
             if (len(relative.parts) == 1 and path.name in TOP) or relative.parts[0] in DIRECTORIES:
                 if path.name == ".env" or ".git" in relative.parts:

@@ -1,0 +1,10 @@
+{
+  "status": "verified",
+  "checks": {
+    "passed": true,
+    "exit_code": 0,
+    "log": "test_bad_input_returns_400_without_creating_tasks (test_app.TrackerTests.test_bad_input_returns_400_without_creating_tasks) ... ok\ntest_complete_and_reopen (test_app.TrackerTests.test_complete_and_reopen) ... ok\ntest_concurrent_creates_use_independent_connections (test_app.TrackerTests.test_concurrent_creates_use_independent_connections) ... ok\ntest_create_and_list (test_app.TrackerTests.test_create_and_list) ... ok\ntest_cross_origin_writes_are_rejected (test_app.TrackerTests.test_cross_origin_writes_are_rejected) ... ok\ntest_delete (test_app.TrackerTests.test_delete) ... ok\ntest_form_encoded_submission (test_app.TrackerTests.test_form_encoded_submission) ... ok\ntest_health_and_browser_assets (test_app.TrackerTests.test_health_and_browser_assets) ... ok\ntest_persistence_after_server_restart (test_app.TrackerTests.test_persistence_after_server_restart) ... ok\ntest_sql_and_html_are_stored_as_text (test_app.TrackerTests.test_sql_and_html_are_stored_as_text) ... ok\ntest_unknown_and_invalid_routes (test_app.TrackerTests.test_unknown_and_invalid_routes) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 6.098s\n\nOK\nPASS: Health endpoint\nPASS: HTML interface\nPASS: Health check\nPASS: Create task\nTask Tracker: http://127.0.0.1:34815 \u2014 keep this window open. Ctrl+C stops the app.\nPASS: Python launch command\n{\"tests_run\": 11, \"http_checks\": 5, \"result\": \"passed\"}\n",
+    "runtime": "docker"
+  },
+  "note": "Repaired uploaded app. Original CHECKS.json preserved. Additional behavior and persistence are tested in test_app.py. Validated on Linux with Docker, not on the user Windows computer."
+}

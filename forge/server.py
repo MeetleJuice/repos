@@ -133,7 +133,7 @@ def make_server(port=8765, workbench=None):
                     with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
                         for name, content in bench.files(ident).items():
                             archive.writestr("generated-app/" + name, content)
-                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"status": state["status"], "checks": state["checks"], "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
+                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
                     self.send_bytes(200, stream.getvalue(), "application/zip", "generated-app.zip")
             elif post and action == "approve":
                 self.json(bench.approve(ident, body["plan"]))

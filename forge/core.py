@@ -1,5 +1,6 @@
 """Persistent projects and a deliberately bounded plan/build/check/repair state machine."""
 from datetime import datetime, timezone
+import ast
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -23,12 +24,25 @@ def validate_plan(plan):
     for name in ("features", "out_of_scope", "risks"):
         if not isinstance(plan.get(name), list) or len(plan[name]) > 20 or not all(isinstance(x, str) and len(x) < 3000 for x in plan[name]):
             raise ValueError(f"Proposal needs a list of {name}.")
+    if not plan["features"]:
+        raise ValueError("The proposal must list at least one feature.")
+    def coverage(items, label):
+        covered = set()
+        for item in items:
+            indexes = item.get("feature_indexes")
+            if not isinstance(indexes, list) or not all(type(i) is int and 0 <= i < len(plan["features"]) for i in indexes):
+                raise ValueError(f"Each {label} needs feature_indexes listing the feature numbers it covers (starting at 0).")
+            covered.update(indexes)
+        missing = set(range(len(plan["features"]))) - covered
+        if missing:
+            raise ValueError(f"Every feature needs {label} coverage. Missing feature indexes: {sorted(missing)}.")
     tasks = plan.get("tasks")
     if not isinstance(tasks, list) or not 1 <= len(tasks) <= 8:
         raise ValueError("Proposal must contain 1–8 ordered tasks.")
     for task in tasks:
         if not isinstance(task, dict) or not all(isinstance(task.get(k), str) and 0 < len(task[k]) <= 6000 for k in ("title", "instructions")):
             raise ValueError("Each task needs a title and instructions.")
+    coverage(tasks, "task")
     checks = plan.get("checks")
     if not isinstance(checks, list) or not 1 <= len(checks) <= 15:
         raise ValueError("Proposal must contain 1–15 behavioral HTTP checks.")
@@ -55,9 +69,31 @@ def validate_plan(plan):
             behavior = True
     if not behavior:
         raise ValueError("Add a check of actual app behavior beyond / and /health.")
+    coverage(checks, "acceptance check")
     if len(json.dumps(plan)) > 30000:
         raise ValueError("Proposal too large. Narrow the scope.")
     return plan
+
+
+def preflight(files):
+    """Inspect Python structure without importing or executing model-written code."""
+    issues, parsed = [], {}
+    for name, content in files.items():
+        if name.endswith(".py"):
+            try:
+                parsed[name] = ast.parse(content, filename=name)
+            except (SyntaxError, ValueError) as exc:
+                issues.append(f"{name}: Python syntax error: {exc}")
+    if "app.py" not in files:
+        issues.append("Missing app.py.")
+    elif "app.py" in parsed and not any(isinstance(node, ast.FunctionDef) and node.name == "create_server" for node in parsed["app.py"].body):
+        issues.append("app.py must define create_server(host, port).")
+    tests = [name for name in files if Path(name).name.startswith("test_") and name.endswith(".py")]
+    if not tests:
+        issues.append("Missing unittest test file (for example test_app.py). Add tests of the approved features.")
+    elif not any(isinstance(node, ast.FunctionDef) and node.name.startswith("test_") for name in tests for node in ast.walk(parsed.get(name, ast.Module(body=[], type_ignores=[])))):
+        issues.append("Test files must contain real test_ methods; empty test files are insufficient.")
+    return {"passed": not issues, "issues": issues, "executed": False}
 
 
 def safe_file(root, name):
@@ -228,7 +264,7 @@ class Workbench:
             self.checkpoint(state, "Backup before manual restore")
             shutil.rmtree(source)
             shutil.copytree(self.directory(ident) / "snapshots" / snapshot, source)
-            state.update(next_task=match["next_task"], status="approved", checks=None)
+            state.update(next_task=match["next_task"], status="approved", checks=None, preflight=None)
             self.event(state, "Restored checkpoint: " + match["label"])
             return state
 
@@ -245,7 +281,7 @@ class Workbench:
             if lower in normalized or any(n.lower() == lower and n != name for n in current):
                 raise ValueError("Case-colliding filenames are not portable to Windows.")
             normalized.add(lower)
-            if lower in OWNED or repair and (target.name.startswith("test_") or target.name.endswith("_test.py")):
+            if lower in OWNED or repair and name in current and (target.name.startswith("test_") or target.name.endswith("_test.py")):
                 raise ValueError("Model attempted to modify frozen documentation, acceptance checks, or repair-time tests.")
             if not isinstance(content, str) or len(content) > 40000:
                 raise ValueError("Generated file is too large or not text.")
@@ -268,29 +304,63 @@ class Workbench:
                 revision = options.get("revision", "")
                 if not isinstance(revision, str) or len(revision) > 6000:
                     raise ValueError("Revision must be under 6000 characters.")
-                plan = self.client(state, "planner").complete(PLAN, json.dumps({"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"]}))
-                if cancel.is_set():
-                    raise InterruptedError("Stopped. Model output discarded.")
-                state.update(plan=validate_plan(plan), title=plan["title"], status="proposed")
+                request = {"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"]}
+                for attempt in range(2):
+                    plan = self.client(state, "planner").complete(PLAN, json.dumps(request))
+                    if cancel.is_set():
+                        raise InterruptedError("Stopped. Model output discarded.")
+                    try:
+                        validate_plan(plan)
+                        break
+                    except ValueError as exc:
+                        if attempt:
+                            raise
+                        request.update(previous_proposal=plan, validation_error=str(exc))
+                        self.event(state, "Proposal incomplete; asking the planner to correct task/check coverage: " + str(exc))
+                state.update(plan=plan, title=plan["title"], status="proposed")
                 self.event(state, "Proposal ready. Review the scope, tasks, and behavioral checks before approval.")
                 return
             state["checks"] = None
+            state["preflight"] = None
             for index in range(state["next_task"], len(state["plan"]["tasks"])):
                 if cancel.is_set():
                     raise InterruptedError("Build stopped. You can resume from the next unfinished task.")
                 task = state["plan"]["tasks"][index]
                 self.event(state, f'Task {index+1}: {task["title"]}')
-                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "current_task": task, "files": self.context_files(state["id"])}))
+                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"])}))
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Model output discarded.")
                 self.apply(state, response)
                 state["next_task"] = index + 1
                 self.save(state)
+            # Repairs here are text-only model calls. No generated code is run.
+            remaining_repairs = options.get("repairs", 2)
+            for attempt in range(remaining_repairs + 1):
+                state["preflight"] = preflight(self.context_files(state["id"]))
+                self.save(state)
+                if state["preflight"]["passed"]:
+                    break
+                issues = "\n".join(state["preflight"]["issues"])
+                if remaining_repairs == 0:
+                    state["status"] = "needs_attention"
+                    self.event(state, "Static inspection found incomplete code. No code was executed.\n" + issues)
+                    return
+                if cancel.is_set():
+                    raise InterruptedError("Stopped before static repair.")
+                state["status"] = "repairing"
+                self.event(state, f"Static repair {attempt+1}: correcting syntax/structure or adding missing tests without executing code.\n" + issues)
+                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": issues, "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Existing tests and approved checks are frozen. Implement every approved feature."}))
+                if cancel.is_set():
+                    raise InterruptedError("Stopped. Static repair output discarded.")
+                self.apply(state, response, repair=True)
+                state["repair_count"] += 1
+                remaining_repairs -= 1
             if not options.get("execute"):
                 state["status"] = "generated"
-                self.event(state, "Code generated. Not executed or verified. Approve execution to run checks and repairs.")
+                self.event(state, "Source and test files generated; static syntax/structure checks passed. The app has NOT run or been verified. Approve execution for behavioral checks.")
                 return
-            for attempt in range(options.get("repairs", 2) + 1):
+            runtime_repairs = remaining_repairs
+            for attempt in range(runtime_repairs + 1):
                 if cancel.is_set():
                     raise InterruptedError("Verification stopped.")
                 state["status"] = "checking"
@@ -304,13 +374,13 @@ class Workbench:
                     state["status"] = "verified"
                     self.event(state, "Tests and HTTP acceptance checks passed. Download and try the app; review remaining requirements yourself.")
                     return
-                if attempt == options.get("repairs", 2):
+                if attempt == runtime_repairs:
                     state["status"] = "needs_attention"
                     self.event(state, "Checks failed. Repair limit reached; inspect the output and files.")
                     return
                 state["status"] = "repairing"
                 self.event(state, f'Repair attempt {attempt+1}; approved checks and generated test files remain frozen.')
-                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-12000:], "instruction": "Fix application source only. Do not edit test files or weaken approved checks."}))
+                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-12000:], "instruction": "Fix application source only. Do not edit existing test files or weaken approved checks. Add tests only if missing."}))
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Repair output discarded.")
                 self.apply(state, response, repair=True)

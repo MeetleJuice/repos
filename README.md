@@ -6,6 +6,29 @@ An original, local-first Python workbench for Windows and VS Code. Ollama is the
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Python 3.11 or newer is required.
 
+## Try the repaired Task Tracker
+
+The corrected first app is included in **examples/task-tracker**. Open that folder and
+double-click **run.bat**, then open `http://127.0.0.1:8080`. It works independently of
+Idea Foundry and does not need Ollama. See that folder's README for details.
+
+## Update an existing Windows copy
+
+The GitHub repository, this cloud checkout, and your Windows folder are separate copies.
+Changes on GitHub do not automatically update a ZIP you already extracted.
+
+Download the latest repository ZIP, extract it into a **new folder**, and stop the old
+workbench with Ctrl+C in its terminal. Copy the old workbench's `data` folder into the new
+workbench folder to retain projects; also copy your local `.env` if you created one.
+Keep the old folder as a backup. Start **Start-Foundry.bat** from the new folder and refresh
+your browser. Do not overwrite or delete `data` to update the application code.
+
+Existing approved projects remain usable. **Generate / resume code** now checks Python
+syntax and missing tests without executing the app; it can ask the model for bounded repairs.
+Approved requirements/checks and existing test files stay frozen. New proposals must explicitly
+map every feature to implementation tasks and acceptance checks. This mapping helps expose
+omissions; it does not prove that model-written tasks/checks adequately implement a feature.
+
 ## Start on Windows
 
 1. Download the Idea Foundry ZIP and **extract all files** into a folder, such as `Documents\IdeaFoundry`.
@@ -30,7 +53,9 @@ The workbench binds only to this computer. It is not intended to be exposed on a
 3. Read the proposal, scope, ordered tasks, and HTTP acceptance checks. Revise it if needed.
    You can edit the JSON directly before approval.
 4. Click **Approve this project**. Requirements and acceptance checks are now frozen.
-5. Click **Generate / resume code** to create files without executing them.
+5. Click **Generate / resume code** to create files without executing them. Python syntax,
+   the server factory, and test-file structure are inspected first, with bounded text-only repairs.
+   **Files ready · not tested** means static inspection passed; behavioral verification is still pending.
 6. Review the generated files. Select an execution runtime, explicitly approve execution,
    and click **Build, test & repair**. If code is already generated, it starts with checks.
 7. Read the results. Download the app ZIP, extract it, and open it in VS Code.
@@ -98,7 +123,7 @@ as planner/builder models.
 - Runs generated `unittest` tests plus fixed health, home-page, and approved behavioral HTTP checks.
 - Requires at least one executed generated test; failures, skipped tests, and expected failures
   do not pass verification. Repairs cannot change approved checks or existing test files.
-- Makes at most three model-assisted repair attempts per run, then reports a blocker.
+- Makes at most three model-assisted repair attempts per run, shared between static fixes and runtime fixes, then reports a blocker.
 - Preserves progress, checkpoints, verification logs, and an exportable build report.
 
 This is a first working foundation, not a promise to build any app from any prompt. It does not

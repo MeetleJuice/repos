@@ -3,10 +3,10 @@ PLAN = {
     "title": "Pocket Tasks", "summary": "A small persistent task tracker.",
     "features": ["Create a task", "List saved tasks"], "out_of_scope": ["Accounts"],
     "risks": ["Review generated code before running."],
-    "tasks": [{"title": "Build the task tracker", "instructions": "Create app.py and behavioral unittest tests."}],
+    "tasks": [{"title": "Build the task tracker", "instructions": "Create app.py and behavioral unittest tests.", "feature_indexes": [0, 1]}],
     "checks": [
-        {"name": "Create task", "method": "POST", "path": "/api/tasks", "body": {"title": "Buy milk"}, "status": 201, "json_contains": {"title": "Buy milk"}},
-        {"name": "Retrieve saved task", "method": "GET", "path": "/api/tasks", "status": 200, "contains": "Buy milk"},
+        {"name": "Create task", "method": "POST", "path": "/api/tasks", "body": {"title": "Buy milk"}, "status": 201, "json_contains": {"title": "Buy milk"}, "feature_indexes": [0]},
+        {"name": "Retrieve saved task", "method": "GET", "path": "/api/tasks", "status": 200, "contains": "Buy milk", "feature_indexes": [1]},
     ],
 }
 

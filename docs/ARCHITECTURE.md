@@ -21,6 +21,16 @@ or `stopped`. A restart marks in-progress jobs `interrupted`; resume uses `next_
 Only one job can run per project. Model output is discarded when a stop was requested.
 The UI uses one local session token per server process; it must refresh after a restart.
 
+New proposals must map every feature to task/check `feature_indexes`. A structurally incomplete
+proposal gets one correction attempt before an error is reported. This explicit traceability is
+not a semantic guarantee. Already-approved legacy projects are not silently rewritten.
+
+After tasks are generated, AST parsing checks all Python files without executing them. Missing
+app.py, create_server, test files, or test methods are reported. The coder may correct source
+and add missing tests using the same bounded repair budget as runtime repairs. Existing tests
+and acceptance checks remain frozen. Incomplete code ends in needs_attention. `generated`
+is displayed as **Files ready · not tested**, never as a working-app claim.
+
 ## Generated-app contract
 
 - Standard-library-only Python 3.11+.

@@ -14,6 +14,7 @@ function notice(message) { $('notice').textContent = message; $('notice').hidden
 function handle(fn) { return async event => { if(event) event.preventDefault(); try { notice(''); await fn(event); } catch(error) { notice(error.message); } }; }
 function button(text, fn, className='quiet') { const b=document.createElement('button'); b.textContent=text; b.className=className; b.type='button'; b.onclick=handle(fn); return b; }
 function cloudConsent() { return $('project-cloud-consent').checked; }
+function statusLabel(status) { return status==='generated'?'Files ready · not tested':status.replaceAll('_',' '); }
 function selectedModels() { return {planner:{provider:$('planner-provider').value,model:$('planner-model').value},coder:{provider:$('coder-provider').value,model:$('coder-model').value}}; }
 function updateCloud() { document.querySelector('.cloud-option').hidden = ['planner','coder'].every(r => $(r+'-provider').value==='ollama'); }
 function tab(name) {
@@ -24,7 +25,7 @@ function tab(name) {
 async function listProjects() {
   const projects=await api('/api/projects'); $('projects').replaceChildren();
   if(!projects.length){ const p=document.createElement('p');p.className='muted';p.textContent='Your ideas will live here.';$('projects').append(p); }
-  for(const p of projects){const b=button('',()=>openProject(p.id),'project-link'+(current?.id===p.id?' selected':''));const title=document.createElement('strong');title.textContent=p.title;const status=document.createElement('small');status.textContent=p.status.replaceAll('_',' ');b.append(title,status);$('projects').append(b);}
+  for(const p of projects){const b=button('',()=>openProject(p.id),'project-link'+(current?.id===p.id?' selected':''));const title=document.createElement('strong');title.textContent=p.title;const status=document.createElement('small');status.textContent=statusLabel(p.status);b.append(title,status);$('projects').append(b);}
 }
 async function openProject(id) {
   current=await api('/api/projects/'+id);lastPlan='';$('revision').value='';$('project-cloud-consent').checked=false;
@@ -34,7 +35,7 @@ function fillList(id, items) { $(id).replaceChildren(...items.map(text=>{const l
 function render() {
   if(!current)return;const p=current,busy=activeStatuses.has(p.status);
   $('breadcrumb').textContent=p.title;$('project-title').textContent=p.title;$('project-summary').textContent=p.plan?.summary||p.idea;
-  $('project-status').textContent=p.status.replaceAll('_',' ');$('project-status').className='badge '+p.status;
+  $('project-status').textContent=statusLabel(p.status);$('project-status').className='badge '+p.status;
   $('step-plan').classList.toggle('done',!!p.plan);$('step-approve').classList.toggle('done',p.approved);$('step-build').classList.toggle('done',!!p.plan&&p.next_task===p.plan.tasks.length);$('step-check').classList.toggle('done',p.status==='verified');
   $('proposal-loading').hidden=!!p.plan;$('proposal-loading').textContent=p.status==='error'?'Planning stopped: '+p.error+' — retry below.':'Your planner is shaping the idea. Local models may take a few minutes.';
   if(!p.plan && !busy){$('proposal-loading').replaceChildren(document.createTextNode(p.error||'No proposal yet.'),button('Retry proposal',()=>job('plan',{}),'secondary'));}
@@ -53,7 +54,7 @@ function render() {
   $('model-label').textContent=`Planner: ${p.planner.provider}/${p.planner.model} · Builder: ${p.coder.provider}/${p.coder.model}`;
   document.querySelector('.project-cloud').hidden=[p.planner,p.coder].every(m=>m.provider==='ollama');
   $('test-badge').textContent=p.checks?(p.checks.passed?'Checks passed':'Checks failed'):'Not verified';$('test-badge').className='badge '+(p.checks?.passed?'verified':p.checks?'error':'');
-  $('test-output').textContent=p.checks?`Runtime: ${p.checks.runtime} · Exit: ${p.checks.exit_code}\n\n${p.checks.log}`:'No checks have run yet.';
+  $('test-output').textContent=p.checks?`Runtime: ${p.checks.runtime} · Exit: ${p.checks.exit_code}\n\n${p.checks.log}`:p.preflight?(p.preflight.passed?'Static syntax/structure checks passed. No generated code has run. Behavioral verification still requires execution approval.':'Static inspection found problems (no code executed):\n\n'+p.preflight.issues.join('\n')):'No checks have run yet.';
   $('events').replaceChildren(...p.events.map(e=>{const d=document.createElement('div');d.className='event';const time=document.createElement('time');time.textContent=new Date(e.time).toLocaleTimeString();d.append(time,document.createTextNode(e.message));return d;}));
   $('snapshots').replaceChildren(...p.snapshots.slice().reverse().map(s=>{const b=button(s.label,async()=>{if(!confirm('Restore this checkpoint? Current files will be backed up first.'))return;current=await api(`/api/projects/${p.id}/restore`,{snapshot:s.id});render();await loadFiles();},'secondary');b.disabled=busy;return b;}));
 }
@@ -74,7 +75,7 @@ document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>tab(b.dataset.t
 ['planner','coder'].forEach(role=>$(role+'-provider').onchange=()=>{$(role+'-model').value=$(role+'-provider').value==='ollama'?(role==='coder'?'qwen2.5-coder:7b':'qwen3.5:9b'):defaults[$(role+'-provider').value];updateCloud();});
 $('revise').onclick=handle(()=>job('plan',{revision:$('revision').value}));
 $('approve').onclick=handle(async()=>{current=await api(`/api/projects/${current.id}/approve`,{plan:JSON.parse($('plan-editor').value)});render();tab('build');await listProjects();});
-$('generate').onclick=handle(()=>job('build',{execute:false}));
+$('generate').onclick=handle(()=>job('build',{execute:false,repairs:Number($('repairs').value)}));
 $('verify').onclick=handle(async()=>{if(!$('execution-consent').checked)throw new Error('Review the execution settings and check the approval box first.');await job('build',{execute:true,consent:true,runtime:$('runtime').value,repairs:Number($('repairs').value)});});
 $('stop').onclick=handle(async()=>{const result=await api(`/api/projects/${current.id}/stop`,{});notice(result.message);});
 $('runtime').onchange=()=>{$('execution-consent').checked=false;$('runtime-note').textContent=$('runtime').value==='local'?'Generated Python will run with your Windows account permissions. A project folder is NOT a security sandbox. Use only code you trust; Docker is recommended.':'Requires Docker Desktop and the python:3.12-slim image. No network or host API keys inside the container.';};
