@@ -1,20 +1,26 @@
 """Persistent projects and a deliberately bounded plan/build/check/repair state machine."""
 from datetime import datetime, timezone
 import ast
+import copy
+import difflib
+import hashlib
+import io
 import json
 import os
 from pathlib import Path, PurePosixPath
 import re
 import shutil
 import threading
+import time
 import uuid
+import zipfile
 
 from .models import ModelClient
 from .prompts import PLAN, CODE
-from .runner import verify
+from .runner import verify, require_runtime
 
-OWNED = {"readme.md", "project.md", "tasks.md", "checks.json", "run.bat", "run.sh"}
-ACTIVE = {"planning", "building", "checking", "repairing"}
+OWNED = {"readme.md", "project.md", "tasks.md", "checks.json", "run.bat", "run.sh", "launch.py"}
+ACTIVE = {"planning", "building", "checking", "repairing", "queued"}
 
 
 def validate_plan(plan):
@@ -75,7 +81,7 @@ def validate_plan(plan):
     return plan
 
 
-def preflight(files):
+def preflight(files, complete=True):
     """Inspect Python structure without importing or executing model-written code."""
     issues, parsed = [], {}
     for name, content in files.items():
@@ -84,6 +90,8 @@ def preflight(files):
                 parsed[name] = ast.parse(content, filename=name)
             except (SyntaxError, ValueError) as exc:
                 issues.append(f"{name}: Python syntax error: {exc}")
+    if not complete:
+        return {"passed": not issues, "issues": issues, "executed": False}
     if "app.py" not in files:
         issues.append("Missing app.py.")
     elif "app.py" in parsed and not any(isinstance(node, ast.FunctionDef) and node.name == "create_server" for node in parsed["app.py"].body):
@@ -119,9 +127,20 @@ class Workbench:
         self.root.mkdir(parents=True, exist_ok=True)
         self.client_factory, self.verifier = client_factory, verifier
         self.lock = threading.RLock()
+        self.inference_lock = threading.Lock()
         self.jobs = {}
+        self.warnings = []
         for path in self.root.glob("*/state.json"):
-            state = json.loads(path.read_text(encoding="utf-8"))
+            try:
+                state = self.load(path.parent.name)
+            except (ValueError, OSError):
+                self.warnings.append(f"Could not read project {path.parent.name}. Its files were preserved. Restore from a workspace backup.")
+                continue
+            if not (path.parent / "source").exists():
+                recoverable = sorted(path.parent.glob(".source-before-*"), key=lambda p: p.stat().st_mtime, reverse=True)
+                if recoverable:
+                    os.replace(recoverable[0], path.parent / "source")
+                    self.warnings.append(f"Recovered project {state['title']} after an interrupted file update. Original source was restored.")
             if state.get("status") in ACTIVE:
                 state["status"] = "interrupted"
                 state["events"].append({"time": self.now(), "message": "Workbench restarted. Resume to continue from the last saved task."})
@@ -139,15 +158,22 @@ class Workbench:
     def load(self, ident):
         with self.lock:
             try:
-                return json.loads((self.directory(ident) / "state.json").read_text(encoding="utf-8"))
+                state = json.loads((self.directory(ident) / "state.json").read_text(encoding="utf-8"))
+                if not isinstance(state, dict) or state.get("id") != ident or not all(isinstance(state.get(k), str) for k in ("status", "created", "title")) or not isinstance(state.get("events"), list):
+                    raise ValueError("Project metadata is invalid. Original files were preserved.")
+                return state
             except FileNotFoundError:
                 raise ValueError("Project not found.") from None
+            except json.JSONDecodeError:
+                raise ValueError("Project metadata is damaged. Original files were preserved; restore from a backup.") from None
 
     def save(self, state):
         with self.lock:
             path = self.directory(state["id"])
             path.mkdir(exist_ok=True)
-            temporary = path / "state.tmp"
+            state["schema_version"] = 2
+            state["updated"] = self.now()
+            temporary = path / ("state-" + uuid.uuid4().hex + ".tmp")
             temporary.write_text(json.dumps(state, indent=2), encoding="utf-8")
             os.replace(temporary, path / "state.json")
 
@@ -158,8 +184,127 @@ class Workbench:
 
     def list_projects(self):
         with self.lock:
-            states = [json.loads(p.read_text(encoding="utf-8")) for p in self.root.glob("*/state.json")]
+            states = []
+            for path in self.root.glob("*/state.json"):
+                try:
+                    states.append(self.load(path.parent.name))
+                except (ValueError, OSError):
+                    continue
         return sorted(states, key=lambda p: p["created"], reverse=True)
+
+    def call_model(self, state, role, system, prompt, cancel):
+        """One inference at a time avoids loading competing local models."""
+        previous = state["status"]
+        if not self.inference_lock.acquire(blocking=False):
+            state["status"] = "queued"
+            self.event(state, "Waiting for the other model request to finish. You can stop this queued job.")
+            while not self.inference_lock.acquire(timeout=0.2):
+                if cancel.is_set():
+                    raise InterruptedError("Stopped while waiting for a model.")
+        started = time.monotonic()
+        record = {"role": role, **state[role], "time": self.now(), "success": False}
+        try:
+            if cancel.is_set():
+                raise InterruptedError("Stopped before model inference.")
+            state["status"] = previous
+            self.save(state)
+            result = self.client(state, role).complete(system, prompt)
+            record["success"] = True
+            return result
+        finally:
+            record["seconds"] = round(time.monotonic() - started, 2)
+            state.setdefault("model_calls", []).append(record)
+            state["model_calls"] = state["model_calls"][-100:]
+            try:
+                self.save(state)
+            finally:
+                self.inference_lock.release()
+
+    def configure_models(self, ident, planner, coder):
+        with self.lock:
+            state = self.load(ident)
+            if state["status"] in ACTIVE:
+                raise ValueError("Wait for or stop the running job before changing models.")
+            for config in (planner, coder):
+                ModelClient(config["provider"], config["model"])
+                if config["provider"] == "ollama" and "embed" in config["model"].lower():
+                    raise ValueError("Embedding models cannot plan or write apps. Choose a chat/coding model.")
+            state.update(planner=planner, coder=coder)
+            self.event(state, "Model choices updated. Project files and approved requirements were kept.")
+            return state
+
+    def fork(self, ident, request):
+        with self.lock:
+            parent = self.load(ident)
+            if parent["status"] in ACTIVE or not parent["approved"]:
+                raise ValueError("Finish or stop an approved project before requesting a change.")
+            if not isinstance(request, str) or not 10 <= len(request.strip()) <= 6000:
+                raise ValueError("Describe the change in 10–6000 characters.")
+            state = copy.deepcopy(parent)
+            state.update(id=uuid.uuid4().hex, parent_id=ident, parent_title=parent["title"],
+                         change_request=request.strip(), baseline_plan=copy.deepcopy(parent["plan"]),
+                         frozen_tests={name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(ident).items() if Path(name).name.startswith("test_") and name.endswith(".py")},
+                         title=parent["title"] + " · change", created=self.now(), status="draft", approved=False,
+                         plan=None, next_task=0, events=[], snapshots=[], checks=None, preflight=None, model_calls=[], milestones=[], repair_count=0)
+            target = self.directory(state["id"]) / "source"
+            target.mkdir(parents=True)
+            for name, content in self.files(ident).items():
+                path = target / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(content, encoding="utf-8")
+            self.save(state)
+            self.start(state["id"], "plan", {})
+            return self.load(state["id"])
+
+    @staticmethod
+    def revision_plan(state, plan):
+        plan = copy.deepcopy(plan)
+        baseline = state.get("baseline_plan")
+        if baseline:
+            if plan.get("features", [])[:len(baseline["features"])] != baseline["features"]:
+                raise ValueError("A change must preserve the original features in their original order, then append new features.")
+            for check in baseline["checks"]:
+                original = {**check, "feature_indexes": check.get("feature_indexes", [])}
+                if original not in plan.get("checks", []):
+                    plan.setdefault("checks", []).append(original)
+        return validate_plan(plan)
+
+    def backup(self):
+        with self.lock:
+            if any(thread.is_alive() for thread, _ in self.jobs.values()):
+                raise ValueError("Wait for or stop all jobs before backing up a consistent workspace.")
+            stream = io.BytesIO()
+            total = 0
+            with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
+                for path in sorted(self.root.rglob("*")):
+                    relative = path.relative_to(self.root)
+                    if not path.is_file() or any(p.is_symlink() for p in [path, *path.parents]) or any(p.startswith(".") for p in relative.parts) or "__pycache__" in relative.parts or path.suffix in {".pyc", ".tmp"}:
+                        continue
+                    total += path.stat().st_size
+                    if total > 100_000_000:
+                        raise ValueError("Workspace exceeds the 100 MB browser-backup limit. Copy the data folder using your file manager.")
+                    archive.write(path, "projects/" + relative.as_posix())
+                archive.writestr("BACKUP-README.txt", "Idea Foundry workspace backup. Stop Foundry, extract projects/ into your data folder, then restart. Back up the current folder before restoring. API keys and .env files are intentionally excluded.\n")
+            return stream.getvalue()
+
+    def diff(self, ident):
+        state = self.load(ident)
+        if state["status"] in ACTIVE:
+            raise ValueError("Wait until the job stops before reviewing changes.")
+        current = self.files(ident)
+        before = {}
+        if state["snapshots"]:
+            root = self.directory(ident) / "snapshots" / state["snapshots"][-1]["id"]
+            for name in current:
+                path = root / name
+                if path.is_file() and not any(p.is_symlink() for p in [path, *path.parents]):
+                    before[name] = path.read_text(encoding="utf-8")
+        result = []
+        for name, content in current.items():
+            if before.get(name) != content:
+                lines = difflib.unified_diff(before.get(name, "").splitlines(), content.splitlines(), fromfile="before/" + name, tofile="after/" + name, lineterm="")
+                result.append({"name": name, "kind": "modified" if name in before else "added", "diff": "\n".join(lines)[:20000]})
+        return result
 
     def create(self, idea, planner, coder):
         if not isinstance(idea, str) or not 10 <= len(idea.strip()) <= 12000:
@@ -221,7 +366,8 @@ class Workbench:
             state = self.load(ident)
             if state["status"] in ACTIVE or state["approved"]:
                 raise ValueError("Cannot change this proposal while a job runs or after approval.")
-            state["plan"] = validate_plan(plan)
+            state["plan"] = self.revision_plan(state, plan)
+            plan = state["plan"]
             state["title"] = plan["title"]
             state["approved"], state["status"] = True, "approved"
             self.documents(state)
@@ -235,12 +381,27 @@ class Workbench:
         (source / "TASKS.md").write_text("# Build tasks\n\n" + "\n".join(f'{i+1}. {t["title"]}\n   {t["instructions"]}' for i, t in enumerate(plan["tasks"])), encoding="utf-8")
         (source / "CHECKS.json").write_text(json.dumps(plan["checks"], indent=2), encoding="utf-8")
         (source / "README.md").write_text(f'# {plan["title"]}\n\n{plan["summary"]}\n\nRequires Python 3.11+. No third-party packages.\n\nRun `python app.py --host 127.0.0.1 --port 8080`, then open http://127.0.0.1:8080.\nOn Windows you can double-click run.bat.\n\nAI-generated code: review it before running. See PROJECT.md for the agreed scope and CHECKS.json for acceptance checks.\nPassing checks is evidence of the tested behaviors, not a guarantee of all requirements.\n', encoding="utf-8")
-        (source / "run.bat").write_text('@echo off\r\ncd /d "%~dp0"\r\npython app.py --host 127.0.0.1 --port 8080\r\npause\r\n', encoding="utf-8")
-        (source / "run.sh").write_text('#!/bin/sh\ncd "$(dirname "$0")"\nexec python3 app.py --host 127.0.0.1 --port 8080\n', encoding="utf-8")
+        (source / "launch.py").write_text(Path(__file__).with_name("launch_template.py").read_text(encoding="utf-8"), encoding="utf-8")
+        (source / "run.bat").write_text('@echo off\r\ncd /d "%~dp0"\r\nwhere py >nul 2>&1\r\nif %errorlevel% equ 0 (\r\n    py -3 launch.py\r\n) else (\r\n    python launch.py\r\n)\r\npause\r\n', encoding="utf-8")
+        (source / "run.sh").write_text('#!/bin/sh\ncd "$(dirname "$0")" || exit 1\nexec python3 launch.py\n', encoding="utf-8")
+        with (source / "README.md").open("a", encoding="utf-8") as readme:
+            readme.write("\nThe launch scripts wait for the app to become ready and open your browser. If port 8080 is busy, the launcher chooses another free port and prints the address. Keep its terminal open.\n")
 
     def files(self, ident):
         root = self.directory(ident) / "source"
-        return {str(p.relative_to(root)).replace(os.sep, "/"): p.read_text(encoding="utf-8") for p in sorted(root.rglob("*")) if p.is_file() and not p.is_symlink() and "__pycache__" not in p.parts}
+        files = {}
+        for path in sorted(root.rglob("*")):
+            relative = path.relative_to(root)
+            if not path.is_file() or any(p.startswith(".") or p == "__pycache__" for p in relative.parts):
+                continue
+            if path.suffix.lower() not in {".py", ".html", ".css", ".js", ".json", ".txt", ".md", ".bat", ".sh"}:
+                continue
+            if any(p.is_symlink() for p in [path, *path.parents]):
+                continue
+            if path.stat().st_size > 1_000_000:
+                raise ValueError("A project file exceeds the 1 MB inspection limit.")
+            files[relative.as_posix()] = path.read_text(encoding="utf-8")
+        return files
 
     def context_files(self, ident):
         return {name: content for name, content in self.files(ident).items() if name.lower() not in OWNED}
@@ -252,6 +413,17 @@ class Workbench:
         state["snapshots"].append({"id": number, "label": label, "next_task": state["next_task"]})
         self.save(state)
 
+    def _swap_source(self, ident, prepared):
+        root = self.directory(ident) / "source"
+        previous = root.with_name(".source-before-" + uuid.uuid4().hex)
+        os.replace(root, previous)
+        try:
+            os.replace(prepared, root)
+        except BaseException:
+            os.replace(previous, root)
+            raise
+        shutil.rmtree(previous)
+
     def restore(self, ident, snapshot):
         with self.lock:
             state = self.load(ident)
@@ -262,8 +434,13 @@ class Workbench:
                 raise ValueError("Checkpoint not found.")
             source = self.directory(ident) / "source"
             self.checkpoint(state, "Backup before manual restore")
-            shutil.rmtree(source)
-            shutil.copytree(self.directory(ident) / "snapshots" / snapshot, source)
+            staging = source.with_name(".restore-" + uuid.uuid4().hex)
+            try:
+                shutil.copytree(self.directory(ident) / "snapshots" / snapshot, staging)
+                self._swap_source(ident, staging)
+            finally:
+                if staging.exists():
+                    shutil.rmtree(staging)
             state.update(next_task=match["next_task"], status="approved", checks=None, preflight=None)
             self.event(state, "Restored checkpoint: " + match["label"])
             return state
@@ -285,17 +462,51 @@ class Workbench:
                 raise ValueError("Model attempted to modify frozen documentation, acceptance checks, or repair-time tests.")
             if not isinstance(content, str) or len(content) > 40000:
                 raise ValueError("Generated file is too large or not text.")
+            if name in state.get("frozen_tests", {}) and hashlib.sha256(content.encode()).hexdigest() != state["frozen_tests"][name]:
+                raise ValueError("Existing app tests are frozen in a change request. Add new tests in another file.")
             targets.append((target, content))
         if sum(len(v) for v in (current | files).values()) > 70000:
             raise ValueError("Project exceeded the small-model context budget. Narrow the scope.")
         if sum(len(v) for k, v in (current | files).items() if k.lower() not in OWNED) > 36000:
             raise ValueError("Source exceeded the local-model context budget. Narrow the scope or split the app.")
         # All names and contents are validated before any file is written.
+        if any(path.is_symlink() for path in root.rglob("*")):
+            raise ValueError("Remove symbolic links from this project before model file updates.")
         self.checkpoint(state, "Before " + ("repair" if repair else f'task {state["next_task"] + 1}'))
-        for target, content in targets:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(content, encoding="utf-8")
+        staging = root.with_name(".source-update-" + uuid.uuid4().hex)
+        try:
+            shutil.copytree(root, staging)
+            for target, content in targets:
+                prepared = staging / target.relative_to(root)
+                prepared.parent.mkdir(parents=True, exist_ok=True)
+                prepared.write_text(content, encoding="utf-8")
+            self._swap_source(state["id"], staging)
+        finally:
+            if staging.exists():
+                shutil.rmtree(staging)
         self.event(state, str(response.get("summary", "Source files updated."))[:2000])
+
+    def _inspect_and_repair(self, state, cancel, remaining, complete=True):
+        for attempt in range(remaining + 1):
+            if cancel.is_set():
+                raise InterruptedError("Stopped before static inspection.")
+            state["preflight"] = preflight(self.context_files(state["id"]), complete=complete)
+            self.save(state)
+            if state["preflight"]["passed"]:
+                return remaining
+            issues = "\n".join(state["preflight"]["issues"])
+            if remaining == 0:
+                state["status"] = "needs_attention"
+                self.event(state, "Static inspection found incomplete code. No code was executed.\n" + issues)
+                return None
+            state["status"] = "repairing"
+            self.event(state, f"Static repair {attempt+1}: correcting syntax/structure or adding missing tests without executing code.\n" + issues)
+            response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": issues, "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Existing tests and approved checks are frozen. Implement every approved feature."}), cancel)
+            if cancel.is_set():
+                raise InterruptedError("Stopped. Static repair output discarded.")
+            self.apply(state, response, repair=True)
+            state["repair_count"] += 1
+            remaining -= 1
 
     def _job(self, state, action, options, cancel):
         try:
@@ -304,13 +515,15 @@ class Workbench:
                 revision = options.get("revision", "")
                 if not isinstance(revision, str) or len(revision) > 6000:
                     raise ValueError("Revision must be under 6000 characters.")
-                request = {"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"]}
+                request = {"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"],
+                           "existing_project": state.get("baseline_plan"), "change_request": state.get("change_request"),
+                           "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
                 for attempt in range(2):
-                    plan = self.client(state, "planner").complete(PLAN, json.dumps(request))
+                    plan = self.call_model(state, "planner", PLAN, json.dumps(request), cancel)
                     if cancel.is_set():
                         raise InterruptedError("Stopped. Model output discarded.")
                     try:
-                        validate_plan(plan)
+                        plan = self.revision_plan(state, plan)
                         break
                     except ValueError as exc:
                         if attempt:
@@ -320,41 +533,31 @@ class Workbench:
                 state.update(plan=plan, title=plan["title"], status="proposed")
                 self.event(state, "Proposal ready. Review the scope, tasks, and behavioral checks before approval.")
                 return
+            if options.get("execute"):
+                require_runtime(options.get("runtime", "docker"))
             state["checks"] = None
             state["preflight"] = None
+            remaining_repairs = options.get("repairs", 2)
             for index in range(state["next_task"], len(state["plan"]["tasks"])):
                 if cancel.is_set():
                     raise InterruptedError("Build stopped. You can resume from the next unfinished task.")
                 task = state["plan"]["tasks"][index]
                 self.event(state, f'Task {index+1}: {task["title"]}')
-                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"])}))
+                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "frozen_tests": list(state.get("frozen_tests", {}))}), cancel)
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Model output discarded.")
                 self.apply(state, response)
+                remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
+                if remaining_repairs is None:
+                    return
+                state["status"] = "building"
+                state.setdefault("milestones", []).append({"task": index + 1, "title": task["title"], "syntax_passed": True, "behavior_verified": False, "time": self.now()})
                 state["next_task"] = index + 1
                 self.save(state)
             # Repairs here are text-only model calls. No generated code is run.
-            remaining_repairs = options.get("repairs", 2)
-            for attempt in range(remaining_repairs + 1):
-                state["preflight"] = preflight(self.context_files(state["id"]))
-                self.save(state)
-                if state["preflight"]["passed"]:
-                    break
-                issues = "\n".join(state["preflight"]["issues"])
-                if remaining_repairs == 0:
-                    state["status"] = "needs_attention"
-                    self.event(state, "Static inspection found incomplete code. No code was executed.\n" + issues)
-                    return
-                if cancel.is_set():
-                    raise InterruptedError("Stopped before static repair.")
-                state["status"] = "repairing"
-                self.event(state, f"Static repair {attempt+1}: correcting syntax/structure or adding missing tests without executing code.\n" + issues)
-                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": issues, "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Existing tests and approved checks are frozen. Implement every approved feature."}))
-                if cancel.is_set():
-                    raise InterruptedError("Stopped. Static repair output discarded.")
-                self.apply(state, response, repair=True)
-                state["repair_count"] += 1
-                remaining_repairs -= 1
+            remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs)
+            if remaining_repairs is None:
+                return
             if not options.get("execute"):
                 state["status"] = "generated"
                 self.event(state, "Source and test files generated; static syntax/structure checks passed. The app has NOT run or been verified. Approve execution for behavioral checks.")
@@ -374,13 +577,17 @@ class Workbench:
                     state["status"] = "verified"
                     self.event(state, "Tests and HTTP acceptance checks passed. Download and try the app; review remaining requirements yourself.")
                     return
+                if result.get("failure_kind") == "environment":
+                    state["status"] = "needs_attention"
+                    self.event(state, "Execution environment failed. Fix the Docker/runtime error below before retrying; application code was not sent for repair.")
+                    return
                 if attempt == runtime_repairs:
                     state["status"] = "needs_attention"
                     self.event(state, "Checks failed. Repair limit reached; inspect the output and files.")
                     return
                 state["status"] = "repairing"
                 self.event(state, f'Repair attempt {attempt+1}; approved checks and generated test files remain frozen.')
-                response = self.client(state, "coder").complete(CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-12000:], "instruction": "Fix application source only. Do not edit existing test files or weaken approved checks. Add tests only if missing."}))
+                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-12000:], "instruction": "Fix application source only. Do not edit existing test files or weaken approved checks. Add tests only if missing."}), cancel)
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Repair output discarded.")
                 self.apply(state, response, repair=True)

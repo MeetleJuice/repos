@@ -5,13 +5,17 @@ import json
 import os
 from pathlib import Path
 import secrets
-import shutil
+import webbrowser
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 import zipfile
 
 from .core import Workbench, ACTIVE
 from .models import connection_info
+from . import __version__
+from .storage import data_home, import_legacy, workspace_lock
+from .runner import runtime_diagnostics
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,7 +32,7 @@ def load_dotenv(path):
 
 
 def make_server(port=8765, workbench=None):
-    bench = workbench or Workbench(ROOT / "data" / "projects")
+    bench = workbench or Workbench(data_home(ROOT) / "projects")
     token = secrets.token_urlsafe(32)
 
     class Handler(BaseHTTPRequestHandler):
@@ -103,6 +107,16 @@ def make_server(port=8765, workbench=None):
                 self.json({"error": "Internal error. Check the workbench terminal and local project data."}, 500)
 
         def api(self, path, post, body):
+            if path == "/api/info" and not post:
+                states = bench.list_projects()
+                calls = [c for state in states for c in state.get("model_calls", [])]
+                self.json({"version": __version__, "data_folder": str(bench.root.parent), "projects": len(states),
+                           "model_calls": len(calls), "model_seconds": round(sum(c["seconds"] for c in calls), 1),
+                           "warnings": bench.warnings, "inference_policy": "One model request at a time; no automatic cloud fallback."})
+                return
+            if path == "/api/backup" and not post:
+                self.send_bytes(200, bench.backup(), "application/zip", "Idea-Foundry-workspace-backup.zip")
+                return
             if path == "/api/projects":
                 if post:
                     self.cloud_consent(body.get("planner", {}), body.get("coder", {}), body)
@@ -111,7 +125,8 @@ def make_server(port=8765, workbench=None):
                     self.json(bench.list_projects())
                 return
             if path == "/api/connections" and not post:
-                self.json({"providers": connection_info(), "docker_installed": bool(shutil.which("docker"))})
+                runtime = runtime_diagnostics()
+                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:
@@ -141,6 +156,13 @@ def make_server(port=8765, workbench=None):
                 self.json(bench.stop(ident))
             elif post and action == "restore":
                 self.json(bench.restore(ident, body["snapshot"]))
+            elif not post and action == "diff":
+                self.json(bench.diff(ident))
+            elif post and action == "models":
+                self.json(bench.configure_models(ident, body["planner"], body["coder"]))
+            elif post and action == "change":
+                self.cloud_consent(state["planner"], state["coder"], body)
+                self.json(bench.fork(ident, body["request"]), 201)
             elif post and action in {"plan", "build"}:
                 self.cloud_consent(state["planner"], state["coder"], body)
                 bench.start(ident, action, body)
@@ -162,18 +184,38 @@ def make_server(port=8765, workbench=None):
 def main():
     parser = argparse.ArgumentParser(description="Idea Foundry — local idea-to-app workbench")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--data-dir", help="Workspace folder; overrides FOUNDRY_HOME and the default location")
+    parser.add_argument("--open", action="store_true", help="Open the workbench in your default browser")
     args = parser.parse_args()
-    load_dotenv(ROOT / ".env")
-    server = make_server(args.port)
-    print(f"Idea Foundry is running locally on port {server.server_port}. Open your browser to the loopback address described in README.md.", flush=True)
+    home = data_home(ROOT, args.data_dir)
     try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        for _, cancel in list(server.workbench.jobs.values()):
-            cancel.set()
-        server.server_close()
+        with workspace_lock(home):
+            migration_warnings = []
+            imported = import_legacy(ROOT, home, migration_warnings)
+            load_dotenv(home / ".env")
+            load_dotenv(ROOT / ".env")
+            bench = Workbench(home / "projects")
+            bench.warnings.extend(migration_warnings)
+            server = make_server(args.port, bench)
+            print(f"Idea Foundry {__version__} is running locally on port {server.server_port}.\nOpen http://127.0.0.1:{server.server_port}\nYour workspace: {home}", flush=True)
+            if imported:
+                print(f"Copied {len(imported)} legacy projects; originals were preserved.", flush=True)
+            if args.open:
+                threading.Timer(0.5, lambda: webbrowser.open(f"http://127.0.0.1:{server.server_port}")).start()
+            try:
+                server.serve_forever()
+            except KeyboardInterrupt:
+                pass
+            finally:
+                jobs = list(server.workbench.jobs.values())
+                for _, cancel in jobs:
+                    cancel.set()
+                # Keep the workspace lock until workers stop writing to it.
+                for thread, _ in jobs:
+                    thread.join()
+                server.server_close()
+    except (ValueError, OSError) as exc:
+        parser.exit(1, f"Idea Foundry could not start: {exc}\n")
 
 
 if __name__ == "__main__":

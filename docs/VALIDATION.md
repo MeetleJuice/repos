@@ -50,3 +50,18 @@ real-world failure example, not a live connection to their Windows Ollama.
 
 Research conclusions are based on official documentation, not hands-on competitive
 benchmarking. See RESEARCH.md for sources and scope.
+
+
+## Version 0.3
+
+46 automated tests pass, including linked change projects, parent/test preservation, model
+switching, queued-job cancellation, migration and corrupt-data handling, source-swap failure
+and crash recovery, workspace locking, backups, and generated-app port/readiness handling.
+The release browser test passed the full guided build/change/diff/backup workflow with
+no JavaScript errors and no narrow-screen overflow. Real Docker verification also passed
+through the new runtime readiness gate and transactional build path.
+
+The extracted distribution was started from a fresh folder with a separate --data-dir;
+its authenticated API reported version 0.3.0 and the correct workspace location. Browser
+opening and Local AppData behavior still need confirmation on the user's actual Windows
+machine. See RELEASE-0.3.md for shipped behavior and remaining scope.

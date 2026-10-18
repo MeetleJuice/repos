@@ -1,10 +1,24 @@
-# Idea Foundry
+# Idea Foundry 0.3
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Python 3.11 or newer is required.
+
+## What’s new in 0.3
+
+- A next-step guide on every project, readable acceptance-check cards, and clearer failure explanations.
+- **Plan this improvement**: request a feature/bug fix in a separate copy, preserving the original,
+  its features, acceptance checks, and test files. Review and approve the change before building.
+- Switch a project’s models without losing files or requirements.
+- One model request runs at a time across the workspace, with cancellable queued jobs and measured response times.
+- Python syntax is inspected after each task, with bounded repairs before proceeding.
+- Transactional source updates, crash recovery, and checkpoint diffs.
+- **Workspace & backups**: version, data location, warnings, and a downloadable project backup.
+- On Windows, persistent projects now live outside the downloaded program folder.
+- New generated-app launchers wait for readiness, choose a free port, and open the browser.
+- Docker daemon/image problems are detected before inference; environment failures do not trigger pointless code repairs.
 
 ## Try the repaired Task Tracker
 
@@ -17,11 +31,20 @@ Idea Foundry and does not need Ollama. See that folder's README for details.
 The GitHub repository, this cloud checkout, and your Windows folder are separate copies.
 Changes on GitHub do not automatically update a ZIP you already extracted.
 
-Download the latest repository ZIP, extract it into a **new folder**, and stop the old
-workbench with Ctrl+C in its terminal. Copy the old workbench's `data` folder into the new
-workbench folder to retain projects; also copy your local `.env` if you created one.
-Keep the old folder as a backup. Start **Start-Foundry.bat** from the new folder and refresh
-your browser. Do not overwrite or delete `data` to update the application code.
+1. Stop the old workbench with **Ctrl+C** in its terminal. Keep its folder as a backup.
+2. Download the latest repository ZIP and extract it into a **new folder**.
+3. For your first update from an older version, copy the old **data** folder into the new
+   program folder. Do not overwrite an existing data folder; keep both copies if uncertain.
+4. Start **Start-Foundry.bat**. On Windows, Foundry copies missing legacy projects into
+   `%LOCALAPPDATA%\IdeaFoundry\projects`, preserving the originals. It never overwrites an
+   existing project ID during import.
+5. Open **Workspace & backups** to confirm the version, project count, and actual data location.
+6. If you used cloud keys in an old `.env`, copy that file separately into the data folder shown
+   in Workspace (or the new program folder). Never upload it or include it in GitHub.
+
+After this one-time move, future Windows program ZIPs can go in new folders without copying
+projects again. Project backups intentionally exclude `.env`; preserve keys separately.
+The program does not download or install its own updates. You choose the new version.
 
 Existing approved projects remain usable. **Generate / resume code** now checks Python
 syntax and missing tests without executing the app; it can ask the model for bounded repairs.
@@ -41,7 +64,7 @@ omissions; it does not prove that model-written tasks/checks adequately implemen
    py -3 run.py
    ```
 
-5. Open `http://127.0.0.1:8765` in your browser. Keep the terminal open while using the app.
+5. The launcher opens your browser. If it does not, open `http://127.0.0.1:8765`. Keep the terminal open while using the app.
 
 Linux/macOS: run `python3 run.py`. To use another port: `python run.py --port 8766`.
 The workbench binds only to this computer. It is not intended to be exposed on a network.
@@ -59,7 +82,7 @@ The workbench binds only to this computer. It is not intended to be exposed on a
 6. Review the generated files. Select an execution runtime, explicitly approve execution,
    and click **Build, test & repair**. If code is already generated, it starts with checks.
 7. Read the results. Download the app ZIP, extract it, and open it in VS Code.
-   Its README and run.bat explain how to launch it.
+   Double-click its run.bat to launch it; the browser opens after readiness. Review its README first.
 
 Local models may take several minutes per request. The current request has a five-minute
 timeout. Stop discards a pending model response when it returns; it does not cancel Ollama's
@@ -93,7 +116,7 @@ dependencies through the UI. That limits accidental scope but does not make Pyth
 
 ## Optional cloud APIs
 
-Copy `.env.example` to `.env` in this folder, enter keys locally, then restart the workbench:
+Copy `.env.example` to `.env` in the data folder shown in Workspace (or the program folder), enter keys locally, then restart the workbench. Data-folder values take precedence over program-folder values; existing process environment bindings take precedence over both:
 
 ```dotenv
 OLLAMA_URL=http://127.0.0.1:11434
@@ -115,7 +138,7 @@ be sent to the selected providers, with possible charges. There is **no automati
 Ollama model discovery reads your actual `/api/tags` list. Embedding models should not be used
 as planner/builder models.
 
-## What this first version does—and its limits
+## Supported workflow and current limits
 
 - Generates small standard-library Python web apps, with a browser UI and optional SQLite storage.
 - Creates a project guide (`PROJECT.md`), `TASKS.md`, launch scripts, and frozen `CHECKS.json`.
@@ -126,20 +149,25 @@ as planner/builder models.
 - Makes at most three model-assisted repair attempts per run, shared between static fixes and runtime fixes, then reports a blocker.
 - Preserves progress, checkpoints, verification logs, and an exportable build report.
 
-This is a first working foundation, not a promise to build any app from any prompt. It does not
+This release focuses on small Python web apps, not a promise to build any app from any prompt. It does not
 train models, rewrite its own code, deploy to the internet, install project packages, or run a
 visual browser test of each generated app. Generated tasks are applied sequentially; full tests
 run after the task list is complete. Passing checks proves only the covered behavior. Model-written
 tests may be weak: inspect the approved acceptance checks and try the result yourself. There is
-no automatic quality scoring or model-learning system yet. Changing approved scope currently
-means creating a new project. Source is limited to 36,000 characters to fit smaller local models;
+no automatic quality scoring or model-learning system yet. Use **Plan this improvement** to create a linked change copy with the original preserved. Source is limited to 36,000 characters to fit smaller local models;
 large ideas should start with a smaller version. Generated apps must implement the fixed contract
 described in [the architecture](docs/ARCHITECTURE.md).
 
 ## Your files
 
-Projects live in `data/projects/<id>/`, including `state.json`, `source/`, and `snapshots/`.
-Back up `data/` to preserve your work. Downloaded app ZIPs contain generated source, documents,
+Open **Workspace & backups** for the actual path. On Windows the default is
+`%LOCALAPPDATA%\IdeaFoundry`; on Linux/macOS the default remains `data` beside the program.
+You can set `FOUNDRY_HOME` or use `python run.py --data-dir <folder>` for a different location.
+Projects are under `projects/<id>/`, including `state.json`, `source/`, and `snapshots/`.
+Download a workspace backup while jobs are stopped. To restore, stop Foundry, back up the
+current data folder, and extract the backup’s `projects` folder into that data folder. Never
+restore over a running workspace. The backup limit is 100 MB; larger workspaces should be
+copied with your file manager. Downloaded app ZIPs contain generated source, documents,
 launchers, and a build report; they do not include your workbench `.env` or other projects.
 Project IDs are directory names rather than user-supplied paths. The UI shows generated files
 as text, never embeds their HTML, and does not automatically launch generated apps.
@@ -160,6 +188,8 @@ verify paid API accounts. Optional browser tests require Playwright and Chromium
 py -3 -m pip install playwright
 py -3 -m playwright install chromium
 py -3 tests/browser_check.py
+py -3 tests/browser_release_check.py
+py -3 tests/browser_tracker_check.py
 ```
 
 Research and the feature decisions are documented in [RESEARCH.md](docs/RESEARCH.md).
@@ -170,7 +200,7 @@ Research and the feature decisions are documented in [RESEARCH.md](docs/RESEARCH
   The workbench must run on the same Windows computer as Ollama for the default address to work.
 - **Model times out / malformed JSON:** try a smaller scope or another instruction/coding model.
   Your available RAM and graphics memory determine speed; only one generation request runs per
-  project, but starting several projects may still load competing models.
+  workspace; additional projects queue rather than load competing models.
 - **Docker image missing:** run the image pull command above. Docker errors appear in verification output.
 - **Checks fail:** inspect the output, files, and acceptance checks. Repair attempts are bounded;
   a failure is not silently labeled working. Retry or restore a checkpoint as appropriate.

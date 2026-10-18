@@ -49,6 +49,8 @@ class ModelClient:
             raise ValueError("Unknown provider.")
         if not isinstance(model, str) or not model.strip() or len(model) > 200:
             raise ValueError("Enter a model name.")
+        if provider == "ollama" and "embed" in model.lower():
+            raise ValueError("Choose a chat/coding model. Embedding models cannot generate apps.")
         self.provider, self.model = provider, model.strip()
 
     def complete(self, system, prompt):

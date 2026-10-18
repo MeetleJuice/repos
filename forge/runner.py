@@ -22,6 +22,26 @@ def docker_ready():
         return False
 
 
+def runtime_diagnostics():
+    installed = bool(shutil.which("docker"))
+    running = docker_ready() if installed else False
+    image = False
+    if running:
+        try:
+            image = subprocess.run(["docker", "image", "inspect", IMAGE], capture_output=True, timeout=8).returncode == 0
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    return {"installed": installed, "running": running, "image_ready": image}
+
+
+def require_runtime(mode):
+    if mode == "local":
+        return
+    status = runtime_diagnostics()
+    if not status["running"]:
+        raise ValueError("Docker is not running. Start Docker Desktop, or explicitly select trusted local execution. No model request was made for this run.")
+    if not status["image_ready"]:
+        raise ValueError("Docker needs its Python image. Run: docker pull python:3.12-slim. Then retry. No model request was made for this run.")
 def verify(project, mode, cancel, timeout=120):
     if mode == "docker":
         # The source checkout may use private (0600/0700) permissions. Prepare a
@@ -100,5 +120,7 @@ def _execute(project, mode, cancel, timeout, harness=None):
             pass
         if not reported:
             log += "\nVerification did not produce a complete test and HTTP-check report. A zero exit code alone is insufficient.\n"
-    return {"passed": proc.returncode == 0 and not stopped and reported, "exit_code": proc.returncode,
+    passed = proc.returncode == 0 and not stopped and reported
+    return {"passed": passed, "exit_code": proc.returncode,
+            "failure_kind": None if passed else "environment" if mode == "docker" and proc.returncode in {125, 126, 127} else "application",
             "log": ((stopped + "\n") if stopped else "") + log[-24000:], "runtime": mode}
