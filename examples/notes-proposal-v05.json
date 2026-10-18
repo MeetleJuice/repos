@@ -1,0 +1,157 @@
+{
+  "title": "Local Notes App",
+  "summary": "A local notes app with create, list, title search, delete, a browser interface, and SQLite persistence. Reuse the reviewed Notes App starter.",
+  "features": [
+    "Create notes with a title and body",
+    "List saved notes",
+    "Search notes by title",
+    "Delete notes",
+    "Persist notes in SQLite across server restarts",
+    "Use all features through a browser interface"
+  ],
+  "out_of_scope": [
+    "Accounts",
+    "Cloud sync",
+    "Rich text editing",
+    "External services"
+  ],
+  "risks": [
+    "Passing checks covers tested behavior only. Review generated code before running it locally."
+  ],
+  "tasks": [
+    {
+      "title": "Preserve and adapt the reviewed Notes App",
+      "instructions": "Use the supplied reviewed starter. Keep its working server, SQLite initialization, asset routes, safe text rendering and CLI. Do not rebuild working infrastructure. POST /api/notes returns HTTP 201 and one object with id, title, body. List and search return arrays of these objects. DELETE /api/notes/{id} returns HTTP 200 with deleted true. Allow duplicate titles. Do not add timestamps. Keep create_server(host, port), /health, and the existing browser create/list/search/delete controls. Make only necessary changes; if the implementation already meets the scope, add a meaningful behavioral test instead of rewriting it.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "title": "Complete actual application tests",
+      "instructions": "Keep test_foundation.py unchanged. Preserve the starter behavior tests and add any missing tests in a separate test file that imports the actual app. Verify create/list, case-insensitive matching and nonmatching search, delete, malformed input and safe text rendering. A real persistence test must create a note, stop and close the server, start a new server against the same temporary database, and retrieve that note before deletion. Preserve the existing process-restart test. Use temporary data, ephemeral ports, HTTP request timeouts and proper cleanup. Keep the app launchable with --host and --port. Do not claim execution; Foundry will run checks after separate execution approval.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "Browser interface loads",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "contains": "<form",
+      "feature_indexes": [
+        5
+      ]
+    },
+    {
+      "name": "Create one note",
+      "method": "POST",
+      "path": "/api/notes",
+      "body": {
+        "title": "Buy milk",
+        "body": "Need to buy groceries"
+      },
+      "status": 201,
+      "json_contains": {
+        "id": 1,
+        "title": "Buy milk",
+        "body": "Need to buy groceries"
+      },
+      "feature_indexes": [
+        0
+      ]
+    },
+    {
+      "name": "List saved notes as objects",
+      "method": "GET",
+      "path": "/api/notes",
+      "status": 200,
+      "json_contains": [
+        {
+          "id": 1,
+          "title": "Buy milk",
+          "body": "Need to buy groceries"
+        }
+      ],
+      "feature_indexes": [
+        1
+      ]
+    },
+    {
+      "name": "Search is case insensitive",
+      "method": "GET",
+      "path": "/api/notes/search?q=MILK",
+      "status": 200,
+      "json_contains": [
+        {
+          "id": 1,
+          "title": "Buy milk"
+        }
+      ],
+      "feature_indexes": [
+        2
+      ]
+    },
+    {
+      "name": "Nonmatching search is empty",
+      "method": "GET",
+      "path": "/api/notes/search?q=unmatched-title-xyz",
+      "status": 200,
+      "json_equals": [],
+      "feature_indexes": [
+        2
+      ]
+    },
+    {
+      "name": "Read saved data before deletion; real restart is checked in unittest",
+      "method": "GET",
+      "path": "/api/notes",
+      "status": 200,
+      "json_contains": [
+        {
+          "id": 1,
+          "title": "Buy milk",
+          "body": "Need to buy groceries"
+        }
+      ],
+      "feature_indexes": [
+        4
+      ]
+    },
+    {
+      "name": "Delete the note",
+      "method": "DELETE",
+      "path": "/api/notes/1",
+      "status": 200,
+      "json_contains": {
+        "deleted": true
+      },
+      "feature_indexes": [
+        3
+      ]
+    },
+    {
+      "name": "Deleted note is absent",
+      "method": "GET",
+      "path": "/api/notes",
+      "status": 200,
+      "json_equals": [],
+      "feature_indexes": [
+        1,
+        3
+      ]
+    }
+  ]
+}
