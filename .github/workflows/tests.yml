@@ -13,3 +13,15 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m unittest discover -v
+      - name: Check the extracted distribution
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: |
+          python package.py
+          python - <<'PY'
+          import subprocess, sys, tempfile, zipfile
+          from pathlib import Path
+          with tempfile.TemporaryDirectory() as temp:
+              with zipfile.ZipFile('artifacts/Idea-Foundry.zip') as archive:
+                  archive.extractall(temp)
+              subprocess.run([sys.executable, '-m', 'unittest', 'discover', '-q'], cwd=Path(temp) / 'Idea-Foundry', check=True)
+          PY

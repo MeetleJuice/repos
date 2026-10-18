@@ -16,6 +16,14 @@ def inspect_files(files, complete=True):
             continue
         if any(isinstance(node, ast.Import) and any(alias.name in {"cgi", "cgitb"} for alias in node.names) or isinstance(node, ast.ImportFrom) and node.module in {"cgi", "cgitb"} for node in ast.walk(tree)):
             issues.append(f"{name}: Replace cgi/cgitb imports; these modules are unavailable on newer supported Python versions. Parse headers with email.message or string operations.")
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            function = ast.unparse(node.func)
+            if function == "urllib.request.urlopen" and any(k.arg in {"headers", "method"} for k in node.keywords):
+                issues.append(f"{name}: urlopen does not accept headers= or method=. Build urllib.request.Request(url, headers=..., method=...), then urlopen(request, timeout=3).")
+            if function == "email.message.message_from_bytes":
+                issues.append(f"{name}: email.message.message_from_bytes is not a valid API. Read Content-Type with self.headers.get_content_type(); no email parsing is needed.")
     if not complete:
         return {"passed": not issues, "issues": issues, "executed": False}
     if "app.py" not in files:

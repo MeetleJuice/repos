@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "version": "0.5.0",
+  "data_schema": 2,
+  "python": [
+    3,
+    11
+  ],
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.5.0.zip",
+  "sha256": "0608486976a9061655f172020b8d2532dafd0b428c923e888265467110624fd8",
+  "notes": "Tested starters, guided build/test workflow, focused repairs, milestone checks, managed updates with backups and startup rollback. Existing projects and model settings preserved."
+}

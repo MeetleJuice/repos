@@ -91,3 +91,29 @@ The repaired Notes App passes the new independent acceptance/tests/launch phases
 The workbench browser regression passes with the new phase UI, model switching, linked changes,
 diffs, backups and mobile layout. Model repair replies in automation are controlled fixtures;
 no live Ollama generation quality or Windows CI execution is claimed for this release.
+
+## Version 0.5
+
+99 automated tests passed in the Linux Python 3.12 workspace. These include real subprocess
+startup of a new Foundry version and fallback to the original version after a broken startup;
+authenticated update installation and backup; checksum/path/schema rejection; pointer-write
+failure recovery; project/.env preservation; explicit starter installation and protected tests;
+the latest uploaded invalid email/urllib APIs; real milestone HTTP checks, bounded repairs and
+saved task positions; unchanged-repair stopping; and detection of edited approval checks.
+
+The browser checks passed the original build/repair/export workflow, linked improvements with
+parent preservation, model changes, diffs, workspace backups, and the new starter/update/search
+interface. Missing Docker was simulated to verify clear guidance and a disabled Docker execution
+button. Explicit local selection enabled testing; generation itself did not execute code.
+Desktop and 390px layouts had no horizontal overflow or JavaScript errors.
+
+The Notes starter passed the actual Docker verifier with 13 tests (12 behavior tests plus the
+protected foundation test), all approved checks, local assets and CLI launch. Its approved first
+two-check milestone also passed in Docker. Development model replies are controlled fixtures;
+no connection to the user's Windows Ollama or paid providers is claimed. The original reviewed
+standalone examples remain unchanged. Windows/Linux Python 3.11/3.12 CI is configured; this
+report does not claim those hosted jobs ran. The CI now also tests an extracted distribution.
+
+All 99 tests also passed from the updater-validated ZIP extracted into a fresh folder. Archive
+inspection confirmed the stable launcher, starter assets and regression fixtures are present,
+with no runtime data, .env files or Python caches. Final packaging changes only release documentation.

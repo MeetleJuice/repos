@@ -6,6 +6,10 @@ The app must provide app.py with create_server(host, port) returning an HTTPServ
 and a main block accepting --host and --port. GET /health returns {"status":"ok"}.
 GET / serves a real HTML interface. Store persistent data in the current project directory.
 Include 2-6 sequential implementation tasks, each small enough for a 7B coding model.
+When a reviewed starter is provided, build on its infrastructure and adapt its features to the idea.
+Optional task.check_indexes lists checks ready after that task. Checks execute from the beginning
+through the highest listed index, on fresh data; list only prefixes that the task truly implements.
+Do not claim future features are ready. Use milestone checks for runnable early increments.
 Include concrete HTTP acceptance checks that prove the requested behavior (not just /health).
 Checks run in order on a fresh server and may create and retrieve data. Avoid dynamic IDs unless deterministic.
 JSON schema by example:
@@ -31,7 +35,13 @@ Only return files that change; never use patch syntax or ellipses. No deletes, s
 pip dependencies, external services, or binary files. Use Python STANDARD LIBRARY only.
 Contract: app.py defines create_server(host, port) returning an HTTPServer. GET /health returns
 JSON {"status":"ok"}. GET / returns a usable HTML interface. Main block accepts --host and --port.
-Use sqlite3 or JSON for persistence. Prefer a few small files; keep the entire project under 60000 characters.
+Use sqlite3 or JSON for persistence. Prefer a few small files; keep the entire project under 36000 characters.
+When a starter is supplied, adapt its tested infrastructure. Preserve frozen foundation tests.
+Before each change, consult source_map and the existing code. Repair the reported cause rather
+than replacing unrelated files. Do not claim that tests ran; the workbench executes them.
+Use self.headers.get_content_type() for JSON content-type checks. For urllib tests, construct
+urllib.request.Request(url, data=..., headers=..., method=...) then urlopen(request, timeout=3).
+Never pass headers= or method= directly to urlopen. Parse response JSON before asserting fields.
 Preserve previous features. Escape user input in HTML and use parameterized SQL.
 Never bind beyond loopback by default. Put Python tests in test_app.py (unittest);
 test_app.py must exercise app behavior, use a temporary database/directory, and clean up its servers.

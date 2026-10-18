@@ -9,6 +9,7 @@ import threading
 import zipfile
 from playwright.sync_api import sync_playwright, expect
 from forge.core import Workbench
+from forge import __version__
 from forge.server import make_server
 from tests.fixtures import PLAN, APP, TEST
 from tests.test_workbench import ScriptedModels
@@ -34,7 +35,7 @@ def main():
                 errors = []
                 page.on("pageerror", lambda e: errors.append(str(e)))
                 page.goto(f"http://127.0.0.1:{server.server_port}")
-                expect(page.locator("#workspace-version")).to_contain_text("0.4.0")
+                expect(page.locator("#workspace-version")).to_contain_text(__version__)
                 page.locator("#idea").fill("Build a simple task tracker")
                 page.locator("#propose").click()
                 expect(page.locator("#next-title")).to_have_text("Review the plan before we build", timeout=15000)
@@ -57,6 +58,7 @@ def main():
                 expect(page.locator("#project-lineage")).to_contain_text("Improvement of Pocket Tasks", timeout=15000)
                 expect(page.locator("#next-title")).to_have_text("Review the plan before we build", timeout=15000)
                 page.locator("#approve").click()
+                page.locator("#execution-consent").check()
                 page.locator("#verify").click()
                 expect(page.locator("#project-status")).to_have_text("verified", timeout=15000)
                 self_parent = bench.load(parent)
@@ -76,10 +78,10 @@ def main():
                     assert len([n for n in archive.namelist() if n.endswith('/state.json')]) == 2
                 page.locator("#close-workspace").click()
                 (root / "artifacts").mkdir(exist_ok=True)
-                page.screenshot(path=str(root / "artifacts" / "foundry-03.png"), full_page=True)
+                page.screenshot(path=str(root / "artifacts" / "foundry-05.png"), full_page=True)
                 page.set_viewport_size({"width": 390, "height": 844})
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "Mobile overflow"
-                page.screenshot(path=str(root / "artifacts" / "foundry-03-mobile.png"), full_page=True)
+                page.screenshot(path=str(root / "artifacts" / "foundry-05-mobile.png"), full_page=True)
                 assert not errors, errors
                 browser.close()
                 print("PASS: guided build, human-readable checks, model switch, verified app, change request, preserved original, diffs, workspace backup, and mobile layout.")

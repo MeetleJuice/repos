@@ -65,3 +65,30 @@ using check results; it does not autonomously modify its own implementation.
 
 The adapter tests check payloads and errors using simulated responses. No live cloud inference
 was claimed, and no keys were supplied or needed to build the workbench.
+
+## Follow-up research for 0.5 (2026-10-18)
+
+Read the current official GitHub documentation below. Some product websites (Lovable, Replit,
+v0, Bolt support and Appsmith docs) were blocked; this is not a hands-on market ranking.
+No competitor code was installed or copied into Foundry.
+
+| Reference | Evidence and adaptation |
+| --- | --- |
+| [Aider repository maps](https://github.com/Aider-AI/aider/blob/main/aider/website/docs/repomap.md) | Concise file/symbol context helps an agent understand existing interfaces. Foundry now supplies a small AST symbol map and hashes alongside complete bounded source. It does not claim Aider's graph-ranking algorithm. |
+| [Aider lint/test loop](https://github.com/Aider-AI/aider/blob/main/aider/website/docs/usage/lint-test.md) | Real failing checks can drive repairs after edits. Foundry adds approved milestone prefixes and re-inspects runtime repairs before execution. |
+| [bolt.diy](https://github.com/stackblitz-labs/bolt.diy) | Documented starter selection, model choice, diff/snapshot workbench and export. Foundry adds explicit tested starting points while preserving the Python/Ollama workflow. |
+| [ToolJet](https://github.com/ToolJet/ToolJet) | AI works against governed component/data contracts. Foundry applies this principle to its tested Python server, JSON, SQLite and launcher contracts, rather than adding ToolJet dependencies. |
+| [Cline](https://github.com/cline/cline) | Plan/Act, checkpointed diffs and live tool feedback support reviewable changes. Foundry keeps its approval boundaries, source checkpoints and failure evidence. |
+| [SWE-agent](https://github.com/SWE-agent/SWE-agent) and [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent) | The maintainers now recommend the simpler mini agent. Its README reports SWE-bench results; those results are not evidence that our local models will achieve similar performance. The transferable lesson is to keep the loop and execution feedback understandable. Foundry does not adopt arbitrary Bash execution. |
+| [The Update Framework](https://github.com/theupdateframework/python-tuf) | A mature update design separates trusted metadata, integrity, compatibility and installation. Foundry uses fixed-source HTTPS, versioned archives, checksums, isolated installation and startup rollback. It does not implement TUF or signed metadata; repository control remains its trust boundary. |
+
+Two direct user-generation samples provide stronger app-specific evidence than feature lists:
+(1) the original Notes App copied its server into tests; (2) its repaired variant imported the
+real app but still called invalid email/urllib APIs and failed on the first create request.
+Both are retained as inert text fixtures. These observations motivate tested foundations,
+independent behavioral checks, structured feedback and shared repair limits.
+
+The Notes and Task Tracker starters are our own reviewed examples. They have actual HTTP,
+persistence, validation and browser tests. A generic foundation avoids assuming every idea is
+CRUD. Larger framework support and retrieval-based scaling should follow measured results
+on repeated local-model builds, not assumptions from another product's benchmark.

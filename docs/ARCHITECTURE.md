@@ -100,3 +100,32 @@ change-request tests are protected from the start. Before first verification, fa
 can be repaired while all approved checks stay protected. Checkpoints preserve the trust metadata;
 restoring a checkpoint restores its source and trust state. Externally changed trusted tests stop
 the build with a restore instruction rather than being silently accepted or sent for weakening.
+
+## 0.5 release and generation boundaries
+
+`run.py` uses the standard-library `bootstrap.py` supervisor. The original launcher selects a
+versioned installation from the same stable data folder and starts `run.py --server` in a child.
+The child retains the workspace lock and existing API origin/token protections. On an approved
+update, `updates.py` blocks new mutations, verifies a fixed-source release archive, backs up the
+workspace, installs side-by-side, writes pending/current metadata atomically and requests exit 75.
+The supervisor restarts the selected version, verifies its health/version/boot nonce, and restores
+the old pointer if startup fails. Project schema stays at 2; unsupported data formats are refused.
+No inference, arbitrary install hooks, in-place source updates or project migrations occur here.
+
+`scaffolds.py` describes explicit versioned starters. Approval writes owned documents then seeds
+only empty new projects. A foundation test hash is protected; feature tests are unverified until
+the actual app passes. Existing projects and linked revisions are never reseeded. `context.py`
+provides AST symbol maps, source fingerprints and focused phase/traceback feedback. Current source
+still fits the 36,000-character contract; retrieval/indexing is not claimed.
+
+A plan's optional task.check_indexes names approved checks ready after the task. Milestone checks
+run the ordered prefix through the highest index in disposable source/data, with explicit runtime
+consent. They do not require final tests or claim full verification. Failures get bounded repairs
+before later tasks; exhaustion resets next_task to the unfinished task. Final verification still
+requires acceptance, actual generated tests and the launch phase. Static, milestone and full-runtime
+repairs share one cap. Unchanged repairs stop; approved check-file changes stop before generation.
+
+The update UI is in static/updates.js, separate from project rendering. It refreshes after a new
+boot nonce so the local session token is replaced. GET /health exposes only readiness, version and
+an ephemeral startup identity, without project data or credentials. Model outcome summaries group
+current project states by current builder and explicitly do not rank models.

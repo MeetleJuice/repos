@@ -1,4 +1,4 @@
-# Idea Foundry 0.4
+# Idea Foundry 0.5
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
@@ -6,7 +6,30 @@ An original, local-first Python workbench for Windows and VS Code. Ollama is the
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Python 3.11 or newer is required.
 
-## What’s new in 0.4
+## What’s new in 0.5
+
+- **Update** in the top bar: check published GitHub releases, review notes, back up projects,
+  install a separate program version, restart and recover automatically if startup fails.
+- Tested starters: a Python web foundation (default), the reviewed Notes App, and Task Tracker.
+  Templates are explicit, installed only after approval, and never added to existing projects.
+- A protected foundation test plus source maps and focused failure reports for local models.
+- Optional approved milestone checks while building, under the same execution consent and repair cap.
+- Stops unchanged repairs instead of repeating the same failing verification. Static inspection
+  also runs after runtime repairs, with a shared budget of at most three repair requests.
+- Additional checks for the actual bad HTTP APIs found in the latest Notes App upload.
+- A clearer build/test layout, missing-Docker guidance, searchable projects, larger readable text,
+  accessible focus styles, reduced-motion support and a prominent Update button.
+- Readable project guides and local model/project outcome summaries, with no automatic ranking
+  or paid-provider fallback.
+
+**One-time installation:** extract this ZIP into a new folder, stop the old Foundry terminal,
+then start **Start-Foundry.bat**. Windows projects already in Local AppData are reused.
+Keep this new folder: its launcher is the stable entry point for future managed updates.
+No Docker installation is required to generate source files or use the updater.
+
+See [the 0.5 release guide](docs/RELEASE-0.5.md) for update recovery, validation and limits.
+
+## Previously added in 0.4
 
 The working Notes App supplied a real regression case for the generator. Foundry now:
 
@@ -68,7 +91,10 @@ Changes on GitHub do not automatically update a ZIP you already extracted.
 
 After this one-time move, future Windows program ZIPs can go in new folders without copying
 projects again. Project backups intentionally exclude `.env`; preserve keys separately.
-The program does not download or install its own updates. You choose the new version.
+Version 0.5 adds managed updates through the top-bar **Update** button. It checks the published
+release manifest in this repository; you choose **Install & restart**. The current terminal
+must stay open. If GitHub is unavailable, keep using the installed version and retry later.
+ZIP updates remain an alternative. Updates do not upload projects or synchronize generated code.
 
 Existing approved projects remain usable. **Generate / resume code** now checks Python
 syntax and missing tests without executing the app; it can ask the model for bounded repairs.
@@ -96,7 +122,9 @@ The workbench binds only to this computer. It is not intended to be exposed on a
 ## Your first build
 
 1. Try: “Build a task tracker with saved tasks and a list of unfinished tasks.”
-2. Choose the planner and builder models, then click **Shape my idea**.
+2. Choose a tested starter (the Python web foundation is recommended) and your planner/builder
+   models, then click **Shape my idea**. Notes/Tasks starters include working example features;
+   review the proposal to decide which features the new app should keep or change.
 3. Read the proposal, scope, ordered tasks, and HTTP acceptance checks. Revise it if needed.
    You can edit the JSON directly before approval.
 4. Click **Approve this project**. Requirements and acceptance checks are now frozen.
@@ -175,10 +203,11 @@ as planner/builder models.
 
 This release focuses on small Python web apps, not a promise to build any app from any prompt. It does not
 train models, rewrite its own code, deploy to the internet, install project packages, or run a
-visual browser test of each generated app. Generated tasks are applied sequentially; full tests
-run after the task list is complete. Passing checks proves only the covered behavior. Model-written
-tests may be weak: inspect the approved acceptance checks and try the result yourself. There is
-no automatic quality scoring or model-learning system yet. Use **Plan this improvement** to create a linked change copy with the original preserved. Source is limited to 36,000 characters to fit smaller local models;
+visual browser test of each generated app. Generated tasks are applied sequentially. Optional task `check_indexes` declare approved
+ordered check prefixes ready at a runnable milestone; these run only with execution consent.
+Full acceptance, generated tests and launch checks still run after the final task. Passing checks proves only the covered behavior. Model-written
+tests may be weak: inspect the approved acceptance checks and try the result yourself. Local outcome summaries describe the current state of projects grouped by current builder;
+they are not controlled model rankings or a model-training system. Use **Plan this improvement** to create a linked change copy with the original preserved. Source is limited to 36,000 characters to fit smaller local models;
 large ideas should start with a smaller version. Generated apps must implement the fixed contract
 described in [the architecture](docs/ARCHITECTURE.md).
 

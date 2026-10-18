@@ -190,6 +190,8 @@ def run_phase(name, source, timeout):
 
 def diagnose(report):
     text = report.get("error", "").lower()
+    if "message_from_bytes" in text or "unexpected keyword argument 'headers'" in text or "unexpected keyword argument 'method'" in text:
+        return "An HTTP API is used incorrectly. Read Content-Type with self.headers.get_content_type(). Build urllib.request.Request with headers/method, then call urlopen(request, timeout=3)."
     if "no such table" in text:
         return "The database table is missing. Initialize the schema in create_server before handling requests."
     if "filenotfounderror" in text or "referenced asset" in text:
@@ -211,6 +213,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("--phase", choices=["acceptance", "tests", "launch"])
+    parser.add_argument("--milestone", action="store_true")
     parser.add_argument("--test-timeout", type=float, default=30)
     args = parser.parse_args()
     source = args.source.resolve()
@@ -223,12 +226,16 @@ def main():
         print(MARKER + json.dumps(report), flush=True)
         return 0
     results = []
-    for name, timeout in [("acceptance", 40), ("tests", max(0.1, min(args.test_timeout, 300))), ("launch", 15)]:
+    phases = [("acceptance", 40)] if args.milestone else [("acceptance", 40), ("tests", max(0.1, min(args.test_timeout, 300))), ("launch", 15)]
+    for name, timeout in phases:
         result = run_phase(name, source, timeout)
         results.append(result)
         if not result["passed"]:
             print(json.dumps({"result": "failed", "phases": results, "diagnosis": diagnose(result)}), flush=True)
             return 1
+    if args.milestone:
+        print(json.dumps({"result": "milestone_passed", "http_checks": results[0]["http_checks"], "phases": results}), flush=True)
+        return 0
     print(json.dumps({"result": "passed", "tests_run": results[1]["tests_run"], "app_calls": results[1]["app_calls"], "asset_checks": results[0]["asset_checks"], "http_checks": results[0]["http_checks"] + results[2]["http_checks"], "phases": results}), flush=True)
     return 0
 

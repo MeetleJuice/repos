@@ -16,6 +16,7 @@ from .models import connection_info
 from . import __version__
 from .storage import data_home, import_legacy, workspace_lock
 from .runner import runtime_diagnostics
+from .updates import UpdateManager, atomic_json
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -34,6 +35,7 @@ def load_dotenv(path):
 def make_server(port=8765, workbench=None):
     bench = workbench or Workbench(data_home(ROOT) / "projects")
     token = secrets.token_urlsafe(32)
+    updater = UpdateManager(bench.root.parent, ROOT, bench)
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -87,13 +89,23 @@ def make_server(port=8765, workbench=None):
                             raise ValueError("Request body must be a JSON object.")
                     else:
                         body = {}
-                    self.api(path, post, body)
+                    if post and path == "/api/updates/check":
+                        self.api(path, post, body)
+                    elif post:
+                        with bench.lock:
+                            if getattr(bench, 'maintenance', False):
+                                raise ValueError('An update is being installed. Wait for the restart before making changes.')
+                            self.api(path, post, body)
+                    else:
+                        self.api(path, post, body)
                 elif post:
                     self.json({"error": "Not found."}, 404)
+                elif path == "/health":
+                    self.json({"status": "ok", "version": __version__, "boot": os.getenv("FOUNDRY_BOOT_NONCE", "")})
                 elif path == "/":
                     html = (ROOT / "forge" / "static" / "index.html").read_text(encoding="utf-8").replace("__TOKEN__", token)
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
-                elif path in {"/app.js", "/style.css"}:
+                elif path in {"/app.js", "/updates.js", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
                     self.json({"error": "Not found."}, 404)
@@ -107,6 +119,18 @@ def make_server(port=8765, workbench=None):
                 self.json({"error": "Internal error. Check the workbench terminal and local project data."}, 500)
 
         def api(self, path, post, body):
+            if path == "/api/updates" and not post:
+                self.json(updater.status())
+                return
+            if path == "/api/updates/check" and post:
+                self.json(updater.check(__version__))
+                return
+            if path == "/api/updates/install" and post:
+                self.json(updater.install(__version__, self.server.shutdown), 202)
+                return
+            if path == "/api/insights" and not post:
+                self.json(bench.insights())
+                return
             if path == "/api/info" and not post:
                 states = bench.list_projects()
                 calls = [c for state in states for c in state.get("model_calls", [])]
@@ -120,7 +144,7 @@ def make_server(port=8765, workbench=None):
             if path == "/api/projects":
                 if post:
                     self.cloud_consent(body.get("planner", {}), body.get("coder", {}), body)
-                    self.json(bench.create(body["idea"], body["planner"], body["coder"]), 201)
+                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter")), 201)
                 else:
                     self.json(bench.list_projects())
                 return
@@ -148,7 +172,7 @@ def make_server(port=8765, workbench=None):
                     with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
                         for name, content in bench.files(ident).items():
                             archive.writestr("generated-app/" + name, content)
-                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
+                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"generator_version": __version__, "starter": state.get("starter"), "starter_version": state.get("starter_version"), "milestones": state.get("milestones", []), "status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
                     self.send_bytes(200, stream.getvalue(), "application/zip", "generated-app.zip")
             elif post and action == "approve":
                 self.json(bench.approve(ident, body["plan"]))
@@ -178,6 +202,7 @@ def make_server(port=8765, workbench=None):
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.daemon_threads = True
     server.workbench = bench
+    server.updater = updater
     return server
 
 
@@ -194,10 +219,16 @@ def main():
             imported = import_legacy(ROOT, home, migration_warnings)
             load_dotenv(home / ".env")
             load_dotenv(ROOT / ".env")
+            launch_root = os.getenv("FOUNDRY_LAUNCH_ROOT")
+            if launch_root:
+                load_dotenv(Path(launch_root) / ".env")
             bench = Workbench(home / "projects")
             bench.warnings.extend(migration_warnings)
             server = make_server(args.port, bench)
             print(f"Idea Foundry {__version__} is running locally on port {server.server_port}.\nOpen http://127.0.0.1:{server.server_port}\nYour workspace: {home}", flush=True)
+            ready_file = os.getenv("FOUNDRY_READY_FILE")
+            if ready_file:
+                atomic_json(Path(ready_file), {"port": server.server_port})
             if imported:
                 print(f"Copied {len(imported)} legacy projects; originals were preserved.", flush=True)
             if args.open:
@@ -214,6 +245,8 @@ def main():
                 for thread, _ in jobs:
                     thread.join()
                 server.server_close()
+            if server.updater.restart:
+                raise SystemExit(75)
     except (ValueError, OSError) as exc:
         parser.exit(1, f"Idea Foundry could not start: {exc}\n")
 

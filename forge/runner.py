@@ -57,7 +57,7 @@ def verify(project, mode, cancel, timeout=120, test_timeout=30):
     return _execute(project, mode, cancel, timeout, test_timeout=test_timeout)
 
 
-def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30):
+def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30, milestone=False):
     project = Path(project).resolve()
     harness = (harness or Path(__file__).with_name("harness.py")).resolve()
     name = "foundry-" + uuid.uuid4().hex
@@ -74,6 +74,8 @@ def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30):
         cmd = [sys.executable, "-I", "-B", str(harness), str(project), "--test-timeout", str(test_timeout)]
     else:
         raise ValueError("Choose Docker or trusted local execution.")
+    if milestone:
+        cmd.append("--milestone")
     # Do not pass the workbench's API keys or broad environment through to generated programs.
     environment = {k: v for k, v in os.environ.items() if k.upper() in {
         "PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "HOME", "USERPROFILE",
@@ -123,6 +125,9 @@ def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30):
                         and report["tests_run"] > 0 and report.get("http_checks") == len(checks) + 3
                         and type(report.get("app_calls")) is int and report["app_calls"] > 0
                         and [p.get("phase") for p in report.get("phases", []) if p.get("passed")] == ["acceptance", "tests", "launch"])
+            if milestone:
+                reported = (report.get("result") == "milestone_passed" and report.get("http_checks") == len(checks) + 2
+                            and [p.get("phase") for p in report.get("phases", []) if p.get("passed")] == ["acceptance"])
         except (ValueError, KeyError, IndexError, AttributeError, OSError):
             pass
         if not reported:
@@ -133,3 +138,20 @@ def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30):
             "phases": report.get("phases", []),
             "failure_kind": None if passed else "environment" if mode == "docker" and proc.returncode in {125, 126, 127} else "application",
             "log": ((stopped + "\n") if stopped else "") + log[-24000:], "runtime": mode}
+
+
+def verify_milestone(project, mode, cancel, checks):
+    """Run only an approved ordered prefix in a disposable copy, without changing CHECKS.json."""
+    project = Path(project).resolve()
+    with tempfile.TemporaryDirectory(prefix=".milestone-", dir=project.parent) as temp:
+        root = Path(temp)
+        source = root / "source"
+        shutil.copytree(project, source)
+        (source / "CHECKS.json").write_text(json.dumps(checks), encoding="utf-8")
+        harness = root / "harness.py"
+        shutil.copyfile(Path(__file__).with_name("harness.py"), harness)
+        if mode == "docker":
+            root.chmod(0o755)
+            for path in root.rglob("*"):
+                path.chmod(0o755 if path.is_dir() else 0o644)
+        return _execute(source, mode, cancel, 60, harness, milestone=True)

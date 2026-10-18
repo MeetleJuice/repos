@@ -44,7 +44,7 @@ def main():
                 expect(page.locator("#project-status")).to_have_text("Files ready · not tested", timeout=15000)
                 expect(page.locator("#test-badge")).to_have_text("Not verified")
                 page.locator("#runtime").select_option("local")
-                expect(page.locator("#runtime-note")).to_contain_text("NOT a security sandbox")
+                expect(page.locator("#runtime-note")).to_contain_text("not a sandbox")
                 page.locator("#execution-consent").check()
                 page.get_by_role("button", name="Build, test & repair").click()
                 expect(page.locator("#project-status")).to_have_text("verified", timeout=25000)

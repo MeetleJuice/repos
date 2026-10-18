@@ -1,0 +1,55 @@
+import unittest
+from app import create_server
+import sqlite3
+import json
+import email.message
+import tempfile
+import os
+import threading
+import urllib.request
+import urllib.error
+
+DATABASE_PATH = 'notes.db'
+
+
+class TestNotesApp(unittest.TestCase):
+    def setUp(self):
+        self.db_fd, DATABASE_PATH = tempfile.mkstemp()
+        self.server = create_server('127.0.0.1', 8000)
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.start()
+
+    def tearDown(self):
+        os.close(self.db_fd)
+        os.unlink(DATABASE_PATH)
+        self.server.shutdown()
+        self.server.server_close()
+        self.server_thread.join()
+
+    def test_health_check(self):
+        with urllib.request.urlopen('http://127.0.0.1:8000/health') as response:
+            self.assertEqual(response.status, 200)
+            self.assertIn(b'status":"ok"', response.read())
+
+    def test_create_note(self):
+        with urllib.request.urlopen('http://127.0.0.1:8000/api/notes', data=json.dumps({'title': 'Buy milk', 'body': 'Need to buy groceries'}).encode(), headers={'Content-Type': 'application/json'}) as response:
+            self.assertEqual(response.status, 201)
+            self.assertIn(b'"id":1', response.read())
+
+    def test_list_notes(self):
+        with urllib.request.urlopen('http://127.0.0.1:8000/api/notes') as response:
+            self.assertEqual(response.status, 200)
+            self.assertIn(b'"title":"Buy milk"', response.read())
+
+    def test_search_notes(self):
+        with urllib.request.urlopen('http://127.0.0.1:8000/api/notes/search?q=milk') as response:
+            self.assertEqual(response.status, 200)
+            self.assertIn(b'"title":"Buy milk"', response.read())
+
+    def test_delete_note(self):
+        with urllib.request.urlopen('http://127.0.0.1:8000/api/notes/1', method='DELETE') as response:
+            self.assertEqual(response.status, 200)
+            self.assertIn(b'"deleted":true', response.read())
+
+if __name__ == '__main__':
+    unittest.main()

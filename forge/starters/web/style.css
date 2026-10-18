@@ -1,0 +1,6 @@
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+body { margin: 0; background: #f5f7f6; color: #203f36; }
+main { max-width: 800px; margin: 10vh auto; padding: 32px; }
+input, textarea, button { font: inherit; padding: 10px; }
+button { cursor: pointer; }
+@media (prefers-color-scheme: dark) { body { background: #15251f; color: #e7eee9; } }

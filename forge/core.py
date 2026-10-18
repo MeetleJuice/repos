@@ -17,7 +17,9 @@ import zipfile
 from .models import ModelClient
 from .prompts import PLAN, CODE
 from .inspection import inspect_files
-from .runner import verify, require_runtime
+from .runner import verify, require_runtime, verify_milestone
+from .scaffolds import CATALOG, starter_files
+from .context import SOURCE_LIMIT, source_map, failure_feedback, fingerprint
 
 OWNED = {"readme.md", "project.md", "tasks.md", "checks.json", "run.bat", "run.sh", "launch.py"}
 ACTIVE = {"planning", "building", "checking", "repairing", "queued"}
@@ -77,6 +79,10 @@ def validate_plan(plan):
     if not behavior:
         raise ValueError("Add a check of actual app behavior beyond / and /health.")
     coverage(checks, "acceptance check")
+    for task in tasks:
+        indexes = task.get("check_indexes", [])
+        if not isinstance(indexes, list) or any(type(i) is not int or not 0 <= i < len(checks) for i in indexes):
+            raise ValueError("Task check_indexes must refer to approved acceptance checks.")
     if len(json.dumps(plan)) > 30000:
         raise ValueError("Proposal too large. Narrow the scope.")
     return plan
@@ -112,6 +118,8 @@ class Workbench:
         self.inference_lock = threading.Lock()
         self.jobs = {}
         self.warnings = []
+        self.maintenance = False
+        self.milestone_verifier = verify_milestone
         for path in self.root.glob("*/state.json"):
             try:
                 state = self.load(path.parent.name)
@@ -289,7 +297,11 @@ class Workbench:
                 result.append({"name": name, "kind": "modified" if name in before else "added", "diff": "\n".join(lines)[:20000]})
         return result
 
-    def create(self, idea, planner, coder):
+    def create(self, idea, planner, coder, starter=None):
+        if self.maintenance:
+            raise ValueError("An update is being installed. Wait for the restart.")
+        if starter is not None and starter not in CATALOG:
+            raise ValueError("Unknown starter template.")
         if not isinstance(idea, str) or not 10 <= len(idea.strip()) <= 12000:
             raise ValueError("Describe your idea in 10–12000 characters.")
         for config in (planner, coder):
@@ -298,11 +310,25 @@ class Workbench:
         state = {"id": ident, "idea": idea.strip(), "title": "New project", "created": self.now(),
                  "status": "draft", "planner": planner, "coder": coder, "plan": None,
                  "approved": False, "next_task": 0, "events": [], "checks": None,
-                 "snapshots": [], "repair_count": 0}
+                 "snapshots": [], "repair_count": 0, "starter": starter}
         (self.directory(ident) / "source").mkdir(parents=True)
         self.save(state)
         self.start(ident, "plan", {})
         return self.load(ident)
+
+    def insights(self):
+        groups = {}
+        for state in self.list_projects():
+            coder = state["coder"]
+            key = coder["provider"] + "/" + coder["model"]
+            group = groups.setdefault(key, {"model": key, "projects": 0, "verified": 0, "generated": 0, "calls": 0, "seconds": 0})
+            group["projects"] += 1
+            group["verified"] += state["status"] == "verified"
+            group["generated"] += state["status"] == "generated"
+            calls = [c for c in state.get("model_calls", []) if c.get("role") == "coder"]
+            group["calls"] += len(calls)
+            group["seconds"] = round(group["seconds"] + sum(c["seconds"] for c in calls), 2)
+        return {"models": list(groups.values()), "explanation": "Current project results, grouped by current builder. Model switches and different prompts/scopes affect these counts; they are not a controlled model ranking."}
 
     def client(self, state, role):
         config = state[role]
@@ -310,6 +336,8 @@ class Workbench:
 
     def start(self, ident, action, options):
         with self.lock:
+            if self.maintenance:
+                raise ValueError("An update is being installed. Wait for the restart.")
             state = self.load(ident)
             existing = self.jobs.get(ident)
             if existing and existing[0].is_alive():
@@ -356,13 +384,30 @@ class Workbench:
             state["title"] = plan["title"]
             state["approved"], state["status"] = True, "approved"
             self.documents(state)
+            if state.get("starter") and not self.context_files(ident):
+                files = starter_files(state["starter"])
+                self.apply(state, {"files": files, "summary": "Installed reviewed starter: " + CATALOG[state["starter"]]["title"]})
+                state["starter_version"] = CATALOG[state["starter"]]["version"]
+                # Protect the minimal contract; feature-specific starter tests can be adapted
+                # until the actual approved app passes verification.
+                state.setdefault("frozen_tests", {})["test_foundation.py"] = hashlib.sha256(files["test_foundation.py"].encode()).hexdigest()
             self.event(state, "Proposal approved. Requirements and acceptance checks frozen.")
             return state
 
     def documents(self, state):
         source = self.directory(state["id"]) / "source"
         plan = state["plan"]
-        (source / "PROJECT.md").write_text("# " + plan["title"] + "\n\n" + plan["summary"] + "\n\n## Approved requirements\n\n" + json.dumps(plan, indent=2), encoding="utf-8")
+        guide = "# " + plan["title"] + "\n\n" + plan["summary"]
+        guide += "\n\n## Approved features\n\n" + "\n".join("- " + feature for feature in plan["features"])
+        guide += "\n\n## Architecture and execution contract\n\nPython 3.11+, standard library only. app.py exposes create_server(host, port), /health and a browser interface. SQLite/JSON data stays local. No external services or package installation.\n"
+        guide += "\n## Build order\n\n" + "\n".join(f'{i+1}. {task["title"]} — {task["instructions"]}' for i, task in enumerate(plan["tasks"]))
+        guide += "\n\nTasks run sequentially. Later tasks build on saved files; checkpoints preserve previous versions.\n"
+        guide += "\n## Acceptance criteria\n\n" + "\n".join(f'- {check["name"]}: {check["method"]} {check["path"]} → HTTP {check["status"]}' for check in plan["checks"])
+        guide += "\n\n## Scope boundaries\n\n" + "\n".join("- " + item for item in plan["out_of_scope"])
+        guide += "\n\n## Known considerations\n\n" + "\n".join("- " + item for item in plan["risks"])
+        guide += "\n\nVerification evidence is in BUILD-REPORT.json after export. A passing report covers the executed checks; it is not a guarantee of every possible behavior.\n"
+        guide += "\n## Frozen proposal\n\n```json\n" + json.dumps(plan, indent=2) + "\n```\n"
+        (source / "PROJECT.md").write_text(guide, encoding="utf-8")
         (source / "TASKS.md").write_text("# Build tasks\n\n" + "\n".join(f'{i+1}. {t["title"]}\n   {t["instructions"]}' for i, t in enumerate(plan["tasks"])), encoding="utf-8")
         (source / "CHECKS.json").write_text(json.dumps(plan["checks"], indent=2), encoding="utf-8")
         (source / "README.md").write_text(f'# {plan["title"]}\n\n{plan["summary"]}\n\nRequires Python 3.11+. No third-party packages.\n\nRun `python app.py --host 127.0.0.1 --port 8080`, then open http://127.0.0.1:8080.\nOn Windows you can double-click run.bat.\n\nAI-generated code: review it before running. See PROJECT.md for the agreed scope and CHECKS.json for acceptance checks.\nPassing checks is evidence of the tested behaviors, not a guarantee of all requirements.\n', encoding="utf-8")
@@ -452,7 +497,7 @@ class Workbench:
             targets.append((target, content))
         if sum(len(v) for v in (current | files).values()) > 70000:
             raise ValueError("Project exceeded the small-model context budget. Narrow the scope.")
-        if sum(len(v) for k, v in (current | files).items() if k.lower() not in OWNED) > 36000:
+        if sum(len(v) for k, v in (current | files).items() if k.lower() not in OWNED) > SOURCE_LIMIT:
             raise ValueError("Source exceeded the local-model context budget. Narrow the scope or split the app.")
         # All names and contents are validated before any file is written.
         if any(path.is_symlink() for path in root.rglob("*")):
@@ -478,6 +523,12 @@ class Workbench:
             state["preflight"] = preflight(self.context_files(state["id"]), complete=complete)
             current = self.context_files(state["id"])
             trusted_issues = []
+            try:
+                actual_checks = json.loads(self.files(state["id"])["CHECKS.json"])
+                if json.dumps(actual_checks, sort_keys=True) != json.dumps(state["plan"]["checks"], sort_keys=True):
+                    raise ValueError("changed")
+            except (KeyError, ValueError):
+                trusted_issues.append("Approved acceptance checks were changed or removed. Restore a checkpoint; model repairs cannot replace the approved checks.")
             for name, expected in state.get("frozen_tests", {}).items():
                 if name not in current or hashlib.sha256(current[name].encode()).hexdigest() != expected:
                     trusted_issues.append("Trusted regression test was changed or removed: " + name + ". Restore its checkpoint before continuing.")
@@ -497,12 +548,53 @@ class Workbench:
                 return None
             state["status"] = "repairing"
             self.event(state, f"Static repair {attempt+1}: correcting syntax/structure or adding missing tests without executing code.\n" + issues)
-            response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": issues, "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Approved checks and frozen_tests are immutable. Repair unverified test files when necessary: import the real app and make actual HTTP requests. Implement every approved feature."}), cancel)
+            response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "failure": issues, "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Approved checks and frozen_tests are immutable. Repair unverified test files when necessary: import the real app and make actual HTTP requests. Implement every approved feature."}), cancel)
             if cancel.is_set():
                 raise InterruptedError("Stopped. Static repair output discarded.")
             self.apply(state, response, repair=True)
             state["repair_count"] += 1
             remaining -= 1
+
+    def _verify_milestone(self, state, task, task_index, options, cancel, remaining_repairs):
+        """Verify an approved check prefix before later tasks build on this increment."""
+        limit = max(task["check_indexes"]) + 1
+        result = self.milestone_verifier(self.directory(state["id"]) / "source", options.get("runtime", "docker"), cancel, state["plan"]["checks"][:limit])
+        if cancel.is_set():
+            state["next_task"] = task_index
+            raise InterruptedError("Milestone verification stopped. Resume will retry this task.")
+        state["milestones"][-1].update(behavior_verified=result["passed"], checks=limit, result=result)
+        self.save(state)
+        seen = set()
+        while not result["passed"]:
+            state["checks"] = result
+            current_fingerprint = fingerprint(self.context_files(state["id"]))
+            if remaining_repairs == 0 or result.get("failure_kind") == "environment" or current_fingerprint in seen:
+                # Re-run the incomplete task on resume; do not advance over failed behavior.
+                state["next_task"] = task_index
+                state["status"] = "needs_attention"
+                self.event(state, "Milestone check failed. Resume will retry this task. " + str(result.get("diagnosis", "")))
+                return None
+            seen.add(current_fingerprint)
+            self.event(state, "Repairing the failed milestone before proceeding.")
+            response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "task": task, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "feedback": failure_feedback(result), "failure": result.get("log", "")[-6500:], "frozen_tests": list(state.get("frozen_tests", {}))}), cancel)
+            if cancel.is_set():
+                raise InterruptedError("Stopped. Milestone repair discarded.")
+            self.apply(state, response, repair=True)
+            state["repair_count"] += 1
+            remaining_repairs -= 1
+            remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
+            if remaining_repairs is None:
+                state["next_task"] = task_index
+                self.save(state)
+                return None
+            result = self.milestone_verifier(self.directory(state["id"]) / "source", options.get("runtime", "docker"), cancel, state["plan"]["checks"][:limit])
+            if cancel.is_set():
+                state["next_task"] = task_index
+                raise InterruptedError("Milestone verification stopped. Resume will retry this task.")
+            state["milestones"][-1].update(behavior_verified=result["passed"], result=result)
+            self.save(state)
+        state["checks"] = None
+        return remaining_repairs
 
     def _job(self, state, action, options, cancel):
         try:
@@ -513,6 +605,7 @@ class Workbench:
                     raise ValueError("Revision must be under 6000 characters.")
                 request = {"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"],
                            "existing_project": state.get("baseline_plan"), "change_request": state.get("change_request"),
+                           "starter": CATALOG.get(state.get("starter")),
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
                 for attempt in range(2):
                     plan = self.call_model(state, "planner", PLAN, json.dumps(request), cancel)
@@ -536,12 +629,15 @@ class Workbench:
             state["checks"] = None
             state["preflight"] = None
             remaining_repairs = options.get("repairs", 2)
+            remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
+            if remaining_repairs is None:
+                return
             for index in range(state["next_task"], len(state["plan"]["tasks"])):
                 if cancel.is_set():
                     raise InterruptedError("Build stopped. You can resume from the next unfinished task.")
                 task = state["plan"]["tasks"][index]
                 self.event(state, f'Task {index+1}: {task["title"]}')
-                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "frozen_tests": list(state.get("frozen_tests", {}))}), cancel)
+                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "frozen_tests": list(state.get("frozen_tests", {}))}), cancel)
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Model output discarded.")
                 self.apply(state, response)
@@ -552,6 +648,10 @@ class Workbench:
                 state.setdefault("milestones", []).append({"task": index + 1, "title": task["title"], "syntax_passed": True, "behavior_verified": False, "time": self.now()})
                 state["next_task"] = index + 1
                 self.save(state)
+                if options.get("execute") and options.get("milestones", True) and task.get("check_indexes") and index + 1 < len(state["plan"]["tasks"]):
+                    remaining_repairs = self._verify_milestone(state, task, index, options, cancel, remaining_repairs)
+                    if remaining_repairs is None:
+                        return
             # Repairs here are text-only model calls. No generated code is run.
             remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs)
             if remaining_repairs is None:
@@ -561,11 +661,18 @@ class Workbench:
                 self.event(state, "Source and test files generated; static syntax/structure checks passed. The app has NOT run or been verified. Approve execution for behavioral checks.")
                 return
             runtime_repairs = remaining_repairs
+            checked_sources = set()
             for attempt in range(runtime_repairs + 1):
                 if cancel.is_set():
                     raise InterruptedError("Verification stopped.")
                 state["status"] = "checking"
                 self.event(state, "Running generated tests and frozen HTTP acceptance checks.")
+                checked_fingerprint = fingerprint(self.context_files(state["id"]))
+                if checked_fingerprint in checked_sources:
+                    state["status"] = "needs_attention"
+                    self.event(state, "The repair returned unchanged source. Stopped rather than repeating the same failed verification. Try another model or restore a checkpoint.")
+                    return
+                checked_sources.add(checked_fingerprint)
                 result = self.verifier(self.directory(state["id"]) / "source", options.get("runtime", "docker"), cancel)
                 state["checks"] = result
                 self.save(state)
@@ -580,17 +687,21 @@ class Workbench:
                     state["status"] = "needs_attention"
                     self.event(state, "Execution environment failed. Fix the Docker/runtime error below before retrying; application code was not sent for repair.")
                     return
-                if attempt == runtime_repairs:
+                if remaining_repairs == 0:
                     state["status"] = "needs_attention"
                     self.event(state, "Checks failed. Repair limit reached; inspect the output and files.")
                     return
                 state["status"] = "repairing"
                 self.event(state, f'Repair attempt {attempt+1}; approved checks and trusted regression tests remain frozen. New unverified tests may be corrected.')
-                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-12000:], "diagnosis": result.get("diagnosis"), "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair the application and, if faulty, unverified test files. Never edit frozen_tests or approved checks. Test the actual imported app, send HTTP requests with timeouts, and preserve every approved feature."}), cancel)
+                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-6500:], "feedback": failure_feedback(result), "source_map": source_map(self.context_files(state["id"])), "diagnosis": result.get("diagnosis"), "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair the application and, if faulty, unverified test files. Never edit frozen_tests or approved checks. Test the actual imported app, send HTTP requests with timeouts, and preserve every approved feature."}), cancel)
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Repair output discarded.")
                 self.apply(state, response, repair=True)
                 state["repair_count"] += 1
+                remaining_repairs -= 1
+                remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs)
+                if remaining_repairs is None:
+                    return
         except InterruptedError as exc:
             state["status"] = "stopped"
             self.event(state, str(exc))
