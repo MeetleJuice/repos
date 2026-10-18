@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="foundry-token" content="__TOKEN__">
+  <title>Idea Foundry · From idea to app</title>
+  <link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark">f.</span><span>idea foundry<small>YOUR LOCAL BUILD STUDIO</small></span></a>
+    <button id="new-project" class="primary wide">＋ New project</button>
+    <p class="eyebrow sidebar-label">YOUR WORKSPACE</p>
+    <nav id="projects" aria-label="Projects"><p class="muted">Your ideas will live here.</p></nav>
+    <div class="sidebar-bottom"><span class="status-dot"></span> Local workspace<small>Your files stay on this computer.<br>Cloud models are always your choice.</small></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>WORKBENCH <span class="slash">/</span> <span id="breadcrumb">A new beginning</span></span><button id="connections-button" class="quiet">◎ Model connections</button></header>
+    <div id="notice" role="status" hidden></div>
+    <section id="create-view">
+      <div class="intro"><span class="tag">SMALL IDEAS. REAL SOFTWARE.</span><h1>What will you<br><em>bring to life?</em></h1><p>Start with an idea. Shape the plan. Build something you can actually run.</p></div>
+      <form id="idea-form" class="idea-card">
+        <label for="idea" class="eyebrow">THE IDEA</label>
+        <textarea id="idea" required minlength="10" maxlength="12000" placeholder="I want a simple app to track my houseplants, remember watering dates, and show me what needs attention…"></textarea>
+        <div class="examples"><span>Need a starting point?</span><button type="button" data-idea="Build a personal task tracker with saved tasks, a completed checkbox, and a filter for unfinished tasks.">Task tracker ↗</button><button type="button" data-idea="Build a household expense tracker where I can add expenses with a category and view totals.">Expense tracker ↗</button></div>
+        <div class="model-grid">
+          <fieldset><legend>01 / THE PLANNER</legend><label for="planner-provider">Provider</label><select id="planner-provider"><option value="ollama">Ollama · local</option value="groq">Groq</option><option value="openrouter">OpenRouter</option><option value="gemini">Gemini</option></select><label for="planner-model">Model</label><input id="planner-model" list="ollama-models" value="qwen3.5:9b" required></fieldset>
+          <fieldset><legend>02 / THE BUILDER</legend><label for="coder-provider">Provider</label><select id="coder-provider"><option value="ollama">Ollama · local</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option><option value="gemini">Gemini</option></select><label for="coder-model">Model</label><input id="coder-model" list="ollama-models" value="qwen2.5-coder:7b" required></fieldset>
+        </div>
+        <datalist id="ollama-models"></datalist>
+        <label class="check-line cloud-option" hidden><input type="checkbox" id="create-cloud">I allow sending this idea and project files to my selected cloud providers. API charges may apply.</label>
+        <div class="card-footer"><span>First, a proposal. You approve what gets built.</span><button class="primary" id="propose" type="submit">Shape my idea <span>↗</span></button></div>
+      </form>
+      <div class="journey"><div><b>01</b><h3>Make it concrete</h3><p>A focused proposal, clear scope, and testable goals.</p></div><div><b>02</b><h3>Build in small steps</h3><p>Your models write the code. Checkpoints keep a way back.</p></div><div><b>03</b><h3>Check. Repair. Deliver.</h3><p>Run real checks, inspect the results, and take your app with you.</p></div></div>
+      <p class="footnote">FIRST EDITION · Builds small Python web apps using the standard library. Larger ideas start with a useful first slice.</p>
+    </section>
+    <section id="project-view" hidden>
+      <div class="project-heading"><div><span class="tag">YOUR IDEA, TAKING SHAPE</span><h1 id="project-title"></h1><p id="project-summary"></p></div><span id="project-status" class="badge"></span></div>
+      <ol class="steps"><li id="step-plan">1 <span>Proposal</span></li><li id="step-approve">2 <span>Approval</span></li><li id="step-build">3 <span>Build</span></li><li id="step-check">4 <span>Verification</span></li></ol>
+      <div class="tabs" role="tablist" aria-label="Project panels"><button class="selected" data-tab="proposal" role="tab" aria-selected="true">Proposal</button><button data-tab="build" role="tab" aria-selected="false">Build & results</button><button data-tab="files" role="tab" aria-selected="false">Project files</button></div>
+      <section id="panel-proposal" class="panel" role="tabpanel">
+        <div id="proposal-loading" class="empty">Your planner is shaping the idea. Local models may take a few minutes.</div>
+        <div id="proposal-content" hidden><div class="scope-grid"><div><h3>What we’re building</h3><ul id="features"></ul></div><div><h3>Scope & considerations</h3><ul id="limits"></ul></div></div><h3>The build plan</h3><ol id="tasks" class="task-list"></ol><h3>How we’ll check it</h3><p class="muted">These checks are frozen when you approve. Review whether they prove the behavior you want.</p><pre id="acceptance"></pre><details><summary>Edit the proposal JSON before approval</summary><textarea id="plan-editor" class="code-editor" aria-label="Proposal JSON" spellcheck="false"></textarea></details><div id="proposal-actions"><label for="revision">Want a different direction?</label><textarea id="revision" placeholder="Make it simpler, add a search feature, change the scope…" maxlength="6000"></textarea><div class="button-row"><button id="revise" class="secondary">Revise proposal</button><button id="approve" class="primary">Approve this project →</button></div></div></div>
+      </section>
+      <section id="panel-build" class="panel" role="tabpanel" hidden>
+        <div class="scope-grid"><div><h2>From plan to working files.</h2><p id="progress-text" class="muted"></p><p id="model-label" class="muted"></p><div class="button-row"><button id="generate" class="secondary">Generate / resume code</button><button id="stop" class="quiet">Stop job</button></div><p class="muted">Generating writes source files. It does not execute them.</p></div><div class="execution-box"><h3>Execution settings</h3><label for="runtime">Where to run generated code</label><select id="runtime"><option value="docker">Docker · isolated, no network</option><option value="local">This computer · trusted code only</option></select><p id="runtime-note" class="muted">Requires Docker Desktop and the python:3.12-slim image. No host API keys are passed into the container.</p><label for="repairs">Maximum repairs per run</label><select id="repairs"><option>0</option><option>1</option><option selected>2</option><option>3</option></select><label class="check-line"><input type="checkbox" id="execution-consent">I approve executing this generated code in the selected runtime.</label><button id="verify" class="primary wide">Build, test & repair →</button></div></div>
+        <label class="check-line project-cloud" hidden><input type="checkbox" id="project-cloud-consent">I allow this project’s content and failure logs to be sent to the selected cloud providers. Charges may apply.</label>
+        <div class="results-heading"><h3>Build journal</h3><span id="test-badge" class="badge">Not verified</span></div><div id="events" class="events" aria-live="polite"></div><details id="test-details"><summary>Verification output</summary><pre id="test-output">No checks have run yet.</pre></details>
+      </section>
+      <section id="panel-files" class="panel" role="tabpanel" hidden><div class="results-heading"><div><h2>Your project, yours to keep.</h2><p class="muted">Review the code, then download and open it in VS Code. The ZIP includes launch instructions and a build report.</p></div><button id="download" class="primary">Download app .zip ↓</button></div><button id="refresh-files" class="quiet">Refresh files</button><div class="file-layout"><nav id="file-list" aria-label="Generated files"></nav><pre id="file-content">Generated files will appear here after approval.</pre></div><h3>Checkpoints</h3><p class="muted">Restoring replaces current generated files. A backup is saved first.</p><div id="snapshots"></div></section>
+    </section>
+  </main>
+  <dialog id="connections"><div class="results-heading"><h2>Your model connections</h2><button id="close-connections" class="quiet" aria-label="Close connections">✕</button></div><p>Ollama runs on your computer. Optional API keys belong in your local <code>.env</code> file; restart the workbench after editing it.</p><div id="connection-list">Checking connections…</div><p class="muted">Cloud key status means a key is present, not that the provider has verified it. Model names are entered explicitly. No automatic cloud fallback.</p><button id="refresh-connections" class="secondary">Check again</button></dialog>
+</body></html>
