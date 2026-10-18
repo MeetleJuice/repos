@@ -139,3 +139,41 @@ structural validator: median review 0.1458 ms, p95 0.2353 ms (per-proposal batch
 This measures validator latency, not Ollama/GPU speed or general app completion rates.
 No live Windows, user Ollama, paid-provider or hosted CI run is claimed. Final packaging
 changes only release documentation after the extracted-distribution test.
+
+## Version 0.7 — Pass 2
+
+149 automated tests passed in 72.974 seconds from a fresh updater-validated extracted
+distribution on Linux Python 3.12.14. New cases reproduce the actual Neon Dodge read-before-create
+proposal, support browser-only plans without fake APIs, preserve server behavior requirements,
+validate bounded browser/manual contracts, protect approved evidence, and exercise the full
+plan/approval/build/HTTP/tests/launch/manual-acceptance pipeline. Tests reject incomplete or
+non-boolean manual results, stale source, tampered checklists and repeated invalid code replies.
+Malformed JSON gets one focused correction; authentication errors do not enter that correction
+loop. Exact published 0.5 launcher compatibility and old-state preservation still pass.
+
+Real Chromium checks passed the Foundry planning/review/fallback controls and the entire arcade
+pipeline through export. The rendered ship moved with arrow/D keys and pointer-held controls.
+Pause froze both score and canvas, collision produced game over, restart reset play, and the best
+score survived refresh. Workbench and game mobile layouts had no horizontal overflow or JavaScript
+errors. These checks use the actual app, not app-internal test hooks. Controlled randomness makes
+the collision case repeatable. A deliberately broken Start button passed Python/HTTP delivery
+checks but failed the browser phase, demonstrating that browser assertions detect that regression.
+The browser UI's manual-results submission is exercised in disposable test state; this does not
+claim that the user has performed the checklist on their own computer.
+
+The existing browser build/repair/export and starter/update/search/backup/consent workflows
+also passed. The new arcade starter passed Docker acceptance, four actual Python app tests,
+two local asset checks and CLI launch. Docker tests do not claim to exercise JavaScript.
+Strict mypy passed six modules: contracts, planning, routing, schemas, models and evidence.
+The optional Chromium CI job is configured, but hosted CI and Windows execution are not claimed.
+
+benchmarks/evidence-0.7.json records two deterministic contract comparisons against the exact
+published 0.6 structural validator: an honest browser/manual plan is newly accepted, while the
+actual uploaded read-before-create plan is newly rejected. This is regression evidence, not a
+model benchmark. Model replies in integration tests are controlled; no live Ollama, paid-provider,
+GPU-throughput or exponential performance improvement was measured. The supplied icon was
+faithfully adapted with the image tool and inspected in the actual interface.
+
+Final packaging changes only documentation after the source-distribution test. Published 0.5
+and 0.6 archives remain byte-identical. The new version retains workspace schema 2, release
+manifest schema 1 and the stable supervisor/update protocol.

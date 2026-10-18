@@ -106,6 +106,8 @@ def make_server(port=8765, workbench=None):
                 elif path == "/":
                     html = (ROOT / "forge" / "static" / "index.html").read_text(encoding="utf-8").replace("__TOKEN__", token)
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
+                elif path == "/icon.png":
+                    self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "image/png")
                 elif path in {"/app.js", "/planning.js", "/updates.js", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
@@ -150,8 +152,9 @@ def make_server(port=8765, workbench=None):
                     self.json(bench.list_projects())
                 return
             if path == "/api/connections" and not post:
+                from .browser_runner import diagnostics
                 runtime = runtime_diagnostics()
-                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime})
+                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics()})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:
@@ -173,8 +176,10 @@ def make_server(port=8765, workbench=None):
                     with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
                         for name, content in bench.files(ident).items():
                             archive.writestr("generated-app/" + name, content)
-                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"generator_version": __version__, "starter": state.get("starter"), "starter_version": state.get("starter_version"), "milestones": state.get("milestones", []), "status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "plan_review": state.get("plan_review"), "planning_stats": state.get("planning_stats"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
+                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"generator_version": __version__, "starter": state.get("starter"), "starter_version": state.get("starter_version"), "milestones": state.get("milestones", []), "status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "plan_review": state.get("plan_review"), "planning_stats": state.get("planning_stats"), "generation_stats": state.get("generation_stats"), "manual_checks": state["plan"].get("manual_checks", []), "manual_results": state.get("manual_results"), "verification_fingerprint": state.get("verification_fingerprint"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
                     self.send_bytes(200, stream.getvalue(), "application/zip", "generated-app.zip")
+            elif post and action == "manual":
+                self.json(bench.record_manual(ident, body["results"]))
             elif post and action == "review":
                 self.json(bench.review_proposal(ident, body["plan"]))
             elif post and action == "approve":

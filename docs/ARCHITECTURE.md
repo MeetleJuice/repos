@@ -147,3 +147,20 @@ The harness's restart_before operation closes the factory server and uses an ind
 process on the same disposable data, preventing module-global storage from passing persistence.
 Child readiness, termination and outer process-tree cleanup remain bounded. No execution occurs
 before the existing explicit runtime approval. The helper is shared with final CLI launch checks.
+
+## 0.7 evidence contracts
+
+contracts.py composes evidence.py validation with legacy HTTP structure. New manual/browser
+checks are optional additions to the approved plan, not a state migration. documents() writes
+owned BROWSER-CHECKS.json/MANUAL-CHECKS.md. Source generation cannot replace them. Review and
+approval use the same combined feature coverage; linked changes retain baseline checks.
+
+runner.py runs the existing independent acceptance/tests/launch processes. If required, a fourth
+optional browser_runner.py process uses real Chromium, a disposable copy/profile and fixed
+actions/assertions. Missing dependencies fail as environment errors rather than triggering model
+repairs. Standard-library generated apps remain independent of the optional test tool.
+
+Automated pass with manual requirements sets review_required. The authenticated manual endpoint
+accepts explicit booleans only after a successful run with matching source fingerprint. Human
+observations are exported separately. Source replacement, restore and new runs invalidate results.
+The two outcomes must not be conflated in UI or build reports.

@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.6.0.zip",
-  "sha256": "983b61489a9a2c58ef29ca1cca3d10e57e6c436d51de230534d7f9a0e5334bae",
-  "notes": "Contract-aware proposal checks, bounded planner recovery, explicit fallback routing, configurable Ollama schemas/context, and independent-process restart acceptance checks. Existing projects, backups and the 0.5 update launcher remain supported."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.0.zip",
+  "sha256": "32d83a22ddec6a48b973fb2c3933bad43129dee9d7b07140770a8274e12ce4d7",
+  "notes": "Capability-aware server/browser planning, honest automated and manual acceptance, optional real Chromium checks, tested Neon Dodge starter, bounded generation recovery and blue-flame visual identity. Existing projects and update launcher remain supported."
 }

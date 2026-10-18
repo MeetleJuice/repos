@@ -42,7 +42,20 @@ def require_runtime(mode):
         raise ValueError("Docker is not running. Start Docker Desktop, or explicitly select trusted local execution. No model request was made for this run.")
     if not status["image_ready"]:
         raise ValueError("Docker needs its Python image. Run: docker pull python:3.12-slim. Then retry. No model request was made for this run.")
+def require_browser_runtime(project, mode):
+    path = Path(project) / "BROWSER-CHECKS.json"
+    if not path.exists() or not json.loads(path.read_text(encoding="utf-8")):
+        return
+    if mode != "local":
+        raise ValueError("This proposal requires optional Chromium checks, currently supported only with explicitly approved trusted local execution. Docker verification cannot silently skip them. Revise the unapproved proposal to manual checks if browser automation is unavailable.")
+    from .browser_runner import diagnostics
+    status = diagnostics()
+    if not status["available"]:
+        raise ValueError(status["detail"] + ". No model request was made for this run.")
+
+
 def verify(project, mode, cancel, timeout=120, test_timeout=30):
+    require_browser_runtime(project, mode)
     if mode == "docker":
         # The source checkout may use private (0600/0700) permissions. Prepare a
         # readable disposable mount without relaxing permissions on user files.
@@ -54,7 +67,11 @@ def verify(project, mode, cancel, timeout=120, test_timeout=30):
             for path in staging.rglob("*"):
                 path.chmod(0o755 if path.is_dir() else 0o644)
             return _execute(staging / "source", mode, cancel, timeout, staging / "harness.py", test_timeout)
-    return _execute(project, mode, cancel, timeout, test_timeout=test_timeout)
+    result = _execute(project, mode, cancel, timeout, test_timeout=test_timeout)
+    path = Path(project) / "BROWSER-CHECKS.json"
+    if result["passed"] and path.exists() and json.loads(path.read_text(encoding="utf-8")):
+        result = _verify_browser(project, mode, cancel, result)
+    return result
 
 
 def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30, milestone=False):
@@ -155,3 +172,42 @@ def verify_milestone(project, mode, cancel, checks):
             for path in root.rglob("*"):
                 path.chmod(0o755 if path.is_dir() else 0o644)
         return _execute(source, mode, cancel, 60, harness, milestone=True)
+
+
+def _verify_browser(project, mode, cancel, result):
+    harness = Path(__file__).with_name("browser_runner.py").resolve()
+    environment = {k: v for k, v in os.environ.items() if k.upper() in {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "HOME", "USERPROFILE", "LOCALAPPDATA", "PROGRAMFILES", "COMSPEC", "PLAYWRIGHT_BROWSERS_PATH"}}
+    flags = {"start_new_session": True} if os.name != "nt" else {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+    stopped = None
+    with tempfile.TemporaryFile() as output:
+        proc = subprocess.Popen([sys.executable, "-B", str(harness), str(Path(project).resolve())], stdout=output, stderr=subprocess.STDOUT, env=environment, **flags)
+        deadline = time.monotonic() + 90
+        try:
+            while proc.poll() is None:
+                if cancel.is_set(): stopped = "Browser verification stopped by user."
+                elif time.monotonic() > deadline: stopped = "Browser verification exceeded its time limit."
+                elif os.fstat(output.fileno()).st_size > 2_000_000: stopped = "Browser verification exceeded its output limit."
+                if stopped: break
+                time.sleep(0.1)
+        finally:
+            if os.name == "nt" and proc.poll() is None:
+                subprocess.run(["taskkill", "/PID", str(proc.pid), "/T", "/F"], capture_output=True, timeout=10)
+            elif os.name != "nt":
+                try: os.killpg(proc.pid, signal.SIGKILL)
+                except ProcessLookupError: pass
+            proc.wait(timeout=10)
+        output.seek(0)
+        log = output.read(2_000_000).decode("utf-8", errors="replace")
+    try:
+        report = json.loads(log.strip().splitlines()[-1])
+        assert isinstance(report, dict)
+    except (ValueError, IndexError, AssertionError):
+        report = {"phase": "browser", "passed": False, "error": "Browser process produced no valid report."}
+    expected = len(json.loads((Path(project) / "BROWSER-CHECKS.json").read_text(encoding="utf-8")))
+    passed = not stopped and proc.returncode == 0 and report.get("phase") == "browser" and report.get("passed") is True and report.get("browser_checks") == expected and type(report.get("assertions")) is int and report["assertions"] >= expected
+    report["passed"] = bool(passed)
+    result["phases"].append(report)
+    result["failure_kind"] = None if passed else report.get("failure_kind", "application")
+    result.update(passed=bool(passed), exit_code=proc.returncode, diagnosis=None if passed else stopped or report.get("error") or "Browser assertions failed.")
+    result["log"] += "\nBrowser verification:\n" + (stopped or "") + log[-16000:]
+    return result

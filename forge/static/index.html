@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="foundry-token" content="__TOKEN__" />
     <title>Idea Foundry · From idea to app</title>
+    <link rel="icon" type="image/png" href="/icon.png" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+    <meta name="theme-color" content="#0c1119" />
     <link rel="stylesheet" href="/style.css" />
     <script src="/planning.js" defer></script>
     <script src="/app.js" defer></script>
@@ -13,8 +16,11 @@
   <body>
     <aside class="sidebar">
       <a class="brand" href="/"
-        ><span class="brand-mark">f.</span
-        ><span>idea foundry<small>YOUR LOCAL BUILD STUDIO</small></span></a
+        ><img
+          class="brand-mark"
+          src="/icon.png"
+          alt="Blue flame goat mascot"
+        /><span>idea foundry<small>YOUR LOCAL BUILD STUDIO</small></span></a
       >
       <button id="new-project" class="primary wide">＋ New project</button>
       <p class="eyebrow sidebar-label">YOUR WORKSPACE</p>
@@ -57,11 +63,11 @@
           ><span id="workspace-call-count">Ollama first. Cloud optional.</span>
         </div>
         <div class="intro">
-          <span class="tag">SMALL IDEAS. REAL SOFTWARE.</span>
+          <span class="tag">YOUR IDEAS. FORGED INTO SOFTWARE.</span>
           <h1>What will you<br /><em>bring to life?</em></h1>
           <p>
-            Start with an idea. Shape the plan. Build something you can actually
-            run.
+            Plan with purpose. Build in small steps. Verify what you can
+            actually run.
           </p>
         </div>
         <form id="idea-form" class="idea-card">
@@ -84,7 +90,9 @@
               type="button"
               data-idea="Build a household expense tracker where I can add expenses with a category and view totals."
             >
-              Expense tracker ↗
+              Expense tracker ↗</button
+            ><button type="button" id="arcade-example">
+              Try Neon Dodge ↗
             </button>
           </div>
           <div class="starter-row">
@@ -99,6 +107,7 @@
             </div>
             <select id="starter">
               <option value="web">Python web foundation · recommended</option>
+              <option value="arcade">Neon Dodge · browser game</option>
               <option value="notes">Reviewed Notes App</option>
               <option value="tasks">Reviewed Task Tracker</option>
               <option value="">Blank project · advanced</option>
@@ -232,6 +241,7 @@
             Your planner is shaping the idea. Local models may take a few
             minutes.
           </div>
+          <p id="proposal-history-notice" class="runtime-readiness" hidden></p>
           <div id="proposal-content" hidden>
             <div class="scope-grid">
               <div>
@@ -384,6 +394,18 @@ Generated files will appear here after approval.</pre
           </p>
           <div id="snapshots"></div>
         </section>
+        <section id="manual-panel" class="manual-panel" hidden>
+          <span class="eyebrow">YOUR ACCEPTANCE CHECKLIST</span>
+          <h2>Try the app. Tell us what works.</h2>
+          <p>
+            Download and run the app first. These are your observations,
+            separate from automated test results. Record every item as passed or
+            failed.
+          </p>
+          <div id="manual-checklist"></div>
+          <button id="save-manual" class="primary">Save my test results</button>
+          <p id="manual-result" role="status"></p>
+        </section>
         <section class="improve-panel" id="improve-panel" hidden>
           <span class="eyebrow">KEEP BUILDING</span>
           <h2>What should this app do next?</h2>
@@ -514,7 +536,8 @@ Generated files will appear here after approval.</pre
       <div id="connection-list">Checking connections…</div>
       <p class="muted">
         Cloud key status means a key is present, not that the provider has
-        verified it. Model names are entered explicitly. Fallbacks require explicit configuration and cloud consent.
+        verified it. Model names are entered explicitly. Fallbacks require
+        explicit configuration and cloud consent.
       </p>
       <button id="refresh-connections" class="secondary">Check again</button>
     </dialog>

@@ -1,5 +1,8 @@
 # Research → implementation decisions
 
+Historical baseline research. See [Pass 2 research](PASS-2-RESEARCH.md) for the 0.7
+browser/manual verification decisions and current source links.
+
 Reviewed official repository documentation during this build (2026-10-18). This is a focused
 comparison of relevant tools, not a verified market ranking or a hands-on benchmark. Product
 claims below come from their documentation; no external project code was installed or executed.

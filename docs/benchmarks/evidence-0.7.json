@@ -1,0 +1,16 @@
+{
+  "version": "0.7.0",
+  "baseline": "published 0.6.0",
+  "browser_game_with_only_page_delivery_and_explicit_manual_behavior": {
+    "old_structure_accepts": false,
+    "new_review_accepts": true
+  },
+  "actual_uploaded_score_read_before_create": {
+    "old_structure_accepts": true,
+    "new_review_accepts": false,
+    "finding_codes": [
+      "read_before_create"
+    ]
+  },
+  "scope": "Two deterministic contract regression cases, not live model quality or GPU performance."
+}

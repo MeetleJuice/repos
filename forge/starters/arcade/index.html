@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Neon Dodge</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/game.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="eyebrow">IDEA FOUNDRY ARCADE</span>
+        <h1>NEON <em>DODGE</em></h1>
+        <p>A little ship. An endless sky. How long can you last?</p>
+      </header>
+      <section class="hud" aria-label="Game statistics">
+        <div>SCORE <strong id="score">0</strong></div>
+        <div>BEST <strong id="best">0</strong></div>
+        <div>STATUS <strong id="state" role="status">Ready</strong></div>
+      </section>
+      <div class="arena">
+        <canvas
+          id="game"
+          width="600"
+          height="650"
+          aria-label="Neon Dodge game field. Use the controls below."
+          tabindex="0"
+        ></canvas>
+        <div id="overlay">
+          <h2 id="overlay-title">Find your flow.</h2>
+          <p id="overlay-message">
+            Dodge the falling shards. Survive to score.
+          </p>
+          <button id="start">Start game</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button id="left" aria-label="Move left">← Left</button
+        ><button id="pause" disabled>Pause</button
+        ><button id="restart">Restart</button
+        ><button id="right" aria-label="Move right">Right →</button>
+      </div>
+      <p class="instructions">
+        Move: A / D or ← / → · Pause: P or Space<br />On touch screens, hold
+        Left or Right. Your best score stays in this browser.
+      </p>
+      <p id="storage-notice" role="status"></p>
+    </main>
+  </body>
+</html>

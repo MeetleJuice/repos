@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
-__release_notes__ = "Contract-aware proposal checks, bounded planner recovery, explicit fallback routing, configurable Ollama schemas/context, and independent-process restart acceptance checks. Existing projects, backups and the 0.5 update launcher remain supported."
+__release_notes__ = "Capability-aware server/browser planning, honest automated and manual acceptance, optional real Chromium checks, tested Neon Dodge starter, bounded generation recovery and blue-flame visual identity. Existing projects and update launcher remain supported."

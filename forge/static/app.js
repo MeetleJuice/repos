@@ -63,7 +63,9 @@ function cloudConsent() {
 function statusLabel(status) {
   return status === "generated"
     ? "Files ready · not tested"
-    : status.replaceAll("_", " ");
+    : status === "review_required"
+      ? "Automated checks passed · try the app"
+      : status.replaceAll("_", " ");
 }
 function selectedModels() {
   return { planner: modelConfig("planner"), coder: modelConfig("coder") };
@@ -172,6 +174,10 @@ function render() {
       button("Retry proposal", () => job("plan", {}), "secondary"),
     );
   }
+  $("proposal-history-notice").hidden =
+    !p.plan_is_previous || p.status !== "error";
+  $("proposal-history-notice").textContent =
+    "The latest revision failed validation. You are viewing the previous saved proposal, not a successful revision. Review the error before retrying.";
   $("proposal-content").hidden = !p.plan;
   if (p.plan) {
     fillList("features", p.plan.features);
@@ -194,7 +200,15 @@ function render() {
         return li;
       }),
     );
-    $("acceptance").textContent = JSON.stringify(p.plan.checks, null, 2);
+    $("acceptance").textContent = JSON.stringify(
+      {
+        http: p.plan.checks,
+        browser: p.plan.browser_checks || [],
+        manual: p.plan.manual_checks || [],
+      },
+      null,
+      2,
+    );
     const serialized = JSON.stringify(p.plan, null, 2);
     if (lastPlan !== serialized) {
       $("plan-editor").value = serialized;
@@ -203,6 +217,7 @@ function render() {
   }
   renderGuidance(p);
   renderChecks(p);
+  renderManual(p);
   $("build-activity").textContent = busy
     ? "Working · " + (p.events.at(-1)?.message || p.status)
     : p.status === "generated"
@@ -275,6 +290,9 @@ function render() {
     ["acceptance", "Approved behavior & assets"],
     ["tests", "Tests of the actual app"],
     ["launch", "Launch command"],
+    ...(p.plan?.browser_checks?.length
+      ? [["browser", "Real browser interactions"]]
+      : []),
   ]) {
     const phase = phases.find((x) => x.phase === name);
     const card = document.createElement("div");
@@ -402,6 +420,14 @@ async function connections() {
         ? "Docker is installed but not running. Start Docker Desktop."
         : "Docker not installed. Code generation works without it; isolated verification needs Docker Desktop.";
   $("connection-list").append(d);
+  const browserStatus = document.createElement("p");
+  browserStatus.textContent =
+    "Optional browser automation: " +
+    (info.browser?.available
+      ? "Chromium available for trusted local verification."
+      : info.browser?.detail ||
+        "Not installed. Explicit manual checks still work.");
+  $("connection-list").append(browserStatus);
 }
 $("idea-form").onsubmit = handle(async () => {
   const models = selectedModels();
@@ -509,6 +535,8 @@ $("runtime").onchange = () => {
 };
 $("project-search").oninput = handle(listProjects);
 const starterDescriptions = {
+  arcade:
+    "A playable Neon Dodge game with keyboard/touch controls, pause/restart and local high score. The plan adapts it; gameplay checks are explicit.",
   web: "A working server and protected foundation check. Your models add the approved features.",
   notes:
     "Starts with the reviewed Notes App and its tests. Your proposal explains the requested changes.",
@@ -591,7 +619,106 @@ function renderChecks(p) {
     card.append(title, detail, covers);
     $("check-cards").append(card);
   }
+  for (const [kind, checks] of [
+    ["Browser automation", p.plan.browser_checks || []],
+    ["Manual · not automated", p.plan.manual_checks || []],
+  ]) {
+    for (const check of checks) {
+      const card = document.createElement("div");
+      card.className = "check-card";
+      const title = document.createElement("strong");
+      title.textContent = check.name;
+      const detail = document.createElement("small");
+      detail.textContent =
+        kind +
+        (check.expected
+          ? " · " + check.expected
+          : " · Actual Chromium actions and assertions");
+      card.append(title, detail);
+      $("check-cards").append(card);
+    }
+  }
 }
+function renderManual(p) {
+  const checks = p.plan?.manual_checks || [];
+  const panel = $("manual-panel");
+  panel.hidden = !checks.length || !p.approved;
+  if (panel.hidden) return;
+  const container = $("manual-checklist");
+  // Preserve unsaved choices during polling of the same verified source.
+  const key = p.id + ":" + (p.verification_fingerprint || "pending");
+  if (container.dataset.key !== key) {
+    container.replaceChildren();
+    container.dataset.key = key;
+    checks.forEach((check, i) => {
+      const card = document.createElement("div");
+      card.className = "manual-card";
+      const title = document.createElement("strong");
+      title.textContent = check.name;
+      const steps = document.createElement("ol");
+      check.steps.forEach((text) => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        steps.append(li);
+      });
+      const expected = document.createElement("p");
+      expected.textContent = "Expected: " + check.expected;
+      const label = document.createElement("label");
+      label.textContent = "Your result ";
+      const select = document.createElement("select");
+      select.id = "manual-" + i;
+      for (const [value, text] of [
+        ["", "Not tested yet"],
+        ["pass", "Passed when I tried it"],
+        ["fail", "Failed when I tried it"],
+      ]) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = text;
+        select.append(option);
+      }
+      const saved = p.manual_results?.results?.[i];
+      select.value = saved === true ? "pass" : saved === false ? "fail" : "";
+      label.append(select);
+      card.append(title, steps, expected, label);
+      container.append(card);
+    });
+  }
+  const ready =
+    p.checks?.passed &&
+    !activeStatuses.has(p.status) &&
+    !!p.verification_fingerprint;
+  $("save-manual").disabled = !ready;
+  $("manual-result").textContent = p.manual_results?.time
+    ? "Recorded " +
+      new Date(p.manual_results.time).toLocaleString() +
+      " · User-reported observations"
+    : ready
+      ? "Automated checks passed. Download and try the app, then record your results."
+      : "Run automated verification before recording results.";
+}
+$("save-manual").onclick = handle(async () => {
+  const values = (current.plan.manual_checks || []).map(
+    (_, i) => $("manual-" + i).value,
+  );
+  if (values.some((v) => !v))
+    throw new Error(
+      "Choose passed or failed for every manual check after trying the app.",
+    );
+  current = await api(`/api/projects/${current.id}/manual`, {
+    results: values.map((v) => v === "pass"),
+  });
+  render();
+  await listProjects();
+});
+$("arcade-example").onclick = () => {
+  $("starter").value = "arcade";
+  $("starter").dispatchEvent(new Event("change"));
+  $("idea").value =
+    "Build Neon Dodge from the arcade starter. Keep keyboard and touch movement, falling obstacles and collisions, scoring, bounded difficulty, start/game-over screens, pause/resume, restart, and localStorage high scores. Use local assets, no database or score API. Keep an explicit manual gameplay checklist; HTTP checks prove delivery only.";
+  $("idea").focus();
+};
+
 function renderGuidance(p) {
   const busy = activeStatuses.has(p.status);
   let title,
@@ -616,6 +743,12 @@ function renderGuidance(p) {
       p.error ||
       "Your planner can retry or take a new direction. You can also change the selected models.";
     action = "Retry proposal";
+  } else if (p.status === "review_required") {
+    title = "Automated checks passed. Now play-test it.";
+    description =
+      "Download and run the app. Record the approved manual checks below; automated server tests do not prove gameplay works.";
+    action = "Open project files";
+    target = "files";
   } else if (p.status === "verified") {
     title = "Your app passed its checks";
     description =
@@ -637,6 +770,9 @@ function renderGuidance(p) {
       p.error ||
       (p.preflight?.passed === false ? p.preflight.issues.join(" ") : "") ||
       p.checks?.diagnosis ||
+      (p.manual_results?.results?.some((v) => v === false)
+        ? "You reported a manual check failed. Describe what happened under Keep building to propose a fix in a separate copy."
+        : "") ||
       "Review the verification output, switch models if needed, and resume. Existing checkpoints remain available.";
     action = "Review and resume";
   } else {
@@ -659,7 +795,10 @@ function renderGuidance(p) {
     $("panel-" + target).scrollIntoView({ behavior: "smooth", block: "start" });
   });
   const failed =
-    !!p.error || p.preflight?.passed === false || p.checks?.passed === false;
+    !!p.error ||
+    p.preflight?.passed === false ||
+    p.checks?.passed === false ||
+    p.manual_results?.results?.some((v) => v === false);
   $("build-diagnosis").hidden = !failed;
   $("build-diagnosis").replaceChildren();
   if (failed) {
@@ -667,6 +806,9 @@ function renderGuidance(p) {
     h.textContent = "What needs attention";
     const text = document.createElement("p");
     text.textContent =
+      (p.manual_results?.results?.some((v) => v === false)
+        ? "A manual acceptance check failed. Automated checks passed, but your observations show the app needs more work. Describe the failure under Keep building to plan a correction."
+        : "") ||
       p.error ||
       (p.preflight?.passed === false
         ? p.preflight.issues.join(" ")

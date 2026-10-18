@@ -1,12 +1,32 @@
-# Idea Foundry 0.6
+# Idea Foundry 0.7
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
-or its generated apps. Python 3.11 or newer is required.
+or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
 
-## What’s new in 0.6 — contract-aware planning and recovery
+## What’s new in 0.7 — blue-flame studio
+
+- **Browser apps are first-class:** Canvas games and client-side tools no longer need fake APIs
+  to satisfy planning. Coverage can combine HTTP tests, optional real-browser checks and manual checks.
+- **Honest acceptance:** automated success with pending manual checks says “try the app.” Record
+  explicit pass/fail observations after launching it; those results are separate from automated tests.
+- **Try Neon Dodge:** a playable tested arcade starter with keyboard/touch controls, pause, restart,
+  collision/game-over and localStorage high scores. No database or extra app dependencies.
+- **Real Chromium checks:** optional bounded actions/assertions test actual interactions after consent.
+  Missing tooling blocks required tests, never silently skips. Currently trusted local runtime only.
+- **Focused response recovery:** invalid file responses get one correction before stopping; complete
+  file validation and frozen checks still prevent partial or weakened updates.
+- **New visual identity:** charcoal panels, cyan accents and the blue-flame mascot adaptation in
+  the sidebar and favicon. The prominent Update button remains in the top bar.
+
+Use **Update → Check for updates → Install & restart**, keeping the terminal open. Or extract
+this ZIP into a new folder and launch Start-Foundry.bat. Existing projects remain supported.
+See [the 0.7 test guide](docs/RELEASE-0.7.md), [research and audit](docs/PASS-2-RESEARCH.md), and
+[validation](docs/VALIDATION.md). Start with **Try Neon Dodge**; review the proposal before approval.
+
+## Previously added in 0.6 — contract-aware planning and recovery
 
 - Checks proposals for API response-shape mismatches, impossible HTTP/body combinations,
   placeholder expected values and restart claims without a real restart operation.
@@ -149,7 +169,7 @@ The workbench binds only to this computer. It is not intended to be exposed on a
 2. Choose a tested starter (the Python web foundation is recommended) and your planner/builder
    models, then click **Shape my idea**. Notes/Tasks starters include working example features;
    review the proposal to decide which features the new app should keep or change.
-3. Read the proposal, scope, ordered tasks, and HTTP acceptance checks. Revise it if needed.
+3. Read the proposal, scope, ordered tasks, and HTTP/browser/manual acceptance checks. Revise it if needed.
    You can edit the JSON directly before approval.
 4. Click **Approve this project**. Requirements and acceptance checks are now frozen.
 5. Click **Generate / resume code** to create files without executing them. Python syntax,
@@ -159,6 +179,7 @@ The workbench binds only to this computer. It is not intended to be exposed on a
    and click **Build, test & repair**. If code is already generated, it starts with checks.
 7. Read the results. Download the app ZIP, extract it, and open it in VS Code.
    Double-click its run.bat to launch it; the browser opens after readiness. Review its README first.
+8. If the proposal includes manual checks, try every item and record its pass/fail result back in Foundry.
 
 Local models may take several minutes per request. The current request has a five-minute
 timeout. Stop discards a pending model response when it returns; it does not cancel Ollama's
@@ -223,14 +244,14 @@ as planner/builder models.
 - Runs generated `unittest` tests plus fixed health, home-page, and approved behavioral HTTP checks.
 - Requires at least one executed generated test; failures, skipped tests, and expected failures
   do not pass verification. Repairs cannot change approved checks or trusted test files. New unverified tests can be corrected.
-- Makes at most three model-assisted repair attempts per run, shared between static fixes and runtime fixes, then reports a blocker.
+- Makes at most three repair decisions per run, shared between static and runtime fixes. Each code operation can request one response-format correction; configured fallback attempts are also logged. Repeated invalid output stops.
 - Preserves progress, checkpoints, verification logs, and an exportable build report.
 
 This release focuses on small Python web apps, not a promise to build any app from any prompt. It does not
-train models, rewrite its own code, deploy to the internet, install project packages, or run a
-visual browser test of each generated app. Generated tasks are applied sequentially. Optional task `check_indexes` declare approved
+train models, rewrite its own code, deploy to the internet, install project packages, or automatically
+run browser tests for every generated app. Explicit browser checks are optional and require local tooling. Generated tasks are applied sequentially. Optional task `check_indexes` declare approved
 ordered check prefixes ready at a runnable milestone; these run only with execution consent.
-Full acceptance, generated tests and launch checks still run after the final task. Passing checks proves only the covered behavior. Model-written
+Full acceptance, generated tests, launch and any required browser checks run after the final task. Manual checks require separate user observations. Passing checks proves only the covered behavior. Model-written
 tests may be weak: inspect the approved acceptance checks and try the result yourself. Local outcome summaries describe the current state of projects grouped by current builder;
 they are not controlled model rankings or a model-training system. Use **Plan this improvement** to create a linked change copy with the original preserved. Source is limited to 36,000 characters to fit smaller local models;
 large ideas should start with a smaller version. Generated apps must implement the fixed contract
@@ -269,6 +290,9 @@ py -3 tests/browser_check.py
 py -3 tests/browser_release_check.py
 py -3 tests/browser_tracker_check.py
 py -3 tests/browser_notes_check.py
+py -3 tests/browser_arcade_check.py
+py -3 tests/browser_planning_check.py
+py -3 tests/browser_upgrade_check.py
 ```
 
 Research and the feature decisions are documented in [RESEARCH.md](docs/RESEARCH.md).

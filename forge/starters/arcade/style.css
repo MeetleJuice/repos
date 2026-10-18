@@ -1,0 +1,145 @@
+:root {
+  color-scheme: dark;
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+  background: #090e16;
+  color: #e8f4ff;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at top, #152b42, transparent 65%);
+}
+main {
+  max-width: 660px;
+  margin: auto;
+  padding: 26px 20px;
+}
+header {
+  text-align: center;
+}
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #65daff;
+}
+h1 {
+  font-size: clamp(30px, 7vw, 48px);
+  letter-spacing: 5px;
+  margin: 12px 0 0;
+}
+h1 em {
+  color: #65daff;
+  font-style: normal;
+}
+header p,
+.instructions {
+  color: #9eb0c5;
+  font-size: 13px;
+}
+.hud {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 4px;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.hud strong {
+  display: block;
+  color: #d4f5ff;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+.arena {
+  position: relative;
+  border: 1px solid #2b5672;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 0 40px #1aa6ff14;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #09111f;
+  max-height: 65vh;
+  object-fit: contain;
+}
+#overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #08101bba;
+  padding: 24px;
+  text-align: center;
+}
+#overlay[hidden] {
+  display: none;
+}
+h2 {
+  font-size: 32px;
+  margin: 0;
+}
+#overlay p {
+  color: #c1d6e9;
+}
+button {
+  border: 1px solid #34536b;
+  border-radius: 9px;
+  background: #192c40;
+  color: #e7f7ff;
+  padding: 12px 16px;
+  font: 600 14px system-ui;
+  cursor: pointer;
+  touch-action: none;
+}
+button:hover {
+  background: #24425a;
+}
+button:focus-visible,
+canvas:focus-visible {
+  outline: 3px solid #7beaff;
+  outline-offset: 3px;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+#start {
+  background: #42cfff;
+  color: #072033;
+  border: 0;
+  min-width: 150px;
+}
+.toolbar {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+.instructions {
+  text-align: center;
+}
+#storage-notice {
+  font-size: 12px;
+  color: #f4c989;
+  text-align: center;
+}
+@media (max-width: 420px) {
+  main {
+    padding: 14px 12px;
+  }
+  button {
+    padding: 12px 10px;
+  }
+  .hud strong {
+    font-size: 18px;
+  }
+}

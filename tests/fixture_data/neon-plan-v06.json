@@ -1,0 +1,159 @@
+{
+  "title": "Neon Dodge",
+  "summary": "A polished single-player browser arcade game using HTML Canvas and a Python standard-library server.",
+  "features": [
+    "Server Health Endpoint",
+    "Game Interface (HTML/Canvas)",
+    "Player Movement Controls",
+    "Obstacle Spawning & Collision",
+    "Scoring System",
+    "High Score Persistence (SQLite)"
+  ],
+  "out_of_scope": [
+    "Multiplayer support",
+    "External assets or CDNs",
+    "Authentication systems"
+  ],
+  "risks": [
+    "Browser compatibility for Canvas API",
+    "Mobile touch event handling variations",
+    "Performance on low-end devices"
+  ],
+  "tasks": [
+    {
+      "title": "Setup Server and Health Endpoint",
+      "instructions": "Create app.py with create_server(host, port) returning HTTPServer. Implement GET /health returning {\"status\":\"ok\"}. Configure static file serving for current directory to serve index.html.",
+      "feature_indexes": [
+        0,
+        1
+      ]
+    },
+    {
+      "title": "Implement Game Client Logic",
+      "instructions": "Create index.html with Canvas. Implement JS game loop: Player movement (A/D/Arrows), Obstacle spawning, Collision detection, Score tracking. Ensure touch controls are bound.",
+      "feature_indexes": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "title": "Implement Persistence API",
+      "instructions": "Create SQLite database in project directory. Implement GET /api/scores to list high scores and POST /api/scores to save a new score with name and value.",
+      "feature_indexes": [
+        5
+      ]
+    },
+    {
+      "title": "Integration and UI Polish",
+      "instructions": "Verify all endpoints work together. Add Start/Game Over screens in HTML/JS. Ensure difficulty increases over time. Run final acceptance checks.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "Verify Server Health",
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "feature_indexes": [
+        0
+      ],
+      "json_contains": {
+        "status": "ok"
+      },
+      "restart_before": false
+    },
+    {
+      "name": "Verify Game Interface and Logic Presence",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "feature_indexes": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "contains": "addEventListener('keydown'",
+      "restart_before": false
+    },
+    {
+      "name": "Verify High Score Retrieval",
+      "method": "GET",
+      "path": "/api/scores",
+      "status": 200,
+      "feature_indexes": [
+        5
+      ],
+      "json_contains": [
+        {
+          "name": "PlayerOne",
+          "score": 100
+        }
+      ],
+      "restart_before": false
+    },
+    {
+      "name": "Verify High Score Save",
+      "method": "POST",
+      "path": "/api/scores",
+      "status": 201,
+      "feature_indexes": [
+        5
+      ],
+      "body": {
+        "name": "PlayerOne",
+        "score": 100
+      },
+      "json_contains": {
+        "name": "PlayerOne",
+        "score": 100
+      },
+      "restart_before": false
+    }
+  ],
+  "api_contracts": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "response_kind": "object",
+      "required_fields": [
+        "status"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "response_kind": "text",
+      "required_fields": []
+    },
+    {
+      "method": "GET",
+      "path": "/api/scores",
+      "status": 200,
+      "response_kind": "array",
+      "required_fields": []
+    },
+    {
+      "method": "POST",
+      "path": "/api/scores",
+      "status": 201,
+      "response_kind": "object",
+      "required_fields": [
+        "name",
+        "score"
+      ]
+    }
+  ]
+}

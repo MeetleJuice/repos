@@ -7,6 +7,8 @@ import re
 from typing import Any, Literal
 from urllib.parse import urlsplit
 
+from .evidence import validate_evidence
+
 Plan = dict[str, Any]
 
 def validate_structure(plan: dict[str, Any]) -> dict[str, Any]:
@@ -20,6 +22,9 @@ def validate_structure(plan: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(f"Proposal needs a list of {name}.")
     if not plan["features"]:
         raise ValueError("The proposal must list at least one feature.")
+    manual, browser = validate_evidence(plan)
+    if plan.get("app_kind", "server") not in {"server", "browser"}:
+        raise ValueError("app_kind must be server or browser.")
     def coverage(items: list[dict[str, Any]], label: str) -> None:
         covered = set()
         for item in items:
@@ -63,11 +68,11 @@ def validate_structure(plan: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("Every check needs contains, nonempty json_contains, or json_equals.")
         if "contains" in check and not has_contains or "json_contains" in check and not has_json:
             raise ValueError("Invalid response assertion.")
-        if path.split("?")[0] not in {"/", "/health"}:
+        if path.split("?")[0] not in {"/", "/health"} and not re.search(r"\.(?:js|css|png|svg|ico|html)$", path.split("?")[0], re.I):
             behavior = True
-    if not behavior:
-        raise ValueError("Add a check of actual app behavior beyond / and /health.")
-    coverage(checks, "acceptance check")
+    if not behavior and not (plan.get("app_kind") == "browser" and (manual or browser)):
+        raise ValueError("Add a check of actual app behavior beyond / and /health. For browser apps, set app_kind to browser and provide browser_checks or explicit manual_checks.")
+    coverage(checks + manual + browser, "acceptance check")
     for task in tasks:
         indexes = task.get("check_indexes", [])
         if not isinstance(indexes, list) or any(type(i) is not int or not 0 <= i < len(checks) for i in indexes):
@@ -154,6 +159,10 @@ def starter_contracts(starter: str | None) -> list[dict[str, Any]]:
     return result
 
 
+def _contains_body(expected: Any, body: Any) -> bool:
+    return isinstance(expected, dict) and isinstance(body, dict) and bool(body) and all(expected.get(k) == v for k, v in body.items())
+
+
 def review_plan(plan: Plan, starter: str | None = None) -> Review:
     """Reject objective contradictions; leave ambiguous product decisions as warnings.
 
@@ -195,6 +204,17 @@ def review_plan(plan: Plan, starter: str | None = None) -> Review:
         if old and normalized != old:
             findings.append(Finding('starter_contract_changed', pointer, 'This explicitly changes the reviewed starter API. Check the status, response shape and fields before approval.', 'warning'))
         contracts = [c for c in contracts if (c['method'], c['path']) != key] + [normalized]
+    for index, check in enumerate(plan['checks']):
+        if urlsplit(check['path']).path == '/' and check.get('feature_indexes') and plan.get('app_kind') == 'browser':
+            findings.append(Finding('page_is_not_gameplay', f'/checks/{index}', 'An HTTP page check proves delivery only. Gameplay needs browser or manual checks.', 'warning'))
+    # Catch the common fresh-data mistake without guessing arbitrary API semantics.
+    for index, check in enumerate(plan['checks']):
+        expected = check.get('json_contains')
+        if check['method'] == 'GET' and isinstance(expected, list) and expected:
+            later_creates = [c for c in plan['checks'][index + 1:] if c['method'] == 'POST' and urlsplit(c['path']).path == urlsplit(check['path']).path and any(_contains_body(item, c.get('body')) for item in expected)]
+            earlier_creates = [c for c in plan['checks'][:index] if c['method'] == 'POST' and urlsplit(c['path']).path == urlsplit(check['path']).path]
+            if later_creates and not earlier_creates:
+                findings.append(Finding('read_before_create', f'/checks/{index}', 'This fresh-data check expects records created by a later POST. Move creation before retrieval.'))
     request_values = _leaves([c.get('body') for c in plan['checks']])
     for index, check in enumerate(plan['checks']):
         pointer = f'/checks/{index}'
