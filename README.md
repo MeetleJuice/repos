@@ -20,6 +20,13 @@ or its generated apps. Python 3.11 or newer is required.
 - New generated-app launchers wait for readiness, choose a free port, and open the browser.
 - Docker daemon/image problems are detected before inference; environment failures do not trigger pointless code repairs.
 
+## Try the repaired Notes App
+
+The reviewed Notes App is included in **examples/notes-app**. Open that folder and
+double-click **run.bat**. Its launcher opens your browser when ready. This standalone app
+does not require Ollama or Docker. It includes real HTTP tests and restart-persistence checks.
+The corrected copy is separate from any older Notes App saved inside your Foundry workspace.
+
 ## Try the repaired Task Tracker
 
 The corrected first app is included in **examples/task-tracker**. Open that folder and

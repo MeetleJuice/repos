@@ -1,0 +1,11 @@
+{
+  "status": "verified",
+  "checks": {
+    "passed": true,
+    "exit_code": 0,
+    "failure_kind": null,
+    "log": "test_concurrent_creates (test_app.NotesTests.test_concurrent_creates) ... ok\ntest_create_and_list_objects (test_app.NotesTests.test_create_and_list_objects) ... ok\ntest_cross_origin_create_rejected (test_app.NotesTests.test_cross_origin_create_rejected) ... ok\ntest_delete_and_confirm_absence (test_app.NotesTests.test_delete_and_confirm_absence) ... ok\ntest_full_process_restart_persists_note (test_app.NotesTests.test_full_process_restart_persists_note) ... ok\ntest_health_and_assets (test_app.NotesTests.test_health_and_assets) ... ok\ntest_invalid_input_returns_json_errors (test_app.NotesTests.test_invalid_input_returns_json_errors) ... ok\ntest_matching_and_nonmatching_search (test_app.NotesTests.test_matching_and_nonmatching_search) ... ok\ntest_restart_persists_title_and_body (test_app.NotesTests.test_restart_persists_title_and_body) ... ok\ntest_search_decodes_spaces_unicode_and_symbols (test_app.NotesTests.test_search_decodes_spaces_unicode_and_symbols) ... ok\ntest_unknown_routes (test_app.NotesTests.test_unknown_routes) ... ok\ntest_untrusted_text_is_stored_as_data (test_app.NotesTests.test_untrusted_text_is_stored_as_data) ... ok\n\n----------------------------------------------------------------------\nRan 12 tests in 7.138s\n\nOK\nPASS: Health endpoint\nPASS: HTML interface\nPASS: HTML notes interface is served\nPASS: Create a note with title and body\nPASS: List the saved note\nPASS: Search finds a matching title\nPASS: Search excludes nonmatching titles\nPASS: Saved note remains readable before deletion; restart persistence is tested in unittest\nPASS: Delete the created note\nPASS: Deleted note is absent from the list\nNotes App: http://127.0.0.1:38389\nPASS: Python launch command\n{\"tests_run\": 12, \"http_checks\": 11, \"result\": \"passed\"}\n",
+    "runtime": "docker"
+  },
+  "note": "Repaired from uploaded Notes App files. Original approved CHECKS.json retained. Tests use the actual app and temporary databases, including server and process restarts. Validated in Linux Docker; Windows execution remains a local check."
+}

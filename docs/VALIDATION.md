@@ -65,3 +65,16 @@ The extracted distribution was started from a fresh folder with a separate --dat
 its authenticated API reported version 0.3.0 and the correct workspace location. Browser
 opening and Local AppData behavior still need confirmation on the user's actual Windows
 machine. See RELEASE-0.3.md for shipped behavior and remaining scope.
+
+## Notes App from the user's Windows generation
+
+The original upload was preserved and tested in a container. Its tests duplicated server
+code and blocked in handle_request without a client request; verification timed out before
+any test completed. Static syntax/structure success did not establish meaningful test behavior.
+
+The repaired copy in examples/notes-app passed 12 actual app tests, including independent
+server and process restarts, plus all eight unchanged approved acceptance checks and the
+fixed health, interface, and launch checks. Its browser workflow passed create, title/body
+display, matching/nonmatching search, restart persistence, deletion, safe text rendering,
+and mobile layout with no JavaScript errors. The combined repository suite now has 58
+passing tests. No live Windows/Ollama connection or local project-state change is claimed.

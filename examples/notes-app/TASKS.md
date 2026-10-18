@@ -1,0 +1,12 @@
+# Build tasks
+
+1. Initialize SQLite database and server factory
+   Create app.py (not notes_app.py), exporting create_server(host, port). Use SQLite notes(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, body TEXT NOT NULL). Open a separate connection per request and close it reliably. No database creation or writes on module import. Initialize the database when create_server is called. Bind to loopback by default.
+2. Implement HTML interface and health endpoint
+   Implement GET /health returning JSON {"status":"ok"} and GET / serving a usable notes interface. Provide title/body fields, Add Note button, notes list, title search, and delete buttons. Use JavaScript fetch with JSON for creation; render user content with textContent. Ensure every UI request has a matching server route.
+3. Implement API endpoints for CRUD and Search
+   Implement POST /api/notes with JSON title/body, returning 201 and id/title/body; GET /api/notes returning all saved notes; GET /api/notes/search?q=... returning title-substring matches or []; DELETE /api/notes/{id} returning {"deleted":true,"id":...}, or 404 for absent IDs. Parse query strings correctly and use parameterized SQL.
+4. Add security and validation logic
+   Validate that title is a nonempty trimmed string and body is a string. Return JSON errors for malformed input, invalid IDs, and missing notes. Close per-request SQLite connections. Render note titles and bodies as text, never raw HTML. Keep database file paths stable across server restarts.
+5. Implement test suite and persistence verification
+   Deliver a complete app.py with a main block accepting --host and --port, plus test_app.py with real unittest tests. Use temporary databases/directories and isolate every test from the database used by later acceptance checks. Test create/list, matching and nonmatching title searches, delete followed by an empty list, invalid input, and the HTML page. For persistence: create a note, stop and close the server, start a new server instance using the SAME temporary database, and verify the note title and body remain. Do not delete that note before verifying restart persistence. Shut down servers and close SQLite connections before cleaning up temporary files. No database side effects on import, no skipped or empty tests. Implement ALL approved features.

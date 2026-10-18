@@ -1,0 +1,92 @@
+[
+  {
+    "name": "HTML notes interface is served",
+    "method": "GET",
+    "path": "/",
+    "status": 200,
+    "contains": "<form",
+    "feature_indexes": [
+      5
+    ]
+  },
+  {
+    "name": "Create a note with title and body",
+    "method": "POST",
+    "path": "/api/notes",
+    "body": {
+      "title": "Buy milk",
+      "body": "Need to buy groceries"
+    },
+    "status": 201,
+    "json_contains": {
+      "id": 1,
+      "title": "Buy milk",
+      "body": "Need to buy groceries"
+    },
+    "feature_indexes": [
+      0
+    ]
+  },
+  {
+    "name": "List the saved note",
+    "method": "GET",
+    "path": "/api/notes",
+    "status": 200,
+    "contains": "Buy milk",
+    "feature_indexes": [
+      1
+    ]
+  },
+  {
+    "name": "Search finds a matching title",
+    "method": "GET",
+    "path": "/api/notes/search?q=milk",
+    "status": 200,
+    "contains": "Buy milk",
+    "feature_indexes": [
+      2
+    ]
+  },
+  {
+    "name": "Search excludes nonmatching titles",
+    "method": "GET",
+    "path": "/api/notes/search?q=unmatched-title-xyz",
+    "status": 200,
+    "contains": "[]",
+    "feature_indexes": [
+      2
+    ]
+  },
+  {
+    "name": "Saved note remains readable before deletion; restart persistence is tested in unittest",
+    "method": "GET",
+    "path": "/api/notes",
+    "status": 200,
+    "contains": "Need to buy groceries",
+    "feature_indexes": [
+      4
+    ]
+  },
+  {
+    "name": "Delete the created note",
+    "method": "DELETE",
+    "path": "/api/notes/1",
+    "status": 200,
+    "json_contains": {
+      "deleted": true
+    },
+    "feature_indexes": [
+      3
+    ]
+  },
+  {
+    "name": "Deleted note is absent from the list",
+    "method": "GET",
+    "path": "/api/notes",
+    "status": 200,
+    "contains": "[]",
+    "feature_indexes": [
+      3
+    ]
+  }
+]
