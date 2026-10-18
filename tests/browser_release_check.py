@@ -34,7 +34,7 @@ def main():
                 errors = []
                 page.on("pageerror", lambda e: errors.append(str(e)))
                 page.goto(f"http://127.0.0.1:{server.server_port}")
-                expect(page.locator("#workspace-version")).to_contain_text("0.3.0")
+                expect(page.locator("#workspace-version")).to_contain_text("0.4.0")
                 page.locator("#idea").fill("Build a simple task tracker")
                 page.locator("#propose").click()
                 expect(page.locator("#next-title")).to_have_text("Review the plan before we build", timeout=15000)

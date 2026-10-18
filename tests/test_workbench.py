@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import io
 import json
 import os
@@ -131,6 +132,7 @@ class WorkbenchTests(unittest.TestCase):
             bench.apply(state, {"files": {"app.py": APP, "../escape.py": "bad"}})
         self.assertNotIn("app.py", bench.files(ident))
         bench.apply(state, {"files": {"test_app.py": TEST}})
+        state["frozen_tests"] = {"test_app.py": hashlib.sha256(TEST.encode()).hexdigest()}
         with self.assertRaises(ValueError):
             bench.apply(state, {"files": {"CHECKS.json": "[]"}})
         with self.assertRaises(ValueError):

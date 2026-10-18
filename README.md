@@ -1,4 +1,4 @@
-# Idea Foundry 0.3
+# Idea Foundry 0.4
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
@@ -6,7 +6,24 @@ An original, local-first Python workbench for Windows and VS Code. Ollama is the
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Python 3.11 or newer is required.
 
-## What’s new in 0.3
+## What’s new in 0.4
+
+The working Notes App supplied a real regression case for the generator. Foundry now:
+
+- Rejects copied-server test suites and blocking `server.handle_request()` calls before execution.
+- Requires tests to import the real application, and checks that its functions run during tests.
+- Runs protected acceptance checks first, generated tests second, and the launch check third,
+  each in a fresh copy/process so test data cannot leak into another phase.
+- Checks local scripts, stylesheets, and images referenced by the served home page.
+- Allows faulty **unverified** tests to be repaired; tests from a verified version or an inherited
+  change-request baseline remain frozen. Approved acceptance checks are always protected.
+- Supports JSON array/object subset assertions and exact JSON assertions such as an empty list.
+- Shows which verification phases passed, failed, or did not run, with focused diagnoses.
+
+These checks improve feedback; they do not guarantee model quality or exhaustive correctness.
+The regression repair tests use controlled replies, not live inference against your Windows Ollama.
+
+## Previously added in 0.3
 
 - A next-step guide on every project, readable acceptance-check cards, and clearer failure explanations.
 - **Plan this improvement**: request a feature/bug fix in a separate copy, preserving the original,
@@ -55,7 +72,7 @@ The program does not download or install its own updates. You choose the new ver
 
 Existing approved projects remain usable. **Generate / resume code** now checks Python
 syntax and missing tests without executing the app; it can ask the model for bounded repairs.
-Approved requirements/checks and existing test files stay frozen. New proposals must explicitly
+Approved requirements/checks and trusted regression tests stay frozen. New unverified tests can be corrected. New proposals must explicitly
 map every feature to implementation tasks and acceptance checks. This mapping helps expose
 omissions; it does not prove that model-written tasks/checks adequately implement a feature.
 
@@ -152,7 +169,7 @@ as planner/builder models.
 - Breaks the build into ordered model calls, passing the approved proposal and current source.
 - Runs generated `unittest` tests plus fixed health, home-page, and approved behavioral HTTP checks.
 - Requires at least one executed generated test; failures, skipped tests, and expected failures
-  do not pass verification. Repairs cannot change approved checks or existing test files.
+  do not pass verification. Repairs cannot change approved checks or trusted test files. New unverified tests can be corrected.
 - Makes at most three model-assisted repair attempts per run, shared between static fixes and runtime fixes, then reports a blocker.
 - Preserves progress, checkpoints, verification logs, and an exportable build report.
 
@@ -197,6 +214,7 @@ py -3 -m playwright install chromium
 py -3 tests/browser_check.py
 py -3 tests/browser_release_check.py
 py -3 tests/browser_tracker_check.py
+py -3 tests/browser_notes_check.py
 ```
 
 Research and the feature decisions are documented in [RESEARCH.md](docs/RESEARCH.md).

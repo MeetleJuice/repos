@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Notes App</h1>
+    <form id="noteForm">
+        <input type="text" id="title" placeholder="Title" required>
+        <textarea id="body" placeholder="Body"></textarea>
+        <button type="submit">Add Note</button>
+    </form>
+    <ul id="notesList"></ul>
+    <input type="text" id="search" placeholder="Search by title">
+    <ul id="searchResults"></ul>
+    <script>
+        document.getElementById('noteForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const body = document.getElementById('body').value;
+            fetch('/api/notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, body })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('notesList').innerHTML += `<li>${data.title}</li>`;
+                document.getElementById('title').value = '';
+                document.getElementById('body').value = '';
+            });
+        });
+
+        function fetchNotes() {
+            fetch('/api/notes')
+            .then(response => response.json())
+            .then(data => {
+                const notesList = document.getElementById('notesList');
+                notesList.innerHTML = '';
+                data.forEach(note => {
+                    notesList.innerHTML += `<li>${note.title} <button onclick="deleteNote(${note.id})">Delete</button></li>`;
+                });
+            });
+        }
+
+        function deleteNote(id) {
+            fetch(`/api/notes/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.deleted) {
+                    fetchNotes();
+                }
+            });
+        }
+
+        document.getElementById('search').addEventListener('input', function() {
+            const query = this.value;
+            fetch(`/api/notes/search?q=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                const searchResults = document.getElementById('searchResults');
+                searchResults.innerHTML = '';
+                data.forEach(note => {
+                    searchResults.innerHTML += `<li>${note.title}</li>`;
+                });
+            });
+        });
+
+        fetchNotes();
+    </script>
+</body>
+</html>

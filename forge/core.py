@@ -1,6 +1,5 @@
 """Persistent projects and a deliberately bounded plan/build/check/repair state machine."""
 from datetime import datetime, timezone
-import ast
 import copy
 import difflib
 import hashlib
@@ -17,6 +16,7 @@ import zipfile
 
 from .models import ModelClient
 from .prompts import PLAN, CODE
+from .inspection import inspect_files
 from .runner import verify, require_runtime
 
 OWNED = {"readme.md", "project.md", "tasks.md", "checks.json", "run.bat", "run.sh", "launch.py"}
@@ -66,9 +66,10 @@ def validate_plan(plan):
         if type(check.get("status")) is not int or not 100 <= check["status"] <= 599:
             raise ValueError("Every check needs an expected HTTP status.")
         has_contains = isinstance(check.get("contains"), str) and bool(check["contains"])
-        has_json = isinstance(check.get("json_contains"), dict) and bool(check["json_contains"])
-        if not (has_contains or has_json):
-            raise ValueError("Every check must assert a nonempty contains or json_contains value.")
+        has_json = isinstance(check.get("json_contains"), (dict, list)) and bool(check["json_contains"])
+        has_equals = "json_equals" in check
+        if not (has_contains or has_json or has_equals):
+            raise ValueError("Every check needs contains, nonempty json_contains, or json_equals.")
         if "contains" in check and not has_contains or "json_contains" in check and not has_json:
             raise ValueError("Invalid response assertion.")
         if path.split("?")[0] not in {"/", "/health"}:
@@ -82,26 +83,7 @@ def validate_plan(plan):
 
 
 def preflight(files, complete=True):
-    """Inspect Python structure without importing or executing model-written code."""
-    issues, parsed = [], {}
-    for name, content in files.items():
-        if name.endswith(".py"):
-            try:
-                parsed[name] = ast.parse(content, filename=name)
-            except (SyntaxError, ValueError) as exc:
-                issues.append(f"{name}: Python syntax error: {exc}")
-    if not complete:
-        return {"passed": not issues, "issues": issues, "executed": False}
-    if "app.py" not in files:
-        issues.append("Missing app.py.")
-    elif "app.py" in parsed and not any(isinstance(node, ast.FunctionDef) and node.name == "create_server" for node in parsed["app.py"].body):
-        issues.append("app.py must define create_server(host, port).")
-    tests = [name for name in files if Path(name).name.startswith("test_") and name.endswith(".py")]
-    if not tests:
-        issues.append("Missing unittest test file (for example test_app.py). Add tests of the approved features.")
-    elif not any(isinstance(node, ast.FunctionDef) and node.name.startswith("test_") for name in tests for node in ast.walk(parsed.get(name, ast.Module(body=[], type_ignores=[])))):
-        issues.append("Test files must contain real test_ methods; empty test files are insufficient.")
-    return {"passed": not issues, "issues": issues, "executed": False}
+    return inspect_files(files, complete=complete)
 
 
 def safe_file(root, name):
@@ -252,6 +234,7 @@ class Workbench:
                 path = target / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(content, encoding="utf-8")
+            state["baseline_frozen_tests"] = copy.deepcopy(state["frozen_tests"])
             self.save(state)
             self.start(state["id"], "plan", {})
             return self.load(state["id"])
@@ -343,6 +326,8 @@ class Workbench:
                 raise ValueError("Unknown execution runtime.")
             if execute and options.get("consent") is not True:
                 raise ValueError("Explicit execution consent is required.")
+            if state["status"] == "verified" and not state.get("frozen_tests"):
+                state["frozen_tests"] = {name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(ident).items() if Path(name).name.startswith("test_") and name.endswith(".py")}
             attempts = options.get("repairs", 2)
             if type(attempts) is not int or not 0 <= attempts <= 3:
                 raise ValueError("Repair limit must be between 0 and 3.")
@@ -410,7 +395,7 @@ class Workbench:
         number = uuid.uuid4().hex
         target = self.directory(state["id"]) / "snapshots" / number
         shutil.copytree(self.directory(state["id"]) / "source", target)
-        state["snapshots"].append({"id": number, "label": label, "next_task": state["next_task"]})
+        state["snapshots"].append({"id": number, "label": label, "next_task": state["next_task"], "frozen_tests": copy.deepcopy(state.get("frozen_tests", {}))})
         self.save(state)
 
     def _swap_source(self, ident, prepared):
@@ -441,7 +426,7 @@ class Workbench:
             finally:
                 if staging.exists():
                     shutil.rmtree(staging)
-            state.update(next_task=match["next_task"], status="approved", checks=None, preflight=None)
+            state.update(next_task=match["next_task"], status="approved", checks=None, preflight=None, frozen_tests=copy.deepcopy(match.get("frozen_tests", state.get("baseline_frozen_tests", state.get("frozen_tests", {}) if state.get("baseline_plan") else {}))))
             self.event(state, "Restored checkpoint: " + match["label"])
             return state
 
@@ -458,12 +443,12 @@ class Workbench:
             if lower in normalized or any(n.lower() == lower and n != name for n in current):
                 raise ValueError("Case-colliding filenames are not portable to Windows.")
             normalized.add(lower)
-            if lower in OWNED or repair and name in current and (target.name.startswith("test_") or target.name.endswith("_test.py")):
-                raise ValueError("Model attempted to modify frozen documentation, acceptance checks, or repair-time tests.")
+            if lower in OWNED:
+                raise ValueError("Model attempted to modify frozen documentation or acceptance checks.")
             if not isinstance(content, str) or len(content) > 40000:
                 raise ValueError("Generated file is too large or not text.")
             if name in state.get("frozen_tests", {}) and hashlib.sha256(content.encode()).hexdigest() != state["frozen_tests"][name]:
-                raise ValueError("Existing app tests are frozen in a change request. Add new tests in another file.")
+                raise ValueError("Existing app tests are trusted regression tests and cannot be rewritten. Add new tests in another file.")
             targets.append((target, content))
         if sum(len(v) for v in (current | files).values()) > 70000:
             raise ValueError("Project exceeded the small-model context budget. Narrow the scope.")
@@ -491,7 +476,18 @@ class Workbench:
             if cancel.is_set():
                 raise InterruptedError("Stopped before static inspection.")
             state["preflight"] = preflight(self.context_files(state["id"]), complete=complete)
+            current = self.context_files(state["id"])
+            trusted_issues = []
+            for name, expected in state.get("frozen_tests", {}).items():
+                if name not in current or hashlib.sha256(current[name].encode()).hexdigest() != expected:
+                    trusted_issues.append("Trusted regression test was changed or removed: " + name + ". Restore its checkpoint before continuing.")
+            state["preflight"]["issues"].extend(trusted_issues)
+            state["preflight"]["passed"] = not state["preflight"]["issues"]
             self.save(state)
+            if trusted_issues:
+                state["status"] = "needs_attention"
+                self.event(state, "\n".join(trusted_issues))
+                return None
             if state["preflight"]["passed"]:
                 return remaining
             issues = "\n".join(state["preflight"]["issues"])
@@ -501,7 +497,7 @@ class Workbench:
                 return None
             state["status"] = "repairing"
             self.event(state, f"Static repair {attempt+1}: correcting syntax/structure or adding missing tests without executing code.\n" + issues)
-            response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": issues, "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Existing tests and approved checks are frozen. Implement every approved feature."}), cancel)
+            response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": issues, "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Approved checks and frozen_tests are immutable. Repair unverified test files when necessary: import the real app and make actual HTTP requests. Implement every approved feature."}), cancel)
             if cancel.is_set():
                 raise InterruptedError("Stopped. Static repair output discarded.")
             self.apply(state, response, repair=True)
@@ -533,6 +529,8 @@ class Workbench:
                 state.update(plan=plan, title=plan["title"], status="proposed")
                 self.event(state, "Proposal ready. Review the scope, tasks, and behavioral checks before approval.")
                 return
+            if state.get("baseline_plan") and "baseline_frozen_tests" not in state:
+                state["baseline_frozen_tests"] = copy.deepcopy(state.get("frozen_tests", {}))
             if options.get("execute"):
                 require_runtime(options.get("runtime", "docker"))
             state["checks"] = None
@@ -574,6 +572,7 @@ class Workbench:
                 if cancel.is_set():
                     raise InterruptedError("Verification stopped.")
                 if result["passed"]:
+                    state["frozen_tests"] = {name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(state["id"]).items() if Path(name).name.startswith("test_") and name.endswith(".py")}
                     state["status"] = "verified"
                     self.event(state, "Tests and HTTP acceptance checks passed. Download and try the app; review remaining requirements yourself.")
                     return
@@ -586,8 +585,8 @@ class Workbench:
                     self.event(state, "Checks failed. Repair limit reached; inspect the output and files.")
                     return
                 state["status"] = "repairing"
-                self.event(state, f'Repair attempt {attempt+1}; approved checks and generated test files remain frozen.')
-                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-12000:], "instruction": "Fix application source only. Do not edit existing test files or weaken approved checks. Add tests only if missing."}), cancel)
+                self.event(state, f'Repair attempt {attempt+1}; approved checks and trusted regression tests remain frozen. New unverified tests may be corrected.')
+                response = self.call_model(state, "coder", CODE, json.dumps({"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-12000:], "diagnosis": result.get("diagnosis"), "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair the application and, if faulty, unverified test files. Never edit frozen_tests or approved checks. Test the actual imported app, send HTTP requests with timeouts, and preserve every approved feature."}), cancel)
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Repair output discarded.")
                 self.apply(state, response, repair=True)

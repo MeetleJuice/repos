@@ -1,0 +1,115 @@
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import sqlite3
+import json
+import cgi
+
+DATABASE_PATH = 'notes.db'
+
+
+
+def create_server(host, port):
+    return HTTPServer((host, port), NotesHandler)
+
+class NotesHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'ok'}).encode())
+        elif self.path == '/':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            with open('static/index.html', 'r') as f:
+                self.wfile.write(f.read().encode())
+        elif self.path == '/api/notes':
+            self.handle_get_notes()
+        elif self.path.startswith('/api/notes/search'): 
+            self.handle_search_notes()
+        else:
+            self.send_error(404)
+
+    def do_POST(self):
+        if self.path == '/api/notes':
+            ctype, pdict = cgi.parse_header(self.headers['content-type'])
+            if ctype == 'application/json':
+                length = int(self.headers['content-length'])
+                data = json.loads(self.rfile.read(length))
+                self.handle_create_note(data)
+            else:
+                self.send_error(400)
+        else:
+            self.send_error(404)
+
+    def do_DELETE(self):
+        if self.path.startswith('/api/notes/'): 
+            note_id = self.path.split('/')[-1]
+            self.handle_delete_note(note_id)
+        else:
+            self.send_error(404)
+
+    def handle_get_notes(self):
+        conn = sqlite3.connect(DATABASE_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, title, body FROM notes')
+        notes = cursor.fetchall()
+        conn.close()
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(notes).encode())
+
+    def handle_search_notes(self):
+        query = self.path.split('=')[1]
+        conn = sqlite3.connect(DATABASE_PATH)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, title, body FROM notes WHERE title LIKE ?', ('%' + query + '%',))
+        notes = cursor.fetchall()
+        conn.close()
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps(notes).encode())
+
+    def handle_create_note(self, data):
+        conn = sqlite3.connect(DATABASE_PATH)
+        cursor = conn.cursor()
+        title = data['title'].strip()
+        body = data['body']
+        if not title:
+            self.send_error(400, 'Title cannot be empty')
+            return
+        cursor.execute('INSERT INTO notes (title, body) VALUES (?, ?)', (title, body))
+        conn.commit()
+        note_id = cursor.lastrowid
+        conn.close()
+        self.send_response(201)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'id': note_id, 'title': title, 'body': body}).encode())
+
+    def handle_delete_note(self, note_id):
+        conn = sqlite3.connect(DATABASE_PATH)
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))
+        if cursor.rowcount == 0:
+            conn.close()
+            self.send_error(404)
+            return
+        conn.commit()
+        conn.close()
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.wfile.write(json.dumps({'deleted': True, 'id': note_id}).encode())
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--host', default='127.0.0.1', help='Server host')
+    parser.add_argument('--port', type=int, default=8000, help='Server port')
+    args = parser.parse_args()
+    server = create_server(args.host, args.port)
+    print(f'Starting server on {args.host}:{args.port}')
+    server.serve_forever()

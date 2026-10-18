@@ -78,3 +78,16 @@ fixed health, interface, and launch checks. Its browser workflow passed create, 
 display, matching/nonmatching search, restart persistence, deletion, safe text rendering,
 and mobile layout with no JavaScript errors. The combined repository suite now has 58
 passing tests. No live Windows/Ollama connection or local project-state change is claimed.
+
+## Version 0.4 verification engine
+
+68 tests passed from a freshly extracted distribution. The suite includes the exact original
+Notes App failures as non-executable text fixtures, an end-to-end controlled repair into the
+working Notes App, protected regression tests, JSON array/object shape checks, exact empty
+lists, per-phase isolation, timeouts, missing assets, and proof that tests call the actual app.
+
+The repaired Notes App passes the new independent acceptance/tests/launch phases in Docker:
+12 app tests, eight original approval checks plus health/interface/launch, and two local assets.
+The workbench browser regression passes with the new phase UI, model switching, linked changes,
+diffs, backups and mobile layout. Model repair replies in automation are controlled fixtures;
+no live Ollama generation quality or Windows CI execution is claimed for this release.

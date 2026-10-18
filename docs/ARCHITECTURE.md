@@ -9,7 +9,8 @@
 - `storage.py`: Windows user-data location, explicit path overrides, workspace process lock, and non-destructive legacy import.
 - `launch_template.py`: readiness-checked launcher shipped with generated apps.
 - `runner.py`: fixed commands, explicit runtime, timeout/output bounds, child process cleanup.
-- `harness.py`: disposable app copy, real unittest execution, fixed and approved HTTP checks.
+- `inspection.py`: AST checks for syntax, actual app imports, copied test servers, blocking test calls, and unsupported cgi imports.
+- `harness.py`: isolated acceptance, generated-test and launch phases, local asset checks, and runtime app-call measurement.
 - `server.py`: authenticated local API, static UI, safe project exports.
 - `static/`: dependency-free browser interface. User/model content is inserted as text.
 
@@ -29,8 +30,7 @@ not a semantic guarantee. Already-approved legacy projects are not silently rewr
 
 After each task, AST parsing checks Python syntax without executing code. After the full task list, structural inspection requires the server factory and test methods. Missing
 app.py, create_server, test files, or test methods are reported. The coder may correct source
-and add missing tests using the same bounded repair budget as runtime repairs. Existing tests
-and acceptance checks remain frozen. Incomplete code ends in needs_attention. `generated`
+and add missing tests using the same bounded repair budget as runtime repairs. Trusted tests and acceptance checks remain frozen; unverified new test files can be corrected. Incomplete code ends in needs_attention. `generated`
 is displayed as **Files ready · not tested**, never as a working-app claim.
 
 ## Generated-app contract
@@ -43,10 +43,9 @@ is displayed as **Files ready · not tested**, never as a working-app claim.
 - Model output is JSON `{"summary":"...", "files":{"app.py":"complete text"}}`.
 - No model-provided shell commands, file deletions, hidden files, symlinks, or binary artifacts.
 - PROJECT.md, TASKS.md, CHECKS.json, README.md, and launchers are workbench-owned.
-- Repairs may edit app source but cannot edit test filenames or frozen acceptance checks.
+- Repairs may edit app source and unverified tests. Approved checks and trusted baseline tests remain immutable.
 
-The harness runs tests and then real HTTP requests against an ephemeral server in a disposable
-directory. It requires a nonzero test count and no skipped/expected-failure tests. Health and
+The harness runs real approved HTTP requests first, generated unit tests second, and the launch command last. Each phase uses a separate subprocess and disposable directory. Unit tests have their own 30-second default limit inside the overall verification timeout. It requires a nonzero test count and no skipped/expected-failure tests. Health and
 home-page checks alone are insufficient; the approved proposal must contain actual behavior.
 This is engineering feedback, not a proof against adversarial code or weak assertions. Local
 execution has the user's permissions. Docker narrows exposure; generated code is still untrusted.
@@ -82,3 +81,22 @@ occurred between renames. Invalid project metadata is reported without blocking 
 Workspace backup requires all jobs to stop. It excludes hidden files, credentials in .env,
 and caches, and is bounded at 100 MB. User content can itself contain secrets; the backup is
 private project data and should not be published. Credentials must be backed up separately.
+
+## Verification in 0.4
+
+Test files with test methods must import app.py rather than redefining application handlers.
+Static checks reject the exact copied-server/handle_request patterns found in the uploaded Notes
+App. Dynamic profiling requires at least one application function call during the test run;
+module import and class-definition execution do not count. This is a minimum test-quality check,
+not proof that the assertions are comprehensive or resistant to adversarial code.
+
+Acceptance checks support contains (text), json_contains (object or nonempty list subset), and
+json_equals (exact JSON, including []). Approved checks run independently of model-written tests.
+The home page's local scripts, stylesheets and images are fetched to detect missing asset routes.
+No automatic browser interaction is claimed for arbitrary generated apps.
+
+After successful verification, test hashes are recorded as trusted regression tests. Inherited
+change-request tests are protected from the start. Before first verification, faulty new tests
+can be repaired while all approved checks stay protected. Checkpoints preserve the trust metadata;
+restoring a checkpoint restores its source and trust state. Externally changed trusted tests stop
+the build with a restore instruction rather than being silently accepted or sent for weakening.
