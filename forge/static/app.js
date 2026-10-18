@@ -258,6 +258,9 @@ function render() {
   }
   $("model-usage").textContent =
     `${(p.model_calls || []).length} model requests · ${(p.model_calls || []).reduce((n, c) => n + c.seconds, 0).toFixed(1)} seconds of model response time. One request runs at a time.`;
+  if (p.generation_stats?.exact_edits_applied)
+    $("model-usage").textContent +=
+      ` ${p.generation_stats.exact_edits_applied} exact edits applied.`;
   const measured = (p.model_calls || []).filter(
     (c) =>
       Number.isInteger(c.prompt_tokens) ||
@@ -358,7 +361,7 @@ function render() {
 }
 async function job(action, options) {
   if (!current) return;
-  if (action === "build" && !options.execute)
+  if (["build", "repair"].includes(action) && !options.execute)
     $("execution-consent").checked = false;
   current = await api(`/api/projects/${current.id}/${action}`, {
     ...options,
@@ -687,7 +690,18 @@ function renderManual(p) {
       const saved = p.manual_results?.results?.[i];
       select.value = saved === true ? "pass" : saved === false ? "fail" : "";
       label.append(select);
-      card.append(title, steps, expected, label);
+      const notesLabel = document.createElement("label");
+      notesLabel.textContent =
+        "What happened? (Required for a repair when this check fails)";
+      const notes = document.createElement("textarea");
+      notes.id = "manual-note-" + i;
+      notes.maxLength = 2000;
+      notes.rows = 2;
+      notes.placeholder =
+        "Example: I collected the shield, hit one obstacle, and the game ended a frame later.";
+      notes.value = p.manual_results?.notes?.[i] || "";
+      notesLabel.append(notes);
+      card.append(title, steps, expected, label, notesLabel);
       container.append(card);
     });
   }
@@ -696,6 +710,13 @@ function renderManual(p) {
     !activeStatuses.has(p.status) &&
     !!p.verification_fingerprint;
   $("save-manual").disabled = !ready;
+  const failed = p.manual_results?.results?.some((v) => v === false);
+  $("repair-manual").disabled = !ready || !failed;
+  $("repair-retest").disabled = !ready || !failed;
+  $("repair-history").textContent = p.repair_history?.length
+    ? p.repair_history.length +
+      " recorded repair request(s). Earlier failure notes are included in the downloaded build report."
+    : "";
   $("manual-result").textContent = p.manual_results?.time
     ? "Recorded " +
       new Date(p.manual_results.time).toLocaleString() +
@@ -714,10 +735,30 @@ $("save-manual").onclick = handle(async () => {
     );
   current = await api(`/api/projects/${current.id}/manual`, {
     results: values.map((v) => v === "pass"),
+    notes: values.map((_, i) => $("manual-note-" + i).value),
   });
   render();
   await listProjects();
 });
+async function repairManual(execute) {
+  if (execute && !$("execution-consent").checked)
+    throw new Error(
+      "Review execution settings and check the approval box under Build & results first.",
+    );
+  if (Number($("repairs").value) < 1)
+    throw new Error(
+      "Choose at least one repair attempt under Build & results.",
+    );
+  await job("repair", {
+    execute,
+    consent: execute,
+    runtime: $("runtime").value,
+    repairs: Number($("repairs").value),
+  });
+  tab("build");
+}
+$("repair-manual").onclick = handle(() => repairManual(false));
+$("repair-retest").onclick = handle(() => repairManual(true));
 $("arcade-example").onclick = () => {
   $("starter").value = "arcade";
   $("starter").dispatchEvent(new Event("change"));
@@ -778,10 +819,12 @@ function renderGuidance(p) {
       (p.preflight?.passed === false ? p.preflight.issues.join(" ") : "") ||
       p.checks?.diagnosis ||
       (p.manual_results?.results?.some((v) => v === false)
-        ? "You reported a manual check failed. Describe what happened under Keep building to propose a fix in a separate copy."
+        ? "You reported a failed check. Add what happened beside that check, save your results, then choose Repair files only or Repair & retest."
         : "") ||
       "Review the verification output, switch models if needed, and resume. Existing checkpoints remain available.";
-    action = "Review and resume";
+    action = p.manual_results?.results?.some((v) => v === false)
+      ? "Review failed checks"
+      : "Review and resume";
   } else {
     title = "Your plan is approved. Let’s build.";
     description =
@@ -794,6 +837,10 @@ function renderGuidance(p) {
   $("next-models").hidden = busy;
   $("next-models").onclick = () => $("edit-models").click();
   $("next-action").onclick = handle(async () => {
+    if (!busy && p.manual_results?.results?.some((v) => v === false)) {
+      $("manual-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
     if (!p.approved && !p.plan && !busy) {
       await job("plan", {});
       return;
@@ -814,7 +861,7 @@ function renderGuidance(p) {
     const text = document.createElement("p");
     text.textContent =
       (p.manual_results?.results?.some((v) => v === false)
-        ? "A manual acceptance check failed. Automated checks passed, but your observations show the app needs more work. Describe the failure under Keep building to plan a correction."
+        ? "A manual acceptance check failed. Automated checks passed, but your observations show the app needs more work. Add failure notes in the checklist, save them, then repair the failed checks directly."
         : "") ||
       p.error ||
       (p.preflight?.passed === false

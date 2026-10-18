@@ -17,8 +17,8 @@ PLAN_SCHEMA = {
         'manual_checks': {'type': 'array', 'items': {'type': 'object', 'required': ['name', 'steps', 'expected', 'feature_indexes'], 'properties': {
             'name': {'type': 'string'}, 'steps': {'type': 'array', 'items': {'type': 'string'}}, 'expected': {'type': 'string'}, 'feature_indexes': INDEXES}}},
         'browser_checks': {'type': 'array', 'items': {'type': 'object', 'required': ['name', 'steps', 'feature_indexes'], 'properties': {
-            'name': {'type': 'string'}, 'feature_indexes': INDEXES, 'steps': {'type': 'array', 'items': {'type': 'object', 'required': ['action'], 'properties': {
-                'action': {'type': 'string', 'enum': ['click', 'fill', 'press', 'wait', 'expect_text', 'expect_visible', 'expect_canvas_changes', 'reload', 'expect_storage']},
+            'name': {'type': 'string'}, 'feature_indexes': INDEXES, 'clock': {'type': 'boolean'}, 'random_seed': {'type': 'integer'}, 'random_values': {'type': 'array', 'items': {'type': 'number'}}, 'steps': {'type': 'array', 'items': {'type': 'object', 'required': ['action'], 'properties': {
+                'action': {'type': 'string', 'enum': ['click', 'fill', 'press', 'wait', 'expect_text', 'expect_visible', 'expect_canvas_changes', 'reload', 'expect_storage', 'key_down', 'key_up', 'advance_time', 'expect_text_exact', 'expect_canvas_still']},
                 'selector': {'type': 'string'}, 'value': {'type': 'string'}, 'ms': {'type': 'integer'}}}}}}},
         'api_contracts': {'type': 'array', 'items': {'type': 'object',
                           'required': ['method', 'path', 'status', 'response_kind', 'required_fields'],
@@ -27,5 +27,6 @@ PLAN_SCHEMA = {
                                          'required_fields': {'type': 'array', 'items': {'type': 'string'}}}}},
     },
 }
-CODE_SCHEMA = {'type': 'object', 'required': ['files'], 'properties': {
-    'summary': {'type': 'string'}, 'files': {'type': 'object', 'additionalProperties': {'type': 'string'}}}}
+CODE_SCHEMA = {'type': 'object', 'anyOf': [{'required': ['files']}, {'required': ['edits']}], 'properties': {
+    'summary': {'type': 'string'}, 'files': {'type': 'object', 'additionalProperties': {'type': 'string'}},
+    'edits': {'type': 'array', 'maxItems': 12, 'items': {'type': 'object', 'required': ['file', 'search', 'replace'], 'additionalProperties': False, 'properties': {key: {'type': 'string'} for key in ['file', 'search', 'replace']}}}}}

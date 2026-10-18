@@ -52,6 +52,8 @@ def require_browser_runtime(project, mode):
     status = diagnostics()
     if not status["available"]:
         raise ValueError(status["detail"] + ". No model request was made for this run.")
+    if any(check.get("clock") for check in json.loads(path.read_text(encoding="utf-8"))) and not status.get("clock_supported", False):
+        raise ValueError("Controlled-clock browser checks need Playwright 1.45 or newer. In the Python interpreter used by Foundry, run: python -m pip install playwright==1.56.0; python -m playwright install chromium. No model request was made for this run.")
 
 
 def verify(project, mode, cancel, timeout=120, test_timeout=30):

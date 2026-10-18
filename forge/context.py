@@ -22,6 +22,24 @@ def source_map(files):
     return result
 
 
+def browser_feedback(detail):
+    """Keep the failing action useful without flooding a small model with prior actions."""
+    if not isinstance(detail, dict):
+        return None
+    def action(step):
+        if not isinstance(step, dict):
+            return {}
+        return {key: value[:300] if isinstance(value, str) else value for key, value in step.items() if key in {'action', 'selector', 'value', 'ms'}}
+    completed = detail.get('completed_steps', [])
+    values = detail.get('random_values') or []
+    return {'check': str(detail.get('check', ''))[:200], 'step_number': detail.get('step_number'),
+            'step': action(detail.get('step')), 'completed_steps': [action(step) for step in completed[-4:]],
+            'completed_steps_omitted': max(0, len(completed) - 4),
+            'clock': detail.get('clock'), 'random_seed': detail.get('random_seed'),
+            'random_values': values[:32], 'random_values_omitted': max(0, len(values) - 32),
+            'error': str(detail.get('error', ''))[:1800]}
+
+
 def failure_feedback(result):
     phases = result.get('phases', [])
     failed = next((p for p in phases if not p.get('passed')), {})
@@ -29,9 +47,9 @@ def failure_feedback(result):
     lines = raw.splitlines()
     # Keep the concrete request/assertion and final traceback rather than repeated phase JSON.
     evidence = [line for line in lines if any(word in line for word in ['AssertionError', 'Error:', 'FAIL:', 'ERROR:', 'expected HTTP', 'unexpected JSON', 'PASS:', 'File "'])]
-    relevant = sorted(set(re.findall(r'([A-Za-z0-9_/-]+\.py)', raw)))
+    relevant = sorted(set(re.findall(r'([A-Za-z0-9_/-]+\.(?:py|js|html|css))', raw)))
     return {'phase': failed.get('phase', 'unknown'), 'diagnosis': result.get('diagnosis', 'Inspect the failed check.'),
-            'evidence': evidence[-20:], 'traceback_tail': '\n'.join(lines[-45:])[-6500:], 'referenced_files': relevant}
+            'evidence': evidence[-20:], 'traceback_tail': '\n'.join(lines[-45:])[-6500:], 'referenced_files': relevant, 'browser_failure': browser_feedback(failed.get('browser_failure'))}
 
 
 def fingerprint(files):

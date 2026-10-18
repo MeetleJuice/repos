@@ -21,6 +21,7 @@ from .planning import PlanningEngine
 from .routing import validate_config, uses_cloud, validate_options
 from .prompts import PLAN, CODE
 from .inspection import inspect_files
+from .edits import expand_response
 from .runner import verify, require_runtime, verify_milestone, require_browser_runtime
 from .scaffolds import CATALOG, starter_files
 from .evidence import manual_document
@@ -192,7 +193,7 @@ class Workbench:
                          change_request=request.strip(), baseline_plan=copy.deepcopy(parent["plan"]),
                          frozen_tests={name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(ident).items() if Path(name).name.startswith("test_") and name.endswith(".py")},
                          title=parent["title"] + " · change", created=self.now(), status="draft", approved=False,
-                         plan=None, plan_review=None, planning_stats=None, failed_candidate=None, plan_is_previous=False, generation_stats={}, manual_results={}, verification_fingerprint=None, next_task=0, events=[], snapshots=[], checks=None, preflight=None, model_calls=[], milestones=[], repair_count=0)
+                         plan=None, plan_review=None, planning_stats=None, failed_candidate=None, plan_is_previous=False, generation_stats={}, manual_results={}, repair_history=[], verification_fingerprint=None, next_task=0, events=[], snapshots=[], checks=None, preflight=None, model_calls=[], milestones=[], repair_count=0)
             target = self.directory(state["id"]) / "source"
             target.mkdir(parents=True)
             for name, content in self.files(ident).items():
@@ -314,9 +315,10 @@ class Workbench:
             existing = self.jobs.get(ident)
             if existing and existing[0].is_alive():
                 raise ValueError("A job is already running for this project.")
-            if action not in {"plan", "build"}:
+            options = dict(options)
+            if action not in {"plan", "build", "repair"}:
                 raise ValueError("Unknown job action.")
-            if action == "build" and not state["approved"]:
+            if action in {"build", "repair"} and not state["approved"]:
                 raise ValueError("Approve the proposal first.")
             if action == "plan" and state["approved"]:
                 raise ValueError("An approved proposal is frozen. Create another project for a new scope.")
@@ -324,6 +326,8 @@ class Workbench:
                 raise ValueError("Explicit cloud consent is required for the configured primary/fallback models.")
             state["job_cloud_consent"] = options.get("cloud_consent") is True
             mode = options.get("runtime", "docker")
+            if type(options.get("execute", False)) is not bool:
+                raise ValueError("Execution settings must use a JSON boolean for execute.")
             execute = options.get("execute", False) is True
             if mode not in {"docker", "local"}:
                 raise ValueError("Unknown execution runtime.")
@@ -334,6 +338,22 @@ class Workbench:
             attempts = options.get("repairs", 2)
             if type(attempts) is not int or not 0 <= attempts <= 3:
                 raise ValueError("Repair limit must be between 0 and 3.")
+            if action == "repair":
+                report = state.get("manual_results") or {}
+                results = report.get("results", [])
+                checks = state["plan"].get("manual_checks", [])
+                notes = report.get("notes", [""] * len(checks))
+                if not (state.get("checks") or {}).get("passed") or len(results) != len(checks) or not any(v is False for v in results):
+                    raise ValueError("Save failed manual checks after automated verification before requesting a repair.")
+                if state.get("verification_fingerprint") != fingerprint(self.context_files(ident)) or report.get("source_sha256") != state.get("verification_fingerprint"):
+                    raise ValueError("Source changed since those observations. Verify and test the current app again.")
+                if attempts == 0:
+                    raise ValueError("Choose at least one repair attempt.")
+                if any(not notes[i].strip() for i, value in enumerate(results) if value is False):
+                    raise ValueError("Describe what actually happened for each failed check, then save the results.")
+                options["manual_evidence"] = {"source_sha256": report["source_sha256"], "recorded": report["time"],
+                    "failures": [{"name": checks[i]["name"], "steps": checks[i]["steps"], "expected": checks[i]["expected"], "observed": notes[i]} for i, value in enumerate(results) if value is False],
+                    "kind": "User observations; not independently reproduced or automated proof."}
             state["status"] = "planning" if action == "plan" else "building"
             state["error"] = None
             self.save(state)
@@ -409,8 +429,10 @@ class Workbench:
             self.event(state, "Loaded the reviewed standard Neon Dodge plan at your request. No model call or app execution. Review this standard scope against your idea before approval.")
             return state
 
-    def record_manual(self, ident: str, results: list[bool]) -> dict[str, Any]:
+    def record_manual(self, ident: str, results: list[bool], notes: list[str] | None = None) -> dict[str, Any]:
         with self.lock:
+            if self.maintenance:
+                raise ValueError("An update is being installed. Wait for the restart.")
             state = self.load(ident)
             checks = (state.get("plan") or {}).get("manual_checks", [])
             if state["status"] in ACTIVE or not state["approved"] or not (state.get("checks") or {}).get("passed"):
@@ -419,9 +441,12 @@ class Workbench:
                 raise ValueError("Record an explicit pass/fail result for every approved manual check.")
             if state.get("verification_fingerprint") != fingerprint(self.context_files(ident)):
                 raise ValueError("Source changed since verification. Run automated checks again before recording acceptance.")
-            state["manual_results"] = {"results": results, "time": self.now(), "source_sha256": state["verification_fingerprint"], "evidence": "User-reported observations, not automated tests."}
+            notes = [""] * len(checks) if notes is None else notes
+            if not isinstance(notes, list) or len(notes) != len(checks) or any(not isinstance(note, str) or len(note) > 2000 for note in notes):
+                raise ValueError("Provide a note of at most 2000 characters for each manual check.")
+            state["manual_results"] = {"notes": notes, "results": results, "time": self.now(), "source_sha256": state["verification_fingerprint"], "evidence": "User-reported observations, not automated tests."}
             state["status"] = "verified" if all(results) else "needs_attention"
-            self.event(state, "User reported all manual checks passed." if all(results) else "User reported a manual check failed. Describe the failure under Keep building to plan a correction; automated checks alone did not prove it worked.")
+            self.event(state, "User reported all manual checks passed." if all(results) else "User reported a manual check failed. Add concrete failure notes, save the results, then use Repair files only or Repair & retest. Automated checks alone did not prove it worked.")
             return state
 
     def review_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:
@@ -523,13 +548,9 @@ class Workbench:
             return state
 
     def apply(self, state, response, repair=False):
-        if not isinstance(response, dict):
-            raise ValueError("Code response must be a JSON object containing files.")
-        files = response.get("files")
-        if not isinstance(files, dict) or not 1 <= len(files) <= 24:
-            raise ValueError("Model must return 1–24 complete source files.")
         root = self.directory(state["id"]) / "source"
         current = self.files(state["id"])
+        files = expand_response(response, current)
         targets, normalized = [], set()
         for name, content in files.items():
             target = safe_file(root, name)
@@ -565,6 +586,9 @@ class Workbench:
                 shutil.rmtree(staging)
         state["manual_results"] = {}
         state["verification_fingerprint"] = None
+        if response.get("edits"):
+            stats = state.setdefault("generation_stats", {})
+            stats["exact_edits_applied"] = stats.get("exact_edits_applied", 0) + len(response["edits"])
         self.event(state, str(response.get("summary", "Source files updated."))[:2000])
 
     def generate_and_apply(self, state, payload, cancel, repair=False):
@@ -591,7 +615,7 @@ class Workbench:
             self.event(state, "Code response rejected before file replacement; requesting one focused correction: " + error)
             stats = state.setdefault("generation_stats", {})
             stats["rejected_responses"] = stats.get("rejected_responses", 0) + 1
-            payload = {**payload, "response_validation_error": error, "instruction": "Return valid JSON with only allowed complete text source files. Correct this response-format/file-contract error, preserve frozen tests, and do not change approved scope. No file from the rejected response was applied."}
+            payload = {**payload, "response_validation_error": error, "instruction": "Return valid JSON with allowed complete text source files or exact edits against current source. Correct this response-format/file-contract error, preserve frozen tests, and do not change approved scope. No file from the rejected response was applied."}
 
     def _inspect_and_repair(self, state, cancel, remaining, complete=True):
         for attempt in range(remaining + 1):
@@ -729,15 +753,33 @@ class Workbench:
             if options.get("execute"):
                 require_runtime(options.get("runtime", "docker"))
                 require_browser_runtime(self.directory(state["id"]) / "source", options.get("runtime", "docker"))
+            if action == "repair" and options["manual_evidence"]["source_sha256"] != fingerprint(self.context_files(state["id"])):
+                raise ValueError("Source changed while preparing the repair. Verify and test the current app again.")
             state["checks"] = None
             state["manual_results"] = {}
             state["verification_fingerprint"] = None
             state["preflight"] = None
             remaining_repairs = options.get("repairs", 2)
+            if action == "repair":
+                evidence = options["manual_evidence"]
+                state.setdefault("repair_history", []).append({"time": self.now(), "evidence": evidence, "execution_requested": bool(options.get("execute"))})
+                state["repair_history"] = state["repair_history"][-20:]
+                self.event(state, "Repairing saved failed checks directly. The approved plan and regression tests stay frozen; the repaired app must be tested again.")
+                before = fingerprint(self.context_files(state["id"]))
+                self.generate_and_apply(state, {"proposal": state["plan"], "files": self.context_files(state["id"]),
+                    "source_map": source_map(self.context_files(state["id"])), "manual_evidence": evidence,
+                    "frozen_tests": list(state.get("frozen_tests", {})),
+                    "instruction": "Repair only the reported implementation defects. Use exact edits for small changes. Trace the actual code from input/spawn through update/collision/render/reset. Do not claim observations were reproduced or tests ran. Preserve all approved features and frozen checks/tests."}, cancel, repair=True)
+                state["repair_count"] += 1
+                remaining_repairs -= 1
+                if before == fingerprint(self.context_files(state["id"])):
+                    state["status"] = "needs_attention"
+                    self.event(state, "Repair returned unchanged source. Stopped without repeating verification. Failure evidence remains in repair history.")
+                    return
             remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
             if remaining_repairs is None:
                 return
-            for index in range(state["next_task"], len(state["plan"]["tasks"])):
+            for index in range(len(state["plan"]["tasks"]) if action == "repair" else state["next_task"], len(state["plan"]["tasks"])):
                 if cancel.is_set():
                     raise InterruptedError("Build stopped. You can resume from the next unfinished task.")
                 task = state["plan"]["tasks"][index]

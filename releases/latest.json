@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.7.3",
+  "version": "0.8.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.3.zip",
-  "sha256": "ff49238575884ec541818efc7a1af4aaa98d5df4afaf591ab8f19ae855f147d2",
-  "notes": "Source-aware improvement planning with bounded excerpts and repeated-task rejection; import and save reviewed proposal JSON with visible task-card updates, no inference or execution. Existing projects and acceptance checks remain protected."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.8.0.zip",
+  "sha256": "fd4ada5a4599153922b03ae5c35188a94eb6ec6f92185610f9a0392bc3990b1f",
+  "notes": "Evidence-driven repairs: saved gameplay failure notes go straight to targeted code repair, with frozen checks, checkpoints and fresh acceptance. Exact edits reduce full-file rewrites. Optional Chromium tests gain repeatable randomness, controlled time and detailed failure steps."
 }

@@ -233,3 +233,35 @@ Six typed modules pass strict mypy. No live model-compliance or shield implement
 is claimed; the downloadable artifact is a reviewed proposal, not generated application code.
 
 Final release packaging changes only this validation documentation after the source test.
+
+## Version 0.8.0 — evidence-driven repairs
+
+From a fresh distribution validated and extracted by the real updater, all **183 automated tests**
+passed on Linux Python 3.12 in 90.148 seconds and native Linux Python 3.13 in 88.179 seconds.
+This includes existing backup/export/update/rollback compatibility, generation and repair-budget
+checks, plus fourteen new regression tests for exact edits, protected/atomic rejection, failed
+manual notes, direct repairs, no-execution generation, stale evidence, unchanged-source stopping,
+runtime preparation failures, strict execution booleans, bounded feedback and clock prerequisites.
+
+The extracted distribution's real Chromium regression starts with the actual uploaded shield bug.
+Its four Python server tests and HTTP/assets/CLI delivery pass, while the approved deterministic
+browser check fails with Game over after the shield blocks an obstacle. A controlled six-edit
+response repairs the source; the identical frozen browser check then passes. Additional real
+browser assertions prove collection, paused canvas stability, retained shield during pause,
+consumption, survival of the blocked hit, a later unprotected collision and restart. The UI test
+records and reloads notes, makes one direct coder request without replanning or executing the
+files-only repair, keeps the approved plan, clears stale acceptance, rejects an unauthenticated
+repair request and checks mobile layout without JavaScript errors.
+
+Existing real-browser scripts also passed: arcade generation/verification/manual/export with
+rendered movement and a broken-handler negative case; reviewed proposal import/save/reload;
+planner correction/fallback/context/cloud controls; missing-Docker/consent/update/search/backup
+flows; standard arcade recovery without inference. Seven typed modules pass strict mypy.
+JavaScript syntax checks and git diff whitespace checks pass. Earlier six release archives retain
+their published checksums. The new ZIP was checked to exclude workspace data and secret files.
+
+These are Linux cloud results, not a native Windows or hosted CI run. Model replies in orchestration
+tests are controlled fixtures; no live Ollama inference-speed or general generation-quality claim
+is made. The exact-edit fixture reduces response bytes by 77.7%, which is not a token/speed result.
+Final release packaging changes only this validation document after the extracted tests; code,
+tests, UI and all other entries are compared by hash against the tested archive before publishing.

@@ -1,0 +1,35 @@
+{
+  "summary": "Fix visible pickups and consume one collision without a repeat hit; expose readable shield status.",
+  "edits": [
+    {
+      "file": "game.js",
+      "search": "    shield = null,\n",
+      "replace": ""
+    },
+    {
+      "file": "game.js",
+      "search": "  const storageKey = \"neon-dodge-best\";",
+      "replace": "  const shieldStatus = document.createElement(\"strong\");\n  shieldStatus.id = \"shield-status\";\n  shieldStatus.setAttribute(\"role\", \"status\");\n  document.querySelector(\".hud\").append(shieldStatus);\n  const storageKey = \"neon-dodge-best\";"
+    },
+    {
+      "file": "game.js",
+      "search": "        if (shieldActive) {\n          shieldActive = false;\n        } else {\n          gameOver();\n          break;\n        }",
+      "replace": "        if (shieldActive) {\n          shieldActive = false;\n          o.y = H + 100;\n        } else {\n          gameOver();\n          return;\n        }"
+    },
+    {
+      "file": "game.js",
+      "search": "pickups = pickups.filter((p) => p !== p);",
+      "replace": "pickups = pickups.filter((other) => other !== p);"
+    },
+    {
+      "file": "game.js",
+      "search": "    ctx.shadowColor = \"#43d5ff\";\n    ctx.fillStyle = \"#63e1ff\";",
+      "replace": "    ctx.shadowBlur = 0;\n    ctx.strokeStyle = \"#35e8ff\";\n    ctx.lineWidth = 3;\n    for (const pickup of pickups) {\n      ctx.beginPath();\n      ctx.arc(pickup.x, pickup.y, 12, 0, Math.PI * 2);\n      ctx.stroke();\n    }\n    shieldStatus.textContent = shieldActive ? \"Shield ready\" : \"Shield empty\";\n    ctx.shadowColor = \"#43d5ff\";\n    ctx.fillStyle = \"#63e1ff\";"
+    },
+    {
+      "file": "game.js",
+      "search": "      ctx.fillStyle = \"#00ff00\";\n      ctx.beginPath();\n      ctx.arc(W / 2, H - 50, 15, 0, Math.PI * 2);\n      ctx.fill();",
+      "replace": "      ctx.strokeStyle = \"#35e8ff\";\n      ctx.lineWidth = 3;\n      ctx.beginPath();\n      ctx.arc(x, H - 65, 28, 0, Math.PI * 2);\n      ctx.stroke();"
+    }
+  ]
+}

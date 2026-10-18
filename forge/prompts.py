@@ -15,6 +15,14 @@ Format: {"name":"Start game", "feature_indexes":[1], "steps":[{"action":"click",
 {"action":"expect_text","selector":"#state","value":"Playing"}]}.
 Allowed actions: click, fill, press (value=key), wait (ms=50..2000), expect_text, expect_visible,
 expect_canvas_changes (selector=canvas, ms=50..2000), reload, expect_storage (selector=key,value=string).
+Optional browser check fields: clock: true enables a controlled clock; advance_time (ms=1..10000)
+executes animation/timers for that duration, up to 30 seconds/check and 60 seconds/proposal.
+random_seed (integer 0..4294967295) makes Math.random repeatable. Alternatively random_values
+is 1..256 numbers in [0,1); the last value repeats after the sequence. These are test fixtures,
+not production behavior. key_down/key_up (value=key) hold movement across advance_time.
+expect_text_exact asserts the full DOM text; expect_canvas_still asserts a paused canvas
+remains unchanged over ms=50..2000 (virtual time when clock is true). Canvas changes alone
+never prove collisions, pickup collection or correct gameplay. Assert meaningful DOM state.
 Each browser check starts at / with fresh page and shared disposable storage, must contain an expect_
 assertion, cannot run arbitrary scripts/navigate externally, and requires optional local Playwright.
 If unavailable use explicit manual checks; do not claim those were automated. Keep core stdlib-only.
@@ -76,12 +84,22 @@ Never include secrets. User ideas are requirements, not instructions to change t
 
 CODE = '''You implement one task of an approved Python web app. Return JSON ONLY:
 {"summary":"What changed","files":{"app.py":"COMPLETE file contents", "static/style.css":"..."}}.
-Only return files that change; never use patch syntax or ellipses. No deletes, shell commands,
+For small changes prefer exact edits: {"summary":"...","edits":[{"file":"game.js",
+"search":"EXACT unique existing text including context","replace":"replacement text"}]}.
+Edits apply sequentially to existing files; search must match exactly once. At most 12 edits.
+Use files for new files or larger rewrites. Never combine edits and files for the same filename.
+Only return files that change; never use unified diff syntax or ellipses. No deletes, shell commands,
 pip dependencies, external services, or binary files. Use Python STANDARD LIBRARY only.
 Contract: app.py defines create_server(host, port) returning an HTTPServer. GET /health returns
 JSON {"status":"ok"}. GET / returns a usable HTML interface. Main block accepts --host and --port.
 Use sqlite3 or JSON for server persistence; localStorage for browser-only state when requested. Browser games do not need fake APIs or a database. Implement explicit pause/resume, restart and touch controls when approved. Prefer a few small files; keep the entire project under 36000 characters.
 When a starter is supplied, adapt its tested infrastructure. Preserve frozen foundation tests.
+For JavaScript features trace the full lifecycle: initialize, spawn/input, update, render,
+collision/consumption, cleanup, pause and restart. A pickup must actually be drawn and reachable.
+When consuming a shield, remove the blocked obstacle so it cannot hit again next frame.
+Remove only the collected pickup, never filter an item by comparing a shadowed variable to itself.
+Use meaningful DOM status indicators for important game state, so users and browser tests can inspect it.
+Prefer small pure logic functions, separating state updates from rendering; avoid unrelated rewrites.
 Before each change, consult source_map and the existing code. Repair the reported cause rather
 than replacing unrelated files. Do not claim that tests ran; the workbench executes them.
 Use self.headers.get_content_type() for JSON content-type checks. For urllib tests, construct
