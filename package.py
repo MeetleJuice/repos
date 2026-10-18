@@ -4,7 +4,7 @@ import hashlib
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
-TOP = {".env.example", ".gitignore", "LICENSE", "README.md", "Start-Foundry.bat", "run.py", "package.py"}
+TOP = {".env.example", ".gitignore", ".gitattributes", "LICENSE", "README.md", "Start-Foundry.bat", "run.py", "package.py"}
 DIRECTORIES = {"forge", "docs", "tests", "examples", ".github"}
 
 
