@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.7.0",
+  "version": "0.7.1",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.0.zip",
-  "sha256": "32d83a22ddec6a48b973fb2c3933bad43129dee9d7b07140770a8274e12ce4d7",
-  "notes": "Capability-aware server/browser planning, honest automated and manual acceptance, optional real Chromium checks, tested Neon Dodge starter, bounded generation recovery and blue-flame visual identity. Existing projects and update launcher remain supported."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.1.zip",
+  "sha256": "26547e39694fc4a39264fe97f2b329416f67039cf5f3bc683162991024d84e84",
+  "notes": "Fix Neon Dodge planning failures: explicit reviewed standard-plan recovery without model calls, direct standard-plan creation, required native app_kind field and concrete browser-plan guidance. Existing projects and approved checks stay intact."
 }

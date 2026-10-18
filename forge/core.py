@@ -260,9 +260,11 @@ class Workbench:
                 result.append({"name": name, "kind": "modified" if name in before else "added", "diff": "\n".join(lines)[:20000]})
         return result
 
-    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False) -> dict[str, Any]:
+    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False) -> dict[str, Any]:
         if self.maintenance:
             raise ValueError("An update is being installed. Wait for the restart.")
+        if type(use_reviewed_plan) is not bool or (use_reviewed_plan and starter != "arcade"):
+            raise ValueError("A reviewed standard plan is available only for the Neon Dodge starter.")
         if starter is not None and starter not in CATALOG:
             raise ValueError("Unknown starter template.")
         if not isinstance(idea, str) or not 10 <= len(idea.strip()) <= 12000:
@@ -279,6 +281,8 @@ class Workbench:
                  "snapshots": [], "repair_count": 0, "starter": starter}
         (self.directory(ident) / "source").mkdir(parents=True)
         self.save(state)
+        if use_reviewed_plan:
+            return self.load_starter_plan(ident)
         self.start(ident, "plan", {"cloud_consent": cloud_consent})
         return self.load(ident)
 
@@ -350,6 +354,8 @@ class Workbench:
                 raise ValueError("Cannot change this proposal while a job runs or after approval.")
             candidate = self.revision_plan(state, plan)
             state["plan_review"] = require_consistent(candidate, state.get("starter")).to_dict()
+            if candidate != state.get("plan"):
+                state.pop("proposal_source", None)
             state["plan"] = candidate
             plan = state["plan"]
             state["title"] = plan["title"]
@@ -363,6 +369,25 @@ class Workbench:
                 # until the actual approved app passes verification.
                 state.setdefault("frozen_tests", {})["test_foundation.py"] = hashlib.sha256(files["test_foundation.py"].encode()).hexdigest()
             self.event(state, "Proposal approved. Requirements and acceptance checks frozen.")
+            return state
+
+    def load_starter_plan(self, ident: str) -> dict[str, Any]:
+        """Explicit standard-scope recovery; never infer consent or replace approved scope."""
+        with self.lock:
+            if self.maintenance:
+                raise ValueError("An update is being installed. Wait for the restart.")
+            state = self.load(ident)
+            if state["status"] in ACTIVE or state["approved"] or state.get("baseline_plan") or state.get("parent_id"):
+                raise ValueError("Only an idle, unapproved original project can load a standard starter plan.")
+            if state.get("starter") != "arcade":
+                raise ValueError("Choose the Neon Dodge starter to use its reviewed standard plan.")
+            plan = json.loads((Path(__file__).with_name("starters") / "arcade" / "proposal.json").read_text(encoding="utf-8"))
+            result = require_consistent(plan, "arcade")
+            state.update(plan=plan, title=plan["title"], status="proposed", error=None,
+                         failed_candidate=None, plan_is_previous=False, plan_review=result.to_dict(),
+                         planning_stats={"attempts": 0, "fallback_used": False, "source": "reviewed_starter"},
+                         proposal_source={"kind": "reviewed_starter", "starter": "arcade", "version": CATALOG["arcade"]["version"]})
+            self.event(state, "Loaded the reviewed standard Neon Dodge plan at your request. No model call or app execution. Review this standard scope against your idea before approval.")
             return state
 
     def record_manual(self, ident: str, results: list[bool]) -> dict[str, Any]:
@@ -644,10 +669,13 @@ class Workbench:
                            "starter": CATALOG.get(state.get("starter")),
                            "starter_api_contracts": starter_contracts(state.get("starter")),
                            "verification_capabilities": {"http": True, "manual": True, "browser": "optional local Chromium; request browser_checks only when explicitly asked", "browser_starter": state.get("starter") == "arcade"},
+                           "required_plan_fields": {"app_kind": "browser", "behavior_evidence": "nonempty manual_checks or browser_checks"} if state.get("starter") == "arcade" else {},
                            "starter_example_plan": json.loads((Path(__file__).with_name("starters") / "arcade" / "proposal.json").read_text(encoding="utf-8")) if state.get("starter") == "arcade" else None,
                            "scope_priority": "The latest revision overrides conflicting original details. Preserve requested storage: localStorage must not become SQLite. Preserve UI/game requirements; HTTP delivery never proves gameplay.",
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
                 def evaluate(candidate: dict[str, Any]) -> tuple[dict[str, Any], Review]:
+                    if state.get("starter") == "arcade" and isinstance(candidate, dict) and (candidate.get("app_kind") != "browser" or not (candidate.get("manual_checks") or candidate.get("browser_checks"))):
+                        raise ValueError('The arcade starter is a browser game. Return app_kind: "browser" and nonempty manual_checks or browser_checks copied/adapted from starter_example_plan. HTTP checks prove delivery only; do not add a fake backend API.')
                     candidate = self.revision_plan(state, candidate)
                     return candidate, require_consistent(candidate, state.get("starter"))
 
@@ -661,6 +689,7 @@ class Workbench:
                         state["plan_is_previous"] = bool(state.get("plan"))
                     else:
                         state["plan_is_previous"] = False
+                        state.pop("proposal_source", None)
                         state["plan"] = candidate
                     self.save(state)
 

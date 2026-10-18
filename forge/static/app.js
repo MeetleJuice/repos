@@ -178,6 +178,9 @@ function render() {
     !p.plan_is_previous || p.status !== "error";
   $("proposal-history-notice").textContent =
     "The latest revision failed validation. You are viewing the previous saved proposal, not a successful revision. Review the error before retrying.";
+  $("standard-plan-recovery").hidden =
+    p.starter !== "arcade" || p.approved || !!p.parent_id || !!p.baseline_plan;
+  $("recover-standard-game").disabled = busy;
   $("proposal-content").hidden = !p.plan;
   if (p.plan) {
     fillList("features", p.plan.features);
@@ -545,6 +548,7 @@ const starterDescriptions = {
   "": "Your model creates every source file. Best for unusual small projects.",
 };
 $("starter").onchange = () => {
+  $("standard-plan-create").hidden = $("starter").value !== "arcade";
   $("starter-description").textContent =
     starterDescriptions[$("starter").value];
 };
@@ -918,3 +922,29 @@ $("review-diff").onclick = handle(async () => {
   }
 });
 workspaceInfo().catch(() => {});
+
+$("recover-standard-game").onclick = handle(async () => {
+  const id = current.id;
+  current = await api(`/api/projects/${id}/starter-plan`, {});
+  reviewedProposal = null;
+  lastPlan = "";
+  render();
+  tab("proposal");
+  await listProjects();
+});
+$("create-standard-game").onclick = handle(async () => {
+  const models = selectedModels();
+  $("create-standard-game").disabled = true;
+  try {
+    const project = await api("/api/projects", {
+      idea: "Use the standard reviewed Neon Dodge game with localStorage and its manual gameplay checklist.",
+      starter: "arcade",
+      use_reviewed_plan: true,
+      ...models,
+      cloud_consent: $("create-cloud").checked,
+    });
+    await openProject(project.id);
+  } finally {
+    $("create-standard-game").disabled = false;
+  }
+});

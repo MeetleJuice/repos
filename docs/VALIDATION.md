@@ -177,3 +177,19 @@ faithfully adapted with the image tool and inspected in the actual interface.
 Final packaging changes only documentation after the source-distribution test. Published 0.5
 and 0.6 archives remain byte-identical. The new version retains workspace schema 2, release
 manifest schema 1 and the stable supervisor/update protocol.
+
+## Version 0.7.1 — local planner omission recovery
+
+155 automated tests passed in 72.413 seconds from an updater-validated fresh distribution.
+Six new tests cover explicit standard creation/recovery without inference or execution; a
+planner that repeatedly omits browser fields; busy/approved/change-project/maintenance guards;
+unchanged custom planning; and native schema app_kind with legacy validation compatibility.
+
+A real browser reproduces the user's empty-plan error, loads the reviewed standard plan into
+the same project, and approves it with zero additional model requests. Direct standard creation,
+endpoint authentication and mobile layout also pass. The full arcade generation/verification/
+manual/export browser test and broken-Start-button negative test still pass, as does the
+starter/update/search/backup/consent browser regression. Six typed modules pass strict mypy.
+Native schema and prompts are corrected, but live Windows/Ollama model compliance is not claimed.
+The deterministic standard-plan path removes that dependency for this specific standard scope.
+Final package changes only validation documentation after the extracted-source test.

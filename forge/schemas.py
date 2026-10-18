@@ -2,7 +2,7 @@
 INDEXES = {'type': 'array', 'items': {'type': 'integer'}}
 PLAN_SCHEMA = {
     'type': 'object',
-    'required': ['title', 'summary', 'features', 'out_of_scope', 'risks', 'tasks', 'checks'],
+    'required': ['title', 'summary', 'features', 'out_of_scope', 'risks', 'tasks', 'checks', 'app_kind'],
     'properties': {
         'title': {'type': 'string'}, 'summary': {'type': 'string'},
         **{key: {'type': 'array', 'items': {'type': 'string'}} for key in ['features', 'out_of_scope', 'risks']},

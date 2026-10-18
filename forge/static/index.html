@@ -113,6 +113,17 @@
               <option value="">Blank project · advanced</option>
             </select>
           </div>
+          <div id="standard-plan-create" class="runtime-readiness" hidden>
+            <strong>Want the standard Neon Dodge game?</strong>
+            <p>
+              Use its reviewed plan without asking a model to recreate it. This
+              loads the standard game scope, not custom changes. You still
+              review and approve before building.
+            </p>
+            <button id="create-standard-game" type="button" class="secondary">
+              Use standard Neon Dodge plan
+            </button>
+          </div>
           <div class="model-grid">
             <fieldset>
               <legend>01 / THE PLANNER</legend>
@@ -235,6 +246,17 @@
             <ul id="proposal-findings"></ul>
             <button id="review-proposal-button" class="secondary" type="button">
               Check edited proposal
+            </button>
+          </div>
+          <div id="standard-plan-recovery" class="runtime-readiness" hidden>
+            <strong>A model-independent way forward</strong>
+            <p>
+              Load the reviewed standard Neon Dodge plan. This replaces only the
+              unapproved proposal; compare its standard scope with your idea
+              before approving. No model call or app execution.
+            </p>
+            <button id="recover-standard-game" type="button" class="secondary">
+              Use standard Neon Dodge plan
             </button>
           </div>
           <div id="proposal-loading" class="empty">

@@ -41,5 +41,6 @@ jobs:
       - run: python -m pip install playwright==1.56.0
       - run: python -m playwright install --with-deps chromium
       - run: python tests/browser_arcade_check.py
+      - run: python tests/browser_starter_recovery_check.py
       - run: python tests/browser_planning_check.py
       - run: python tests/browser_upgrade_check.py

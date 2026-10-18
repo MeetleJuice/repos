@@ -89,6 +89,9 @@ function renderProposalReview(project) {
   }
   document.getElementById("proposal-review-status").textContent = result.passed
     ? "Proposal consistency checks passed" +
+      (project.proposal_source?.kind === "reviewed_starter" && !edited
+        ? " · reviewed standard starter plan"
+        : "") +
       (project.planning_stats?.attempts > 1
         ? ` · recovered in ${project.planning_stats.attempts} requests${project.planning_stats.fallback_used ? " using configured fallback" : ""}`
         : "")

@@ -1,10 +1,18 @@
-# Idea Foundry 0.7
+# Idea Foundry 0.7.1
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.7.1 planning fix
+
+If Neon Dodge planning stops before showing a proposal, update and open that failed project.
+Click **Use standard Neon Dodge plan**, review the standard scope and approve before building.
+This explicit recovery needs no planner request and never silently replaces custom requirements.
+The same choice appears after **Try Neon Dodge** for new standard games. Custom planning still
+uses your selected model. See [the recovery guide](docs/RELEASE-0.7.1.md).
 
 ## What’s new in 0.7 — blue-flame studio
 
