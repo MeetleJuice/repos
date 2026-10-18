@@ -187,13 +187,39 @@ def launch(_root):
         stop_app_process(proc)
 
 
+class PhaseInfrastructureError(RuntimeError):
+    """The verifier workspace failed, rather than the application under test."""
+
+
 def phase(name, source):
-    with tempfile.TemporaryDirectory(prefix="foundry-" + name + "-") as temp:
-        root = Path(temp).resolve()
-        shutil.copytree(source, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__", "*.db", "*.sqlite*"))
+    previous = Path.cwd()
+    previous_path = sys.path[:]
+    try:
+        workspace = tempfile.TemporaryDirectory(prefix="foundry-" + name + "-")
+    except OSError as exc:
+        raise PhaseInfrastructureError("Verifier workspace could not be created: " + str(exc)) from exc
+    try:
+        root = Path(workspace.name).resolve()
+        try:
+            shutil.copytree(source, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__", "*.db", "*.sqlite*"))
+        except OSError as exc:
+            raise PhaseInfrastructureError("Verifier workspace could not be prepared: " + str(exc)) from exc
         os.chdir(root)
         sys.path.insert(0, str(root))
         return {"phase": name, "passed": True, **{"acceptance": acceptance, "tests": generated_tests, "launch": launch}[name](root)}
+    finally:
+        # Windows cannot remove the process's current directory. Restore even when
+        # application code or generated tests raise or change cwd/sys.path themselves.
+        try:
+            os.chdir(previous)
+        except OSError as exc:
+            raise PhaseInfrastructureError("Verifier could not restore its working directory: " + str(exc)) from exc
+        finally:
+            sys.path[:] = previous_path
+            try:
+                workspace.cleanup()
+            except OSError as exc:
+                raise PhaseInfrastructureError("Verifier workspace cleanup failed after testing: " + str(exc)) from exc
 
 
 def run_phase(name, source, timeout):
@@ -223,7 +249,7 @@ def run_phase(name, source, timeout):
     try:
         last = log.strip().splitlines()[-1]
         report = json.loads(last.removeprefix(MARKER)) if last.startswith(MARKER) else {}
-        if proc.returncode == 0 and report.get("phase") == name and report.get("passed") is True:
+        if report.get("phase") == name and ((proc.returncode == 0 and report.get("passed") is True) or (proc.returncode != 0 and report.get("passed") is False)):
             return report
     except (ValueError, IndexError, AttributeError):
         pass
@@ -232,13 +258,15 @@ def run_phase(name, source, timeout):
 
 def diagnose(report):
     text = report.get("error", "").lower()
+    if report.get("failure_kind") == "environment":
+        return "Foundry could not prepare or clean up its verification workspace. This is a verifier/environment failure; no application code repair was requested. " + report.get("error", "")[:1500]
     if "restart persistence check failed" in text:
         return "Expected saved data could not be retrieved after an independent app-process restart. Persist data to SQLite/JSON in a stable project path; do not rely on module globals or erase the database at startup."
     if "message_from_bytes" in text or "unexpected keyword argument 'headers'" in text or "unexpected keyword argument 'method'" in text:
         return "An HTTP API is used incorrectly. Read Content-Type with self.headers.get_content_type(). Build urllib.request.Request with headers/method, then call urlopen(request, timeout=3)."
     if "no such table" in text:
         return "The database table is missing. Initialize the schema in create_server before handling requests."
-    if "filenotfounderror" in text or "referenced asset" in text:
+    if "filenotfounderror" in text or any("referenced asset" in line and ("assertionerror" in line or "expected http" in line) for line in text.splitlines()):
         return "A referenced page or asset is missing or not served. Check HTML, CSS, JavaScript paths and routes."
     if report.get("phase") == "tests" and report.get("timed_out"):
         return "Generated tests timed out. Send real HTTP requests with timeouts; do not wait on server.handle_request without a client."
@@ -264,6 +292,10 @@ def main():
     if args.phase:
         try:
             report = phase(args.phase, source)
+        except PhaseInfrastructureError as exc:
+            traceback.print_exc()
+            print(MARKER + json.dumps({"phase": args.phase, "passed": False, "failure_kind": "environment", "error": str(exc)}), flush=True)
+            return 1
         except Exception:
             traceback.print_exc()
             return 1
@@ -275,7 +307,7 @@ def main():
         result = run_phase(name, source, timeout)
         results.append(result)
         if not result["passed"]:
-            print(json.dumps({"result": "failed", "phases": results, "diagnosis": diagnose(result)}), flush=True)
+            print(json.dumps({"result": "failed", "phases": results, "diagnosis": diagnose(result), "failure_kind": result.get("failure_kind", "application")}), flush=True)
             return 1
     if args.milestone:
         print(json.dumps({"result": "milestone_passed", "http_checks": results[0]["http_checks"], "phases": results}), flush=True)

@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.7.1",
+  "version": "0.7.2",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.1.zip",
-  "sha256": "26547e39694fc4a39264fe97f2b329416f67039cf5f3bc683162991024d84e84",
-  "notes": "Fix Neon Dodge planning failures: explicit reviewed standard-plan recovery without model calls, direct standard-plan creation, required native app_kind field and concrete browser-plan guidance. Existing projects and approved checks stay intact."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.7.2.zip",
+  "sha256": "050b1a9a8e4ca11178789a0edd94e9d64747dd886cbdbc574ba102caf5fb8e67",
+  "notes": "Fix Windows verification cleanup: restore cwd/import path before deleting disposable workspaces, preserve infrastructure failure reports, and stop model repairs for cleanup errors. Passed asset checks no longer cause a false missing-asset diagnosis. Existing projects are preserved."
 }

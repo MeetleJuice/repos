@@ -193,3 +193,25 @@ starter/update/search/backup/consent browser regression. Six typed modules pass 
 Native schema and prompts are corrected, but live Windows/Ollama model compliance is not claimed.
 The deterministic standard-plan path removes that dependency for this specific standard scope.
 Final package changes only validation documentation after the extracted-source test.
+
+## Version 0.7.2 — Windows cleanup regression
+
+The updater-validated extracted distribution passed all 165 tests on Linux Python 3.12
+(72.608 seconds) and Python 3.13 (70.915 seconds). Ten new regression tests enforce the
+Windows current-directory deletion rule during every phase, restoration after app failure
+and generated cwd/import-path changes, explicit cleanup errors, creation/staging failures,
+structured child-process reports, local-runner environment classification and zero model
+repair requests for infrastructure failure. Actual application assertions still fail as app
+errors; cleanup failures are not ignored or relabeled as successful verification.
+
+The exact uploaded Neon Dodge source passed acceptance/assets, all four Python tests and
+CLI launch using the corrected harness on Python 3.13. The complete arcade browser pipeline
+and its broken-handler negative case passed, as did update/search/backup/consent browser
+regressions. Six typed modules passed strict mypy. CI now includes Windows/Linux Python 3.13
+in addition to 3.11/3.12; no hosted CI or native Windows execution is claimed here. The Windows
+rule is simulated explicitly, while the Python 3.13 execution above is native Linux.
+
+Final release packaging changes only validation documentation after the extracted tests.
+No user project files or approved checks are changed by this patch. Existing repair history
+is preserved. A diagnostic retry with repairs set to zero can verify the current project
+without spending further model requests.

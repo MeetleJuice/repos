@@ -1,10 +1,17 @@
-# Idea Foundry 0.7.1
+# Idea Foundry 0.7.2
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.7.2 Windows verification fix
+
+Fixes WinError 32 after passed acceptance checks by leaving the temporary working directory
+before deleting it. Workspace failures stop verification without spending app-repair requests.
+Update, reopen the existing project and retry verification with Maximum repairs set to 0.
+See [the Windows recovery guide](docs/RELEASE-0.7.2.md). No regeneration is needed.
 
 ## 0.7.1 planning fix
 

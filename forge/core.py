@@ -767,7 +767,7 @@ class Workbench:
                     return
                 if result.get("failure_kind") == "environment":
                     state["status"] = "needs_attention"
-                    self.event(state, "Execution environment failed. Fix the Docker/runtime error below before retrying; application code was not sent for repair.")
+                    self.event(state, "Verification environment failed. Fix the runtime/workspace error below before retrying; application code was not sent for repair.")
                     return
                 if remaining_repairs == 0:
                     state["status"] = "needs_attention"

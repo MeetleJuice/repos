@@ -153,7 +153,7 @@ def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30, mile
     return {"passed": passed, "exit_code": proc.returncode,
             "diagnosis": report.get("diagnosis") or ("Verification stopped before completion." if stopped else None),
             "phases": report.get("phases", []),
-            "failure_kind": None if passed else "environment" if mode == "docker" and proc.returncode in {125, 126, 127} else "application",
+            "failure_kind": None if passed else "environment" if report.get("failure_kind") == "environment" or (mode == "docker" and proc.returncode in {125, 126, 127}) else "application",
             "log": ((stopped + "\n") if stopped else "") + log[-24000:], "runtime": mode}
 
 
