@@ -30,3 +30,6 @@ PLAN_SCHEMA = {
 CODE_SCHEMA = {'type': 'object', 'anyOf': [{'required': ['files']}, {'required': ['edits']}], 'properties': {
     'summary': {'type': 'string'}, 'files': {'type': 'object', 'additionalProperties': {'type': 'string'}},
     'edits': {'type': 'array', 'maxItems': 12, 'items': {'type': 'object', 'required': ['file', 'search', 'replace'], 'additionalProperties': False, 'properties': {key: {'type': 'string'} for key in ['file', 'search', 'replace']}}}}}
+
+COMPLETE_CODE_SCHEMA = {'type': 'object', 'required': ['files'], 'additionalProperties': False, 'properties': {
+    'summary': {'type': 'string'}, 'files': {'type': 'object', 'minProperties': 1, 'additionalProperties': {'type': 'string'}}}}

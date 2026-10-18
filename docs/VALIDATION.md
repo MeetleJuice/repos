@@ -265,3 +265,30 @@ tests are controlled fixtures; no live Ollama inference-speed or general generat
 is made. The exact-edit fixture reduces response bytes by 77.7%, which is not a token/speed result.
 Final release packaging changes only this validation document after the extracted tests; code,
 tests, UI and all other entries are compared by hash against the tested archive before publishing.
+
+## Version 0.8.1 — rejected-edit recovery and retained failure observations
+
+The live Windows/Ollama log supplied by the user shows a nonunique/missing exact-edit search,
+followed by an unusable correction response. No files were applied. The later four-test HTTP/server
+success was on unchanged code and did not establish that the shield worked. This real outcome is
+distinct from the successful controlled-response fixtures used to verify orchestration.
+
+New regressions cover a rejected edit followed by complete-file recovery, the exact rejected-edit
+then empty-response sequence with zero file writes, retained observations/checks on unchanged
+source, and the native Ollama recovery request's dedicated required/nonempty-files schema. The
+existing unchanged-source stop now also checks observation retention. Re-running real server
+verification on that unchanged failed build preserves its manual failure and needs-attention status.
+
+The real Chromium workflow reproduces the uploaded shield bug, checks the reference repair, then
+exercises rejected response recovery through the UI. Failure notes remain visible and retry stays
+enabled. A subsequent real server/Chromium verification remains needs attention with the same
+failed manual result and no additional model request. A subsequent changed files-only repair clears
+stale acceptance. Frozen checks/tests, cloud/execution approval, token boundary and mobile layout
+remain covered. The browser update/consent/search/export workflow also passes.
+
+All **186 automated tests** passed from a fresh updater-validated distribution on Linux Python
+3.12 in 97.578 seconds and native Linux Python 3.13 in 94.744 seconds. The extracted artifact's
+expanded Chromium repair regression passed, including unchanged-code re-verification with retained
+failure notes. Seven typed modules pass strict mypy. No native Windows, hosted CI, or live-model
+compliance result is claimed. Final packaging changes only this validation document; all other
+ZIP entry hashes are compared with the tested artifact before publication.

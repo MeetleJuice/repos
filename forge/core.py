@@ -604,6 +604,8 @@ class Workbench:
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Model output discarded.")
                 try:
+                    if attempt and (not isinstance(response, dict) or response.get("edits")):
+                        raise ValueError("Response recovery requires complete changed files, not more exact edits.")
                     self.apply(state, response, repair=repair)
                     return
                 except ValueError as exc:
@@ -615,7 +617,9 @@ class Workbench:
             self.event(state, "Code response rejected before file replacement; requesting one focused correction: " + error)
             stats = state.setdefault("generation_stats", {})
             stats["rejected_responses"] = stats.get("rejected_responses", 0) + 1
-            payload = {**payload, "response_validation_error": error, "instruction": "Return valid JSON with allowed complete text source files or exact edits against current source. Correct this response-format/file-contract error, preserve frozen tests, and do not change approved scope. No file from the rejected response was applied."}
+            payload = {**payload, "response_validation_error": error, "response_mode": "complete_files",
+                       "files": self.context_files(state["id"]),
+                       "instruction": "The previous response was rejected and no file was changed. Recover by returning a nonempty files object with COMPLETE changed source files and optional summary. Do not return edits, diffs, ellipses or an empty object. Read the current source supplied here; repair the original reported problem, preserve frozen tests and approved checks. This overrides the earlier preference for edits."}
 
     def _inspect_and_repair(self, state, cancel, remaining, complete=True):
         for attempt in range(remaining + 1):
@@ -700,6 +704,9 @@ class Workbench:
         return remaining_repairs
 
     def _job(self, state, action, options, cancel):
+        # A rejected/no-op repair must not erase observations about unchanged source.
+        retain_failures = action == "repair" or (action == "build" and any(value is False for value in (state.get("manual_results") or {}).get("results", [])))
+        previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint")} if retain_failures else None
         try:
             if action == "plan":
                 self.event(state, "Planning with " + state["planner"]["provider"] + "/" + state["planner"]["model"])
@@ -825,6 +832,11 @@ class Workbench:
                 if result["passed"]:
                     state["frozen_tests"] = {name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(state["id"]).items() if Path(name).name.startswith("test_") and name.endswith(".py")}
                     state["verification_fingerprint"] = fingerprint(self.context_files(state["id"]))
+                    if previous_evidence and previous_evidence.get("verification_fingerprint") == state["verification_fingerprint"] and any(value is False for value in (previous_evidence.get("manual_results") or {}).get("results", [])):
+                        state["manual_results"] = previous_evidence["manual_results"]
+                        state["status"] = "needs_attention"
+                        self.event(state, "Automated checks passed on unchanged source. Your saved failed gameplay checks still need repair; their results and notes are retained.")
+                        return
                     state["status"] = "review_required" if state["plan"].get("manual_checks") else "verified"
                     self.event(state, "Automated checks passed. Download the app and complete the manual checklist before marking it accepted." if state["plan"].get("manual_checks") else "Tests and HTTP acceptance checks passed. Download and try the app; review remaining requirements yourself.")
                     return
@@ -850,3 +862,12 @@ class Workbench:
         except Exception as exc:
             state["status"], state["error"] = "error", str(exc)[:2000]
             self.event(state, "Stopped with error: " + state["error"])
+        finally:
+            if action == "repair" and previous_evidence and previous_evidence.get("verification_fingerprint") and state.get("status") not in {"verified", "review_required"}:
+                try:
+                    unchanged = fingerprint(self.context_files(state["id"])) == previous_evidence["verification_fingerprint"]
+                except (OSError, ValueError):
+                    unchanged = False
+                if unchanged:
+                    state.update(previous_evidence)
+                    self.event(state, "No source change was applied. Saved failed-check results and notes are retained; repair is still pending.")

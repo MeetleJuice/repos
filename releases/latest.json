@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.8.0",
+  "version": "0.8.1",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.8.0.zip",
-  "sha256": "fd4ada5a4599153922b03ae5c35188a94eb6ec6f92185610f9a0392bc3990b1f",
-  "notes": "Evidence-driven repairs: saved gameplay failure notes go straight to targeted code repair, with frozen checks, checkpoints and fresh acceptance. Exact edits reduce full-file rewrites. Optional Chromium tests gain repeatable randomness, controlled time and detailed failure steps."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.8.1.zip",
+  "sha256": "37cb6342612e31b47372ea4b1278469146e412c2e279b3a53ffd07e5589314c7",
+  "notes": "Repair-response recovery now switches a rejected exact edit to complete-file output with a required nonempty files schema. Failed or unchanged repairs retain saved observations when source is unchanged, so server-test success cannot erase the pending gameplay report."
 }

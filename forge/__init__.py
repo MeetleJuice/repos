@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 
-__release_notes__ = "Evidence-driven repairs: saved gameplay failure notes go straight to targeted code repair, with frozen checks, checkpoints and fresh acceptance. Exact edits reduce full-file rewrites. Optional Chromium tests gain repeatable randomness, controlled time and detailed failure steps."
+__release_notes__ = "Repair-response recovery now switches a rejected exact edit to complete-file output with a required nonempty files schema. Failed or unchanged repairs retain saved observations when source is unchanged, so server-test success cannot erase the pending gameplay report."

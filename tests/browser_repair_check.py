@@ -89,6 +89,24 @@ def main():
                 expect(page.locator('#repair-manual')).to_be_enabled()
                 page.reload();page.locator('#projects button').first.click()
                 expect(page.locator('#manual-note-0')).to_have_value('Shield status text needs a clearer label for the user.')
+                models.responses.extend([{'edits':[{'file':'game.js','search':'not present in current source','replace':'fixed'}]}, {}])
+                failed_calls=len(models.calls)
+                page.locator('#repair-manual').click()
+                expect(page.locator('#project-status')).to_have_text('error',timeout=10000)
+                expect(page.locator('#manual-note-0')).to_have_value('Shield status text needs a clearer label for the user.')
+                expect(page.locator('#repair-manual')).to_be_enabled()
+                assert len(models.calls)==failed_calls+2
+                assert models.calls[-1]['response_mode']=='complete_files'
+                assert bench.load(state['id'])['manual_results']['results'][0] is False
+                page.locator('#runtime').select_option('local')
+                page.locator('#execution-consent').check()
+                page.locator('#repairs').select_option('0')
+                page.locator('#verify').click()
+                expect(page.locator('#project-status')).to_have_text('needs attention',timeout=20000)
+                expect(page.locator('#manual-note-0')).to_have_value('Shield status text needs a clearer label for the user.')
+                assert len(models.calls)==failed_calls+2
+                assert bench.load(state['id'])['checks']['passed']
+                page.locator('#repairs').select_option('1')
                 models.responses.append({'edits':[{'file':'game.js','search':'  const shieldStatus = document.createElement("strong");','replace':'  // Repaired from saved user observations.\n  const shieldStatus = document.createElement("strong");'}]})
                 calls=len(models.calls)
                 page.locator('#repair-manual').click()
@@ -97,14 +115,14 @@ def main():
                 assert models.calls[-1]['manual_evidence']['failures'][0]['observed'].startswith('Shield status')
                 assert bench.load(state['id'])['plan']==plan
                 assert bench.load(state['id'])['checks'] is None
-                expect(page.locator('#repair-history')).to_contain_text('1 recorded repair')
+                expect(page.locator('#repair-history')).to_contain_text('2 recorded repair')
                 page.set_viewport_size({'width':390,'height':844})
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 assert not errors,errors
                 browser.close()
         finally:
             server.shutdown();server.server_close()
-        print('PASS: actual uploaded shield collision fails in Chromium → bounded exact-edit repair → same frozen browser/HTTP/regression checks pass; collection/pause/consumption/second collision/restart verified; UI notes persist, direct repair makes one coder request, no planning/execution, mobile and no JavaScript errors.')
+        print('PASS: actual uploaded shield collision fails in Chromium → bounded exact-edit repair → same frozen browser/HTTP/regression checks pass; collection/pause/consumption/second collision/restart verified; failed format recovery retains notes and enables retry; direct successful repair makes one coder request, no planning/execution, mobile and no JavaScript errors.')
 
 
 if __name__=='__main__':main()

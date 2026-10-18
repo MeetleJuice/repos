@@ -123,8 +123,50 @@ class ManualRepairTests(unittest.TestCase):
             bench.start(ident,'repair',{'execute':True,'consent':True,'runtime':'local','repairs':1})
             state=await_job(bench,ident)
             self.assertEqual(state['status'],'needs_attention')
-            self.assertIn('unchanged source',state['events'][-1]['message'])
+            self.assertTrue(any('unchanged source' in event['message'] for event in state['events']))
+            self.assertEqual(state['manual_results']['notes'][0],'Keyboard movement fails.')
             self.assertEqual(state['repair_history'][0]['evidence']['failures'][0]['observed'],'Keyboard movement fails.')
+
+    def test_bad_exact_edit_recovers_once_using_complete_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            bench,ident,models=self.prepare(Path(temp))
+            bench.record_manual(ident,[False,True,True,True],['Keyboard movement fails.','','',''])
+            before=bench.files(ident);calls=len(models.calls)
+            models.responses.extend([{'edits':[{'file':'game.js','search':'missing line','replace':'fixed'}]},
+                                     {'files':{'game.js':before['game.js']+'\n// complete-file recovery fixture'}}])
+            bench.start(ident,'repair',{'execute':False,'repairs':1})
+            state=await_job(bench,ident)
+            self.assertEqual(state['status'],'generated',state.get('error'))
+            self.assertEqual(len(models.calls),calls+2)
+            self.assertEqual(models.calls[-1]['response_mode'],'complete_files')
+            self.assertEqual(models.calls[-1]['files']['game.js'],before['game.js'])
+            self.assertEqual(bench.files(ident)['game.js'],before['game.js']+'\n// complete-file recovery fixture')
+            self.assertEqual(state['manual_results'],{})
+            self.assertIsNone(state['checks'])
+
+    def test_failed_correction_keeps_saved_observations_on_unchanged_source(self):
+        with tempfile.TemporaryDirectory() as temp:
+            bench,ident,models=self.prepare(Path(temp))
+            previous=bench.record_manual(ident,[False,True,True,True],['Keyboard movement fails.','','',''])
+            before=bench.files(ident);calls=len(models.calls)
+            models.responses.extend([{'edits':[{'file':'game.js','search':'missing line','replace':'fixed'}]},{}])
+            bench.start(ident,'repair',{'execute':False,'repairs':1})
+            state=await_job(bench,ident)
+            self.assertEqual(state['status'],'error')
+            self.assertEqual(len(models.calls),calls+2)
+            self.assertEqual(bench.files(ident),before)
+            self.assertEqual(state['manual_results'],previous['manual_results'])
+            self.assertEqual(state['verification_fingerprint'],previous['verification_fingerprint'])
+            self.assertEqual(state['checks'],previous['checks'])
+            self.assertEqual(len(state['snapshots']),len(previous['snapshots']))
+            # Reproduce the user's next step: server-only re-verification cannot erase the failed gameplay result.
+            calls=len(models.calls)
+            bench.start(ident,'build',{'execute':True,'consent':True,'runtime':'local','repairs':0})
+            state=await_job(bench,ident)
+            self.assertEqual(state['status'],'needs_attention')
+            self.assertTrue(state['checks']['passed'])
+            self.assertEqual(state['manual_results'],previous['manual_results'])
+            self.assertEqual(len(models.calls),calls)
 
     def test_runtime_unavailable_does_not_request_code(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -198,3 +240,17 @@ class FeedbackBudgetTests(unittest.TestCase):
         self.assertEqual(report['completed_steps_omitted'],15)
         self.assertEqual(report['random_values_omitted'],224)
         self.assertEqual(report['step_number'],20)
+
+
+class RecoverySchemaTests(unittest.TestCase):
+    def test_native_recovery_requires_complete_nonempty_files(self):
+        from forge.models import ModelClient
+        from forge.prompts import CODE
+        from forge.schemas import COMPLETE_CODE_SCHEMA
+        with patch('forge.models.request_json',return_value={'message':{'content':'{"files":{"game.js":"updated"}}'}}) as request:
+            response=ModelClient('ollama','fixture').complete(CODE,json.dumps({'response_mode':'complete_files'}))
+        self.assertEqual(response,{'files':{'game.js':'updated'}})
+        payload=request.call_args.args[1]
+        self.assertEqual(payload['format'],COMPLETE_CODE_SCHEMA)
+        self.assertEqual(payload['format']['properties']['files']['minProperties'],1)
+        self.assertIn('Do not return edits',payload['messages'][0]['content'])

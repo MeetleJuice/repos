@@ -6,7 +6,7 @@ import urllib.request
 from typing import Any, cast
 
 from .routing import validate_options
-from .schemas import PLAN_SCHEMA, CODE_SCHEMA
+from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
 from .prompts import PLAN, CODE
 
 PROVIDERS = {
@@ -81,8 +81,13 @@ class ModelClient:
 
     def complete(self, system: str, prompt: str) -> dict[str, Any]:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
+        complete_recovery = system == CODE and json.loads(prompt).get("response_mode") == "complete_files"
+        if complete_recovery:
+            messages[0]["content"] += "\nRESPONSE RECOVERY: Return a nonempty files object containing COMPLETE changed source files and optional summary. Do not return edits, diffs or ellipses. Read the current source in the request. This recovery requirement overrides the earlier preference for exact edits."
         if self.provider == "ollama":
-            schema = PLAN_SCHEMA if system == PLAN else CODE_SCHEMA if system == CODE else "json"
+            schema: dict[str, Any] | str = PLAN_SCHEMA if system == PLAN else CODE_SCHEMA if system == CODE else "json"
+            if complete_recovery:
+                schema = COMPLETE_CODE_SCHEMA
             result = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", {
                 "model": self.model, "messages": messages, "stream": False, "format": schema if self.options["structured_outputs"] else "json", "keep_alive": "5m",
                 "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": self.options["num_predict"]},
