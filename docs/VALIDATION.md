@@ -117,3 +117,25 @@ report does not claim those hosted jobs ran. The CI now also tests an extracted 
 All 99 tests also passed from the updater-validated ZIP extracted into a fresh folder. Archive
 inspection confirmed the stable launcher, starter assets and regression fixtures are present,
 with no runtime data, .env files or Python caches. Final packaging changes only release documentation.
+
+## Version 0.6 — Pass 1
+
+127 automated tests passed in 70.155 seconds from a fresh updater-validated extracted ZIP
+on Linux Python 3.12.14. The original 99-test baseline also passed before expansion.
+New coverage includes two actual contradictory user proposals, bounded correction/fallback,
+explicit cloud consent, side-effect-free authenticated review, legacy state/backup preservation,
+and startup through the exact published 0.5 supervisor. Independent-process persistence checks
+pass for SQLite and reject both startup database erasure and memory-only storage.
+
+Workbench browser checks passed build/repair/export, linked changes, model controls, backups,
+update flows, edited-proposal approval blocking, automatic legacy proposal review, and mobile
+layout without JavaScript errors. Controlled planning recovered through three model replies;
+these are fixtures, not evidence of live model generation quality. The Notes starter passed
+Docker acceptance with one process restart, 13 actual tests, and CLI launch. Strict mypy checks
+passed contracts, planning, routing, schemas and models.
+
+The repeatable two-case benchmark rejected both bad proposals accepted by the original
+structural validator: median review 0.1458 ms, p95 0.2353 ms (per-proposal batch averages).
+This measures validator latency, not Ollama/GPU speed or general app completion rates.
+No live Windows, user Ollama, paid-provider or hosted CI run is claimed. Final packaging
+changes only release documentation after the extracted-distribution test.

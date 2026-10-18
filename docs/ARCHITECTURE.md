@@ -129,3 +129,21 @@ The update UI is in static/updates.js, separate from project rendering. It refre
 boot nonce so the local session token is replaced. GET /health exposes only readiness, version and
 an ephemeral startup identity, without project data or credentials. Model outcome summaries group
 current project states by current builder and explicitly do not rank models.
+
+## 0.6 contract-aware planning
+
+`contracts.py` owns structural validation, typed findings, starter/API response contracts and
+consistency review. `planning.py` owns a three-request maximum correction loop and one optional
+fallback. `routing.py` validates local settings and a single explicit fallback; `schemas.py`
+provides native Ollama output schemas. `models.py` reports typed service failures and real usage
+metadata. Workbench retains atomic project state, approvals and inference serialization.
+
+The local review endpoint is authenticated and side-effect-free. Approval reruns review on the
+actual submitted JSON; client-side disabled buttons are only guidance. New planning metadata is
+optional in schema-2 states. Older approved projects do not acquire new plan constraints during
+loading or building. Legacy backups and exports remain readable.
+
+The harness's restart_before operation closes the factory server and uses an independent CLI
+process on the same disposable data, preventing module-global storage from passing persistence.
+Child readiness, termination and outer process-tree cleanup remain bounded. No execution occurs
+before the existing explicit runtime approval. The helper is shared with final CLI launch checks.

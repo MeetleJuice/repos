@@ -1,0 +1,61 @@
+def validate_plan(plan):
+    for name in ("title", "summary"):
+        if not isinstance(plan.get(name), str) or not plan[name].strip() or len(plan[name]) > 6000:
+            raise ValueError(f"Proposal needs a nonempty {name} (up to 6000 characters).")
+    for name in ("features", "out_of_scope", "risks"):
+        if not isinstance(plan.get(name), list) or len(plan[name]) > 20 or not all(isinstance(x, str) and len(x) < 3000 for x in plan[name]):
+            raise ValueError(f"Proposal needs a list of {name}.")
+    if not plan["features"]:
+        raise ValueError("The proposal must list at least one feature.")
+    def coverage(items, label):
+        covered = set()
+        for item in items:
+            indexes = item.get("feature_indexes")
+            if not isinstance(indexes, list) or not all(type(i) is int and 0 <= i < len(plan["features"]) for i in indexes):
+                raise ValueError(f"Each {label} needs feature_indexes listing the feature numbers it covers (starting at 0).")
+            covered.update(indexes)
+        missing = set(range(len(plan["features"]))) - covered
+        if missing:
+            raise ValueError(f"Every feature needs {label} coverage. Missing feature indexes: {sorted(missing)}.")
+    tasks = plan.get("tasks")
+    if not isinstance(tasks, list) or not 1 <= len(tasks) <= 8:
+        raise ValueError("Proposal must contain 1–8 ordered tasks.")
+    for task in tasks:
+        if not isinstance(task, dict) or not all(isinstance(task.get(k), str) and 0 < len(task[k]) <= 6000 for k in ("title", "instructions")):
+            raise ValueError("Each task needs a title and instructions.")
+    coverage(tasks, "task")
+    checks = plan.get("checks")
+    if not isinstance(checks, list) or not 1 <= len(checks) <= 15:
+        raise ValueError("Proposal must contain 1–15 behavioral HTTP checks.")
+    behavior = False
+    for check in checks:
+        if not isinstance(check, dict):
+            raise ValueError("Each check must be an object.")
+        path = check.get("path", "")
+        if not isinstance(path, str) or not path.startswith("/") or path.startswith("//") or any(c in path for c in "\r\n\\#") or len(path) > 1000:
+            raise ValueError("Checks must use local URL paths.")
+        if check.get("method") not in {"GET", "POST", "PUT", "DELETE", "PATCH"}:
+            raise ValueError("Unsupported HTTP check method.")
+        if not isinstance(check.get("name"), str) or not check["name"]:
+            raise ValueError("Every check needs a name.")
+        if type(check.get("status")) is not int or not 100 <= check["status"] <= 599:
+            raise ValueError("Every check needs an expected HTTP status.")
+        has_contains = isinstance(check.get("contains"), str) and bool(check["contains"])
+        has_json = isinstance(check.get("json_contains"), (dict, list)) and bool(check["json_contains"])
+        has_equals = "json_equals" in check
+        if not (has_contains or has_json or has_equals):
+            raise ValueError("Every check needs contains, nonempty json_contains, or json_equals.")
+        if "contains" in check and not has_contains or "json_contains" in check and not has_json:
+            raise ValueError("Invalid response assertion.")
+        if path.split("?")[0] not in {"/", "/health"}:
+            behavior = True
+    if not behavior:
+        raise ValueError("Add a check of actual app behavior beyond / and /health.")
+    coverage(checks, "acceptance check")
+    for task in tasks:
+        indexes = task.get("check_indexes", [])
+        if not isinstance(indexes, list) or any(type(i) is not int or not 0 <= i < len(checks) for i in indexes):
+            raise ValueError("Task check_indexes must refer to approved acceptance checks.")
+    if len(json.dumps(plan)) > 30000:
+        raise ValueError("Proposal too large. Narrow the scope.")
+    return plan

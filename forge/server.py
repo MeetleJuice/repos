@@ -13,6 +13,7 @@ import zipfile
 
 from .core import Workbench, ACTIVE
 from .models import connection_info
+from .routing import uses_cloud, validate_config
 from . import __version__
 from .storage import data_home, import_legacy, workspace_lock
 from .runner import runtime_diagnostics
@@ -105,7 +106,7 @@ def make_server(port=8765, workbench=None):
                 elif path == "/":
                     html = (ROOT / "forge" / "static" / "index.html").read_text(encoding="utf-8").replace("__TOKEN__", token)
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
-                elif path in {"/app.js", "/updates.js", "/style.css"}:
+                elif path in {"/app.js", "/planning.js", "/updates.js", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
                     self.json({"error": "Not found."}, 404)
@@ -136,7 +137,7 @@ def make_server(port=8765, workbench=None):
                 calls = [c for state in states for c in state.get("model_calls", [])]
                 self.json({"version": __version__, "data_folder": str(bench.root.parent), "projects": len(states),
                            "model_calls": len(calls), "model_seconds": round(sum(c["seconds"] for c in calls), 1),
-                           "warnings": bench.warnings, "inference_policy": "One model request at a time; no automatic cloud fallback."})
+                           "warnings": bench.warnings, "inference_policy": "One model request at a time; fallback requires explicit configuration and cloud consent."})
                 return
             if path == "/api/backup" and not post:
                 self.send_bytes(200, bench.backup(), "application/zip", "Idea-Foundry-workspace-backup.zip")
@@ -144,7 +145,7 @@ def make_server(port=8765, workbench=None):
             if path == "/api/projects":
                 if post:
                     self.cloud_consent(body.get("planner", {}), body.get("coder", {}), body)
-                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter")), 201)
+                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True), 201)
                 else:
                     self.json(bench.list_projects())
                 return
@@ -172,8 +173,10 @@ def make_server(port=8765, workbench=None):
                     with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
                         for name, content in bench.files(ident).items():
                             archive.writestr("generated-app/" + name, content)
-                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"generator_version": __version__, "starter": state.get("starter"), "starter_version": state.get("starter_version"), "milestones": state.get("milestones", []), "status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
+                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"generator_version": __version__, "starter": state.get("starter"), "starter_version": state.get("starter_version"), "milestones": state.get("milestones", []), "status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "plan_review": state.get("plan_review"), "planning_stats": state.get("planning_stats"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
                     self.send_bytes(200, stream.getvalue(), "application/zip", "generated-app.zip")
+            elif post and action == "review":
+                self.json(bench.review_proposal(ident, body["plan"]))
             elif post and action == "approve":
                 self.json(bench.approve(ident, body["plan"]))
             elif post and action == "stop":
@@ -186,7 +189,7 @@ def make_server(port=8765, workbench=None):
                 self.json(bench.configure_models(ident, body["planner"], body["coder"]))
             elif post and action == "change":
                 self.cloud_consent(state["planner"], state["coder"], body)
-                self.json(bench.fork(ident, body["request"]), 201)
+                self.json(bench.fork(ident, body["request"], body.get("cloud_consent") is True), 201)
             elif post and action in {"plan", "build"}:
                 self.cloud_consent(state["planner"], state["coder"], body)
                 bench.start(ident, action, body)
@@ -196,7 +199,8 @@ def make_server(port=8765, workbench=None):
 
         @staticmethod
         def cloud_consent(planner, coder, body):
-            if any(c.get("provider", "ollama") != "ollama" for c in (planner, coder)) and body.get("cloud_consent") is not True:
+            planner, coder = validate_config(planner), validate_config(coder)
+            if any(uses_cloud(c) for c in (planner, coder)) and body.get("cloud_consent") is not True:
                 raise ValueError("Confirm that you allow sending this project's content to the selected cloud providers. API usage may cost money.")
 
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)

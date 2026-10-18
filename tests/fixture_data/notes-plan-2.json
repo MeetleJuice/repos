@@ -1,0 +1,211 @@
+{
+  "title": "Notes application (revised)",
+  "summary": "Local notes app with create/list/search/delete using SQLite and standard library HTTP server - revised per requirements",
+  "features": [
+    "Create note with title and body",
+    "List all saved notes",
+    "Search notes by title",
+    "Delete a note",
+    "Store data persistently in SQLite",
+    "Serve HTML interface via GET /"
+  ],
+  "out_of_scope": [
+    "User authentication",
+    "External services",
+    "Real-time sync",
+    "Rich text editing",
+    "Mobile app support"
+  ],
+  "risks": [
+    "SQLite file corruption if interrupted during write",
+    "Browser XSS if body not escaped",
+    "Port already in use by another process",
+    "Duplicate titles allowed without conflict handling"
+  ],
+  "tasks": [
+    {
+      "title": "Initialize project structure and SQLite database (no timestamps)",
+      "instructions": "Create app.py with SQLite schema for notes table (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, body TEXT). Implement GET /health returning {\"status\":\"ok\"}. Add basic error handling. Create server function create_server(host, port) returning HTTPServer.",
+      "feature_indexes": [
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "title": "Implement note creation endpoint",
+      "instructions": "Add POST /api/notes endpoint accepting JSON with title and body. Validate inputs (non-empty title). Insert into SQLite without timestamp. Return 201 with created note object containing id, title, body only. Allow duplicate titles.",
+      "feature_indexes": [
+        0
+      ]
+    },
+    {
+      "title": "Implement list notes endpoint",
+      "instructions": "Add GET /api/notes returning JSON array of all notes sorted by id descending. Each note includes id, title, body (no created_at). Ensure response is valid JSON with proper encoding.",
+      "feature_indexes": [
+        1
+      ]
+    },
+    {
+      "title": "Implement search notes endpoint",
+      "instructions": "Add GET /api/notes/search?q= query parameter. Filter notes where title contains query string (case-insensitive). Return matching notes as JSON array. Handle empty query by returning all notes.",
+      "feature_indexes": [
+        2
+      ]
+    },
+    {
+      "title": "Implement delete note endpoint",
+      "instructions": "Add DELETE /api/notes/{id} endpoint. Accept note id from URL path. Delete from SQLite and return 200 with {\"deleted\":true}. Return 404 if not found.",
+      "feature_indexes": [
+        3
+      ]
+    },
+    {
+      "title": "Create HTML interface for browser access",
+      "instructions": "Create static HTML served at GET / with form to create notes, list display, search box, delete buttons. Use proper escaping for user input (html.escape). Include basic CSS for usability. Ensure all endpoints are accessible from UI.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "title": "Integration tests and final validation including restart persistence",
+      "instructions": "Create main block accepting --host and --port arguments. Run server with http.server module. Verify all endpoints work: create note, list notes, search, delete. Test persistence by creating a note, restarting server against same database file, retrieving it before deleting. Ensure health check passes.",
+      "feature_indexes": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "Health check",
+      "method": "GET",
+      "path": "/health",
+      "status": 200,
+      "json_contains": {
+        "status": "ok"
+      },
+      "feature_indexes": [
+        0
+      ]
+    },
+    {
+      "name": "Create a note",
+      "method": "POST",
+      "path": "/api/notes",
+      "body": {
+        "title": "Buy milk",
+        "body": "Need to buy groceries"
+      },
+      "status": 201,
+      "json_equals": [
+        {
+          "id": 1,
+          "title": "Buy milk",
+          "body": "Need to buy groceries"
+        }
+      ],
+      "feature_indexes": [
+        0
+      ]
+    },
+    {
+      "name": "List all notes",
+      "method": "GET",
+      "path": "/api/notes",
+      "status": 200,
+      "json_contains": [
+        {
+          "id": 1,
+          "title": "Buy milk",
+          "body": "Need to buy groceries"
+        }
+      ],
+      "feature_indexes": [
+        1
+      ]
+    },
+    {
+      "name": "Search notes by title",
+      "method": "GET",
+      "path": "/api/notes/search?q=milk",
+      "status": 200,
+      "json_contains": [
+        {
+          "title": "Buy milk"
+        }
+      ],
+      "feature_indexes": [
+        2
+      ]
+    },
+    {
+      "name": "Nonmatching search returns empty",
+      "method": "GET",
+      "path": "/api/notes/search?q=xyz123",
+      "status": 200,
+      "json_equals": [],
+      "feature_indexes": [
+        2
+      ]
+    },
+    {
+      "name": "Delete a note",
+      "method": "DELETE",
+      "path": "/api/notes/1",
+      "status": 200,
+      "json_contains": {
+        "deleted": true
+      },
+      "feature_indexes": [
+        3
+      ]
+    },
+    {
+      "name": "List after deletion is empty",
+      "method": "GET",
+      "path": "/api/notes",
+      "status": 200,
+      "json_equals": [],
+      "feature_indexes": [
+        1,
+        3
+      ]
+    },
+    {
+      "name": "HTML interface loads",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "contains": "<form",
+      "feature_indexes": [
+        5
+      ]
+    },
+    {
+      "name": "Restart persistence test",
+      "method": "POST",
+      "path": "/api/notes",
+      "body": {
+        "title": "Persistence Test",
+        "body": "This note survives restart"
+      },
+      "status": 201,
+      "json_contains": [
+        {
+          "title": "Persistence Test"
+        }
+      ],
+      "feature_indexes": [
+        4
+      ]
+    }
+  ]
+}

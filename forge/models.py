@@ -3,6 +3,11 @@ import json
 import os
 import urllib.error
 import urllib.request
+from typing import Any, cast
+
+from .routing import validate_options
+from .schemas import PLAN_SCHEMA, CODE_SCHEMA
+from .prompts import PLAN, CODE
 
 PROVIDERS = {
     "ollama": (None, None),
@@ -12,39 +17,58 @@ PROVIDERS = {
 }
 
 
-def request_json(url, payload=None, headers=None, timeout=300):
+class ModelError(ValueError):
+    def __init__(self, message: str, category: str = "format") -> None:
+        self.category = category
+        super().__init__(message)
+
+
+def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[str, str] | None = None, timeout: float = 300) -> dict[str, Any]:
     body = None if payload is None else json.dumps(payload).encode()
     req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", **(headers or {})})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             data = response.read(2_000_001)
             if len(data) > 2_000_000:
-                raise ValueError("Model response exceeded 2 MB; use smaller tasks.")
-            return json.loads(data)
+                raise ModelError("Model response exceeded 2 MB; use smaller tasks.", "size")
+            parsed = json.loads(data)
+            if not isinstance(parsed, dict):
+                raise ModelError("Provider response must be a JSON object.")
+            return parsed
     except urllib.error.HTTPError as exc:
         # Provider bodies can echo submitted content. Do not leak them or API keys.
-        raise ValueError(f"Provider returned HTTP {exc.code}. Check the model name, key, quota, and provider availability.") from None
+        if exc.fp is not None:
+            exc.close()
+        category = "rate_limit" if exc.code == 429 else "auth" if exc.code in {401, 403} else "provider"
+        raise ModelError(f"Provider returned HTTP {exc.code}. Check the model name, key, quota, and provider availability. If native Ollama schemas are unsupported, disable structured outputs in model settings.", category) from None
     except (urllib.error.URLError, TimeoutError) as exc:
-        raise ValueError("Cannot reach the model service. Check that Ollama is running or that the selected API is reachable.") from exc
+        raise ModelError("Cannot reach the model service. Check that Ollama is running or that the selected API is reachable.", "transport") from exc
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise ModelError("Provider returned invalid JSON.", "format") from exc
 
 
-def extract_json(content):
+def extract_json(content: str) -> dict[str, Any]:
+    if not isinstance(content, str):
+        raise ModelError("The model did not return text content.")
     content = content.strip()
-    if "</think>" in content:
-        content = content.split("</think>")[-1].strip()
+    if content.startswith("<think>"):
+        end = content.find("</think>")
+        if end < 0:
+            raise ModelError("The model returned an incomplete reasoning block.")
+        content = content[end + len("</think>"):].strip()
     if content.startswith("```"):
         content = content.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
     try:
         result = json.loads(content)
     except json.JSONDecodeError:
-        raise ValueError("The model did not return valid JSON. Retry with a coding/instruction model or a smaller task.") from None
+        raise ModelError("The model did not return valid JSON. Retry with a coding/instruction model or a smaller task.") from None
     if not isinstance(result, dict):
-        raise ValueError("The model must return a JSON object.")
-    return result
+        raise ModelError("The model must return a JSON object.")
+    return cast(dict[str, Any], result)
 
 
 class ModelClient:
-    def __init__(self, provider, model):
+    def __init__(self, provider: str, model: str, options: dict[str, Any] | None = None) -> None:
         if provider not in PROVIDERS:
             raise ValueError("Unknown provider.")
         if not isinstance(model, str) or not model.strip() or len(model) > 200:
@@ -52,30 +76,51 @@ class ModelClient:
         if provider == "ollama" and "embed" in model.lower():
             raise ValueError("Choose a chat/coding model. Embedding models cannot generate apps.")
         self.provider, self.model = provider, model.strip()
+        self.options = validate_options(options or {})
+        self.last_usage: dict[str, int] = {}
 
-    def complete(self, system, prompt):
+    def complete(self, system: str, prompt: str) -> dict[str, Any]:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
         if self.provider == "ollama":
+            schema = PLAN_SCHEMA if system == PLAN else CODE_SCHEMA if system == CODE else "json"
             result = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", {
-                "model": self.model, "messages": messages, "stream": False, "format": "json",
-                "options": {"temperature": 0.2, "num_ctx": 16384, "num_predict": 8192},
+                "model": self.model, "messages": messages, "stream": False, "format": schema if self.options["structured_outputs"] else "json", "keep_alive": "5m",
+                "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": self.options["num_predict"]},
             })
-            content = result.get("message", {}).get("content", "")
+            if result.get("done_reason") == "length":
+                raise ModelError("Ollama reached the output limit. Use smaller tasks or increase the output limit within the context budget.", "truncated")
+            message = result.get("message")
+            if not isinstance(message, dict):
+                raise ModelError("Ollama did not return a chat message.")
+            content = message.get("content", "")
+            self.last_usage = {label: result[key] for key, label in [("prompt_eval_count", "prompt_tokens"), ("eval_count", "completion_tokens")] if type(result.get(key)) is int and result[key] >= 0}
         else:
             base, variable = PROVIDERS[self.provider]
+            if base is None or variable is None:
+                raise ModelError("Invalid cloud provider adapter.", "provider")
             key = os.getenv(variable)
             if not key:
-                raise ValueError(f"Set {variable} in your local .env file and restart. Never put keys in project prompts.")
+                raise ModelError(f"Set {variable} in your local .env file and restart. Never put keys in project prompts.", "auth")
             result = request_json(base + "/chat/completions", {
                 "model": self.model, "messages": messages, "temperature": 0.2,
-                "max_tokens": 8192, "response_format": {"type": "json_object"},
+                "max_tokens": self.options["num_predict"], "response_format": {"type": "json_object"},
             }, {"Authorization": "Bearer " + key})
-            content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            choices = result.get("choices")
+            if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
+                raise ModelError("Provider did not return a chat completion.")
+            if choices[0].get("finish_reason") == "length":
+                raise ModelError("Provider reached the output limit. Use smaller tasks or increase the output limit.", "truncated")
+            message = choices[0].get("message")
+            if not isinstance(message, dict):
+                raise ModelError("Provider did not return a chat message.")
+            content = message.get("content", "")
+            usage = result.get("usage", {})
+            self.last_usage = {key: usage[key] for key in ("prompt_tokens", "completion_tokens") if isinstance(usage, dict) and type(usage.get(key)) is int and usage[key] >= 0}
         return extract_json(content)
 
 
-def connection_info():
-    info = {p: {"configured": p == "ollama" or bool(os.getenv(v)), "key_variable": v} for p, (_, v) in PROVIDERS.items()}
+def connection_info() -> dict[str, Any]:
+    info: dict[str, Any] = {p: {"configured": p == "ollama" or bool(os.getenv(v or "")), "key_variable": v} for p, (_, v) in PROVIDERS.items()}
     try:
         data = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/tags", timeout=5)
         info["ollama"].update(connected=True, models=[m["name"] for m in data.get("models", [])])

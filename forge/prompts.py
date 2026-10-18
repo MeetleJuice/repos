@@ -6,7 +6,18 @@ The app must provide app.py with create_server(host, port) returning an HTTPServ
 and a main block accepting --host and --port. GET /health returns {"status":"ok"}.
 GET / serves a real HTML interface. Store persistent data in the current project directory.
 Include 2-6 sequential implementation tasks, each small enough for a 7B coding model.
-When a reviewed starter is provided, build on its infrastructure and adapt its features to the idea.
+When a reviewed starter is provided, reuse its working infrastructure and plan only requested
+changes and meaningful tests. Do not spend tasks recreating its server, database, health or UI.
+Return api_contracts describing each app endpoint: method, path, status, response_kind
+(object/array/text/empty/scalar), required_fields (array). The supplied starter_api_contracts
+are the defaults. Declare an explicit change only if the idea requires it; the user reviews changes.
+Assertions must match the declared response shape: POST creating one note returns an object,
+not an array. Lists/search return arrays of objects. Never use placeholder expected values
+such as a literal "..." timestamp. Use JSON subsets to ignore variable fields.
+For HTTP 204/304 use empty_body: true and NO JSON/text assertion. HTTP 200 may return JSON.
+To prove restart persistence, place a GET of existing saved data BEFORE deletion and set
+restart_before: true on that check. This actually stops and recreates the server on the same data.
+Do not label a create request or ordinary GET as a restart test. Unittest restart tests remain useful.
 Optional task.check_indexes lists checks ready after that task. Checks execute from the beginning
 through the highest listed index, on fresh data; list only prefixes that the task truly implements.
 Do not claim future features are ready. Use milestone checks for runnable early increments.

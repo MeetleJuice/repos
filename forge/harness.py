@@ -1,4 +1,6 @@
 """Independent acceptance, generated-test, and launch phases in disposable copies."""
+from __future__ import annotations
+
 import argparse
 from html.parser import HTMLParser
 import importlib.util
@@ -14,6 +16,7 @@ import threading
 import time
 import traceback
 import unittest
+from typing import Any
 import urllib.error
 import urllib.request
 from urllib.parse import urljoin, urlsplit
@@ -55,6 +58,8 @@ def fetch(base, check):
         assert len(data) <= 1_000_000, "Response exceeded the 1 MB limit."
         text = data.decode("utf-8")
         assert response.code == check["status"], f'{check["name"]}: expected HTTP {check["status"]}, got {response.code}: {text[:1000]}'
+        if check.get("empty_body"):
+            assert not data, f'{check["name"]}: expected an empty response body.'
         if "contains" in check:
             assert check["contains"] in text, f'{check["name"]}: response missing {check["contains"]!r}'
         if "json_contains" in check:
@@ -78,9 +83,30 @@ def acceptance(root):
         *json.loads((root / "CHECKS.json").read_text(encoding="utf-8")),
     ]
     assets = set()
+    restarts = 0
+    process = None
+    factory_running = True
     try:
         for check in checks:
-            text = fetch(base, check)
+            if check.get("restart_before"):
+                if factory_running:
+                    server.shutdown()
+                    server.server_close()
+                    thread.join(3)
+                    assert not thread.is_alive(), "Previous server did not stop before persistence check."
+                    factory_running = False
+                if process is not None:
+                    stop_app_process(process)
+                    process = None
+                process, base = start_app_process()
+                restarts += 1
+                print("RESTART: Previous server closed; independent app process started against the same data directory.", flush=True)
+            try:
+                text = fetch(base, check)
+            except Exception as exc:
+                if check.get("restart_before"):
+                    raise AssertionError("Restart persistence check failed: " + str(exc)) from exc
+                raise
             print("PASS:", check["name"], flush=True)
             if check["path"] == "/" and check["method"] == "GET":
                 parser = Assets()
@@ -94,10 +120,13 @@ def acceptance(root):
             fetch(base, {"name": "Referenced asset " + asset, "method": "GET", "path": path, "status": 200})
             print("PASS: Referenced asset", asset, flush=True)
     finally:
-        server.shutdown()
-        server.server_close()
-        thread.join(3)
-    return {"http_checks": len(checks), "asset_checks": len(assets)}
+        if process is not None:
+            stop_app_process(process)
+        if factory_running:
+            server.shutdown()
+            server.server_close()
+            thread.join(3)
+    return {"http_checks": len(checks), "asset_checks": len(assets), "server_restarts": restarts, "process_restarts": restarts}
 
 
 def generated_tests(root):
@@ -119,30 +148,43 @@ def generated_tests(root):
     return {"tests_run": result.testsRun, "app_calls": calls[0]}
 
 
-def launch(_root):
+def stop_app_process(proc: subprocess.Popen[bytes]) -> None:
+    proc.terminate()
+    try:
+        proc.wait(timeout=3)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=3)
+
+
+def start_app_process() -> tuple[subprocess.Popen[bytes], str]:
     with socket.socket() as sock:
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
     proc = subprocess.Popen([sys.executable, "-B", "app.py", "--host", "127.0.0.1", "--port", str(port)])
+    base = f"http://127.0.0.1:{port}"
     try:
         deadline = time.monotonic() + 8
         while True:
             assert proc.poll() is None, "app.py exited before its launch command became ready."
             try:
-                fetch(f"http://127.0.0.1:{port}", {"name": "Python launch command", "path": "/health", "method": "GET", "status": 200, "json_contains": {"status": "ok"}})
-                break
+                fetch(base, {"name": "Python launch command", "path": "/health", "method": "GET", "status": 200, "json_contains": {"status": "ok"}})
+                return proc, base
             except (urllib.error.URLError, TimeoutError):
                 assert time.monotonic() < deadline, "app.py launch command did not become ready within eight seconds."
                 time.sleep(0.1)
+    except BaseException:
+        stop_app_process(proc)
+        raise
+
+
+def launch(_root):
+    proc, _base = start_app_process()
+    try:
         print("PASS: Python launch command", flush=True)
         return {"http_checks": 1}
     finally:
-        proc.terminate()
-        try:
-            proc.wait(timeout=3)
-        except subprocess.TimeoutExpired:
-            proc.kill()
-            proc.wait(timeout=3)
+        stop_app_process(proc)
 
 
 def phase(name, source):
@@ -190,6 +232,8 @@ def run_phase(name, source, timeout):
 
 def diagnose(report):
     text = report.get("error", "").lower()
+    if "restart persistence check failed" in text:
+        return "Expected saved data could not be retrieved after an independent app-process restart. Persist data to SQLite/JSON in a stable project path; do not rely on module globals or erase the database at startup."
     if "message_from_bytes" in text or "unexpected keyword argument 'headers'" in text or "unexpected keyword argument 'method'" in text:
         return "An HTTP API is used incorrectly. Read Content-Type with self.headers.get_content_type(). Build urllib.request.Request with headers/method, then call urlopen(request, timeout=3)."
     if "no such table" in text:

@@ -25,3 +25,8 @@ jobs:
                   archive.extractall(temp)
               subprocess.run([sys.executable, '-m', 'unittest', 'discover', '-q'], cwd=Path(temp) / 'Idea-Foundry', check=True)
           PY
+      - name: Check typed planning modules
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: |
+          python -m pip install mypy==1.18.2
+          python -m mypy --strict forge/contracts.py forge/planning.py forge/routing.py forge/schemas.py forge/models.py

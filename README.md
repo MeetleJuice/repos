@@ -1,4 +1,4 @@
-# Idea Foundry 0.5
+# Idea Foundry 0.6
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
@@ -6,7 +6,31 @@ An original, local-first Python workbench for Windows and VS Code. Ollama is the
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Python 3.11 or newer is required.
 
-## What’s new in 0.5
+## What’s new in 0.6 — contract-aware planning and recovery
+
+- Checks proposals for API response-shape mismatches, impossible HTTP/body combinations,
+  placeholder expected values and restart claims without a real restart operation.
+- Uses reviewed starter API contracts as defaults and highlights explicit contract changes.
+- Corrects proposal errors with exact JSON locations, within three planner requests total.
+  Repeated unchanged invalid output stops; one explicitly configured fallback may be used.
+- **Local settings & optional fallback** under each model: Ollama context/output budgets,
+  native JSON schemas (with a JSON-mode compatibility toggle), and one fallback model.
+  Cloud fallback requires explicit consent before any job request. No provider is chosen for you.
+- A live proposal-review panel checks manual edits without inference requests and blocks invalid
+  approval. Existing unapproved proposals are reviewed when opened; approved legacy checks stay frozen.
+- `restart_before: true` on an acceptance GET closes the old server and starts an independent app
+  process against the same data. This detects memory-only storage masquerading as persistence.
+- Categorized provider errors, truncation diagnostics and actual token counts when reported.
+- Typed validation/planning/routing modules keep these policies separate from project storage.
+
+**Already on 0.5?** Click **Update → Check for updates → Install & restart**, keeping the terminal
+open. The published 0.5 launcher protocol and data schema remain supported. A manual ZIP install
+into a new folder remains available. Do not overwrite your project data.
+
+See [the release guide](docs/RELEASE-0.6.md), [audit and blueprint](docs/PASS-1-AUDIT.md), and
+[measured results](docs/benchmarks/planning-0.6.json). No live Windows/Ollama GPU speedup is claimed.
+
+## Previously added in 0.5
 
 - **Update** in the top bar: check published GitHub releases, review notes, back up projects,
   install a separate program version, restart and recover automatically if startup fails.
@@ -186,7 +210,8 @@ fields are intentionally blank rather than guessing an available model. Gemini u
 OpenAI-compatible endpoint. Models must support chat and JSON-object output; provider support
 can vary by model. Unsupported responses produce an actionable error rather than a fake success.
 Cloud use requires a checkbox acknowledging that ideas, project code, and failure logs may
-be sent to the selected providers, with possible charges. There is **no automatic paid fallback**.
+be sent to the selected providers, with possible charges. There is **no implicit paid fallback**. You may explicitly configure one fallback per role;
+cloud consent covers both configured primary and fallback providers for that job.
 Ollama model discovery reads your actual `/api/tags` list. Embedding models should not be used
 as planner/builder models.
 

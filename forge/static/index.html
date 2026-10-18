@@ -6,6 +6,7 @@
     <meta name="foundry-token" content="__TOKEN__" />
     <title>Idea Foundry · From idea to app</title>
     <link rel="stylesheet" href="/style.css" />
+    <script src="/planning.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/updates.js" defer></script>
   </head>
@@ -140,8 +141,8 @@
           <datalist id="ollama-models"></datalist>
           <label class="check-line cloud-option" hidden
             ><input type="checkbox" id="create-cloud" />I allow sending this
-            idea and project files to my selected cloud providers. API charges
-            may apply.</label
+            idea and project files to my selected primary or fallback cloud
+            providers. API charges may apply.</label
           >
           <div class="card-footer">
             <span>First, a proposal. You approve what gets built.</span
@@ -170,7 +171,7 @@
           </div>
         </div>
         <p class="footnote">
-          VERSION 0.5 · Builds small Python web apps using the standard library.
+          VERSION 0.6 · Builds small Python web apps using the standard library.
           Larger ideas start with a useful first slice.
         </p>
       </section>
@@ -216,6 +217,17 @@
           </button>
         </div>
         <section id="panel-proposal" class="panel" role="tabpanel">
+          <div id="proposal-review" class="proposal-review" hidden>
+            <strong id="proposal-review-status"></strong>
+            <p class="muted">
+              This checks the plan for contradictions. It does not execute or
+              verify the generated app.
+            </p>
+            <ul id="proposal-findings"></ul>
+            <button id="review-proposal-button" class="secondary" type="button">
+              Check edited proposal
+            </button>
+          </div>
           <div id="proposal-loading" class="empty">
             Your planner is shaping the idea. Local models may take a few
             minutes.
@@ -502,8 +514,7 @@ Generated files will appear here after approval.</pre
       <div id="connection-list">Checking connections…</div>
       <p class="muted">
         Cloud key status means a key is present, not that the provider has
-        verified it. Model names are entered explicitly. No automatic cloud
-        fallback.
+        verified it. Model names are entered explicitly. Fallbacks require explicit configuration and cloud consent.
       </p>
       <button id="refresh-connections" class="secondary">Check again</button>
     </dialog>

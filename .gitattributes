@@ -1,2 +1,2 @@
 # Preserve uploaded regression fixtures exactly, including their original whitespace.
-tests/fixture_data/*.txt -whitespace
+tests/fixture_data/*.txt -text -whitespace

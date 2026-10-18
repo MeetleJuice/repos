@@ -13,8 +13,12 @@ import threading
 import time
 import uuid
 import zipfile
+from typing import Any
 
-from .models import ModelClient
+from .models import ModelClient, ModelError
+from .contracts import validate_structure as validate_plan, require_consistent, review_plan, Review, Finding, starter_contracts
+from .planning import PlanningEngine
+from .routing import validate_config, uses_cloud, validate_options
 from .prompts import PLAN, CODE
 from .inspection import inspect_files
 from .runner import verify, require_runtime, verify_milestone
@@ -23,69 +27,6 @@ from .context import SOURCE_LIMIT, source_map, failure_feedback, fingerprint
 
 OWNED = {"readme.md", "project.md", "tasks.md", "checks.json", "run.bat", "run.sh", "launch.py"}
 ACTIVE = {"planning", "building", "checking", "repairing", "queued"}
-
-
-def validate_plan(plan):
-    for name in ("title", "summary"):
-        if not isinstance(plan.get(name), str) or not plan[name].strip() or len(plan[name]) > 6000:
-            raise ValueError(f"Proposal needs a nonempty {name} (up to 6000 characters).")
-    for name in ("features", "out_of_scope", "risks"):
-        if not isinstance(plan.get(name), list) or len(plan[name]) > 20 or not all(isinstance(x, str) and len(x) < 3000 for x in plan[name]):
-            raise ValueError(f"Proposal needs a list of {name}.")
-    if not plan["features"]:
-        raise ValueError("The proposal must list at least one feature.")
-    def coverage(items, label):
-        covered = set()
-        for item in items:
-            indexes = item.get("feature_indexes")
-            if not isinstance(indexes, list) or not all(type(i) is int and 0 <= i < len(plan["features"]) for i in indexes):
-                raise ValueError(f"Each {label} needs feature_indexes listing the feature numbers it covers (starting at 0).")
-            covered.update(indexes)
-        missing = set(range(len(plan["features"]))) - covered
-        if missing:
-            raise ValueError(f"Every feature needs {label} coverage. Missing feature indexes: {sorted(missing)}.")
-    tasks = plan.get("tasks")
-    if not isinstance(tasks, list) or not 1 <= len(tasks) <= 8:
-        raise ValueError("Proposal must contain 1–8 ordered tasks.")
-    for task in tasks:
-        if not isinstance(task, dict) or not all(isinstance(task.get(k), str) and 0 < len(task[k]) <= 6000 for k in ("title", "instructions")):
-            raise ValueError("Each task needs a title and instructions.")
-    coverage(tasks, "task")
-    checks = plan.get("checks")
-    if not isinstance(checks, list) or not 1 <= len(checks) <= 15:
-        raise ValueError("Proposal must contain 1–15 behavioral HTTP checks.")
-    behavior = False
-    for check in checks:
-        if not isinstance(check, dict):
-            raise ValueError("Each check must be an object.")
-        path = check.get("path", "")
-        if not isinstance(path, str) or not path.startswith("/") or path.startswith("//") or any(c in path for c in "\r\n\\#") or len(path) > 1000:
-            raise ValueError("Checks must use local URL paths.")
-        if check.get("method") not in {"GET", "POST", "PUT", "DELETE", "PATCH"}:
-            raise ValueError("Unsupported HTTP check method.")
-        if not isinstance(check.get("name"), str) or not check["name"]:
-            raise ValueError("Every check needs a name.")
-        if type(check.get("status")) is not int or not 100 <= check["status"] <= 599:
-            raise ValueError("Every check needs an expected HTTP status.")
-        has_contains = isinstance(check.get("contains"), str) and bool(check["contains"])
-        has_json = isinstance(check.get("json_contains"), (dict, list)) and bool(check["json_contains"])
-        has_equals = "json_equals" in check
-        if not (has_contains or has_json or has_equals):
-            raise ValueError("Every check needs contains, nonempty json_contains, or json_equals.")
-        if "contains" in check and not has_contains or "json_contains" in check and not has_json:
-            raise ValueError("Invalid response assertion.")
-        if path.split("?")[0] not in {"/", "/health"}:
-            behavior = True
-    if not behavior:
-        raise ValueError("Add a check of actual app behavior beyond / and /health.")
-    coverage(checks, "acceptance check")
-    for task in tasks:
-        indexes = task.get("check_indexes", [])
-        if not isinstance(indexes, list) or any(type(i) is not int or not 0 <= i < len(checks) for i in indexes):
-            raise ValueError("Task check_indexes must refer to approved acceptance checks.")
-    if len(json.dumps(plan)) > 30000:
-        raise ValueError("Proposal too large. Narrow the scope.")
-    return plan
 
 
 def preflight(files, complete=True):
@@ -182,8 +123,8 @@ class Workbench:
                     continue
         return sorted(states, key=lambda p: p["created"], reverse=True)
 
-    def call_model(self, state, role, system, prompt, cancel):
-        """One inference at a time avoids loading competing local models."""
+    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True) -> dict[str, Any]:
+        """Serialize requests, record the actual provider, and bound an explicit fallback."""
         previous = state["status"]
         if not self.inference_lock.acquire(blocking=False):
             state["status"] = "queued"
@@ -191,39 +132,54 @@ class Workbench:
             while not self.inference_lock.acquire(timeout=0.2):
                 if cancel.is_set():
                     raise InterruptedError("Stopped while waiting for a model.")
-        started = time.monotonic()
-        record = {"role": role, **state[role], "time": self.now(), "success": False}
         try:
-            if cancel.is_set():
-                raise InterruptedError("Stopped before model inference.")
-            state["status"] = previous
-            self.save(state)
-            result = self.client(state, role).complete(system, prompt)
-            record["success"] = True
-            return result
+            config = state[role]
+            choices = [(config["fallback"], True)] if fallback else [(config, False)]
+            if not fallback and allow_fallback and config.get("fallback"):
+                choices.append((config["fallback"], True))
+            for selected, is_fallback in choices:
+                if cancel.is_set():
+                    raise InterruptedError("Stopped before model inference.")
+                if selected["provider"] != "ollama" and not state.get("job_cloud_consent"):
+                    raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
+                record = {"role": role, "provider": selected["provider"], "model": selected["model"],
+                          "fallback": is_fallback, "time": self.now(), "success": False}
+                started = time.monotonic()
+                try:
+                    state["status"] = previous
+                    self.save(state)
+                    client = self.client_factory(selected["provider"], selected["model"])
+                    if isinstance(client, ModelClient):
+                        client.options = validate_options(selected.get("options", {}))
+                    result = client.complete(system, prompt)
+                    record.update(success=True, **getattr(client, "last_usage", {}))
+                    return result
+                except ModelError as exc:
+                    record["error_category"] = exc.category
+                    if is_fallback or not allow_fallback or not config.get("fallback"):
+                        raise
+                    if cancel.is_set():
+                        raise InterruptedError("Stopped before fallback inference.")
+                    self.event(state, "Primary model request failed (" + exc.category + "). Trying the explicitly configured fallback.")
+                finally:
+                    record["seconds"] = round(time.monotonic() - started, 2)
+                    state.setdefault("model_calls", []).append(record)
+                    state["model_calls"] = state["model_calls"][-100:]
+                    self.save(state)
         finally:
-            record["seconds"] = round(time.monotonic() - started, 2)
-            state.setdefault("model_calls", []).append(record)
-            state["model_calls"] = state["model_calls"][-100:]
-            try:
-                self.save(state)
-            finally:
-                self.inference_lock.release()
+            self.inference_lock.release()
 
-    def configure_models(self, ident, planner, coder):
+    def configure_models(self, ident: str, planner: dict[str, Any], coder: dict[str, Any]) -> dict[str, Any]:
         with self.lock:
             state = self.load(ident)
             if state["status"] in ACTIVE:
                 raise ValueError("Wait for or stop the running job before changing models.")
-            for config in (planner, coder):
-                ModelClient(config["provider"], config["model"])
-                if config["provider"] == "ollama" and "embed" in config["model"].lower():
-                    raise ValueError("Embedding models cannot plan or write apps. Choose a chat/coding model.")
+            planner, coder = validate_config(planner), validate_config(coder)
             state.update(planner=planner, coder=coder)
             self.event(state, "Model choices updated. Project files and approved requirements were kept.")
             return state
 
-    def fork(self, ident, request):
+    def fork(self, ident: str, request: str, cloud_consent: bool = False) -> dict[str, Any]:
         with self.lock:
             parent = self.load(ident)
             if parent["status"] in ACTIVE or not parent["approved"]:
@@ -235,7 +191,7 @@ class Workbench:
                          change_request=request.strip(), baseline_plan=copy.deepcopy(parent["plan"]),
                          frozen_tests={name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(ident).items() if Path(name).name.startswith("test_") and name.endswith(".py")},
                          title=parent["title"] + " · change", created=self.now(), status="draft", approved=False,
-                         plan=None, next_task=0, events=[], snapshots=[], checks=None, preflight=None, model_calls=[], milestones=[], repair_count=0)
+                         plan=None, plan_review=None, planning_stats=None, next_task=0, events=[], snapshots=[], checks=None, preflight=None, model_calls=[], milestones=[], repair_count=0)
             target = self.directory(state["id"]) / "source"
             target.mkdir(parents=True)
             for name, content in self.files(ident).items():
@@ -244,11 +200,13 @@ class Workbench:
                 path.write_text(content, encoding="utf-8")
             state["baseline_frozen_tests"] = copy.deepcopy(state["frozen_tests"])
             self.save(state)
-            self.start(state["id"], "plan", {})
+            self.start(state["id"], "plan", {"cloud_consent": cloud_consent})
             return self.load(state["id"])
 
     @staticmethod
     def revision_plan(state, plan):
+        if not isinstance(plan, dict):
+            raise ValueError("Proposal must be a JSON object.")
         plan = copy.deepcopy(plan)
         baseline = state.get("baseline_plan")
         if baseline:
@@ -297,13 +255,16 @@ class Workbench:
                 result.append({"name": name, "kind": "modified" if name in before else "added", "diff": "\n".join(lines)[:20000]})
         return result
 
-    def create(self, idea, planner, coder, starter=None):
+    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False) -> dict[str, Any]:
         if self.maintenance:
             raise ValueError("An update is being installed. Wait for the restart.")
         if starter is not None and starter not in CATALOG:
             raise ValueError("Unknown starter template.")
         if not isinstance(idea, str) or not 10 <= len(idea.strip()) <= 12000:
             raise ValueError("Describe your idea in 10–12000 characters.")
+        planner, coder = validate_config(planner), validate_config(coder)
+        if any(uses_cloud(c) for c in (planner, coder)) and not cloud_consent:
+            raise ValueError("Confirm cloud use for the configured primary/fallback models.")
         for config in (planner, coder):
             self.client_factory(config["provider"], config["model"])
         ident = uuid.uuid4().hex
@@ -313,7 +274,7 @@ class Workbench:
                  "snapshots": [], "repair_count": 0, "starter": starter}
         (self.directory(ident) / "source").mkdir(parents=True)
         self.save(state)
-        self.start(ident, "plan", {})
+        self.start(ident, "plan", {"cloud_consent": cloud_consent})
         return self.load(ident)
 
     def insights(self):
@@ -348,6 +309,9 @@ class Workbench:
                 raise ValueError("Approve the proposal first.")
             if action == "plan" and state["approved"]:
                 raise ValueError("An approved proposal is frozen. Create another project for a new scope.")
+            if any(uses_cloud(state[role]) for role in ("planner", "coder")) and options.get("cloud_consent") is not True:
+                raise ValueError("Explicit cloud consent is required for the configured primary/fallback models.")
+            state["job_cloud_consent"] = options.get("cloud_consent") is True
             mode = options.get("runtime", "docker")
             execute = options.get("execute", False) is True
             if mode not in {"docker", "local"}:
@@ -379,7 +343,9 @@ class Workbench:
             state = self.load(ident)
             if state["status"] in ACTIVE or state["approved"]:
                 raise ValueError("Cannot change this proposal while a job runs or after approval.")
-            state["plan"] = self.revision_plan(state, plan)
+            candidate = self.revision_plan(state, plan)
+            state["plan_review"] = require_consistent(candidate, state.get("starter")).to_dict()
+            state["plan"] = candidate
             plan = state["plan"]
             state["title"] = plan["title"]
             state["approved"], state["status"] = True, "approved"
@@ -393,6 +359,14 @@ class Workbench:
                 state.setdefault("frozen_tests", {})["test_foundation.py"] = hashlib.sha256(files["test_foundation.py"].encode()).hexdigest()
             self.event(state, "Proposal approved. Requirements and acceptance checks frozen.")
             return state
+
+    def review_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:
+        state = self.load(ident)
+        try:
+            candidate = self.revision_plan(state, plan)
+        except ValueError as exc:
+            return Review((Finding("scope_or_structure", "/", str(exc)),)).to_dict()
+        return review_plan(candidate, state.get("starter")).to_dict()
 
     def documents(self, state):
         source = self.directory(state["id"]) / "source"
@@ -606,21 +580,32 @@ class Workbench:
                 request = {"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"],
                            "existing_project": state.get("baseline_plan"), "change_request": state.get("change_request"),
                            "starter": CATALOG.get(state.get("starter")),
+                           "starter_api_contracts": starter_contracts(state.get("starter")),
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
-                for attempt in range(2):
-                    plan = self.call_model(state, "planner", PLAN, json.dumps(request), cancel)
-                    if cancel.is_set():
-                        raise InterruptedError("Stopped. Model output discarded.")
+                def evaluate(candidate: dict[str, Any]) -> tuple[dict[str, Any], Review]:
+                    candidate = self.revision_plan(state, candidate)
+                    return candidate, require_consistent(candidate, state.get("starter"))
+
+                def report(candidate: dict[str, Any] | None, result: Review) -> None:
+                    state["plan_review"] = result.to_dict()
+                    # Preserve a structurally valid failed candidate for direct editor repair.
                     try:
-                        plan = self.revision_plan(state, plan)
-                        break
-                    except ValueError as exc:
-                        if attempt:
-                            raise
-                        request.update(previous_proposal=plan, validation_error=str(exc))
-                        self.event(state, "Proposal incomplete; asking the planner to correct task/check coverage: " + str(exc))
-                state.update(plan=plan, title=plan["title"], status="proposed")
-                self.event(state, "Proposal ready. Review the scope, tasks, and behavioral checks before approval.")
+                        validate_plan(candidate)
+                    except (ValueError, TypeError, AttributeError):
+                        pass
+                    else:
+                        state["plan"] = candidate
+                    self.save(state)
+
+                result = PlanningEngine().run(
+                    request,
+                    lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=False),
+                    evaluate, report, lambda message: self.event(state, message), cancel,
+                    has_fallback=bool(state["planner"].get("fallback")))
+                state.update(plan=result.plan, title=result.plan["title"], status="proposed",
+                             plan_review=result.review.to_dict(),
+                             planning_stats={"attempts": result.attempts, "fallback_used": result.fallback_used})
+                self.event(state, "Proposal ready. Consistency review passed; no generated code has run. Review the scope and acceptance checks before approval.")
                 return
             if state.get("baseline_plan") and "baseline_frozen_tests" not in state:
                 state["baseline_frozen_tests"] = copy.deepcopy(state.get("frozen_tests", {}))

@@ -4,7 +4,7 @@ import hashlib
 import zipfile
 import json
 import sys
-from forge import __version__
+from forge import __version__, __release_notes__
 from forge.updates import REPOSITORY
 
 ROOT = Path(__file__).resolve().parent
@@ -43,7 +43,7 @@ def main():
         manifest = {"schema": 1, "version": __version__, "data_schema": 2, "python": [3, 11],
                     "url": f"https://raw.githubusercontent.com/{REPOSITORY}/main/releases/{filename}",
                     "sha256": checksum,
-                    "notes": "Tested starters, guided build/test workflow, focused repairs, milestone checks, managed updates with backups and startup rollback. Existing projects and model settings preserved."}
+                    "notes": __release_notes__}
         (release / "latest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         print("Release ready:", archive)
 

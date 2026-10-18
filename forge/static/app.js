@@ -66,21 +66,12 @@ function statusLabel(status) {
     : status.replaceAll("_", " ");
 }
 function selectedModels() {
-  return {
-    planner: {
-      provider: $("planner-provider").value,
-      model: $("planner-model").value,
-    },
-    coder: {
-      provider: $("coder-provider").value,
-      model: $("coder-model").value,
-    },
-  };
+  return { planner: modelConfig("planner"), coder: modelConfig("coder") };
 }
 function updateCloud() {
-  document.querySelector(".cloud-option").hidden = ["planner", "coder"].every(
-    (r) => $(r + "-provider").value === "ollama",
-  );
+  const models = selectedModels();
+  document.querySelector(".cloud-option").hidden =
+    !Object.values(models).some(cloudModel);
 }
 function tab(name) {
   document.querySelectorAll("[data-tab]").forEach((b) => {
@@ -223,6 +214,7 @@ function render() {
   $("plan-editor").disabled = p.approved || busy;
   $("proposal-actions").hidden = p.approved;
   $("approve").disabled = busy;
+  renderProposalReview(p);
   $("revise").disabled = busy;
   $("generate").disabled = busy || !p.approved;
   $("verify").disabled = busy || !p.approved;
@@ -245,13 +237,21 @@ function render() {
   }
   $("model-usage").textContent =
     `${(p.model_calls || []).length} model requests · ${(p.model_calls || []).reduce((n, c) => n + c.seconds, 0).toFixed(1)} seconds of model response time. One request runs at a time.`;
-  document.querySelector(".change-cloud").hidden = [p.planner, p.coder].every(
-    (m) => m.provider === "ollama",
+  const measured = (p.model_calls || []).filter(
+    (c) =>
+      Number.isInteger(c.prompt_tokens) ||
+      Number.isInteger(c.completion_tokens),
+  );
+  if (measured.length)
+    $("model-usage").textContent +=
+      ` Reported tokens: ${measured.reduce((n, c) => n + (c.prompt_tokens || 0), 0)} input / ${measured.reduce((n, c) => n + (c.completion_tokens || 0), 0)} output from ${measured.length} requests.`;
+  document.querySelector(".change-cloud").hidden = ![p.planner, p.coder].some(
+    cloudModel,
   );
   $("model-label").textContent =
-    `Planner: ${p.planner.provider}/${p.planner.model} · Builder: ${p.coder.provider}/${p.coder.model}`;
-  document.querySelector(".project-cloud").hidden = [p.planner, p.coder].every(
-    (m) => m.provider === "ollama",
+    `Planner: ${p.planner.provider}/${p.planner.model}${p.planner.fallback ? ` (fallback: ${p.planner.fallback.provider}/${p.planner.fallback.model})` : ""} · Builder: ${p.coder.provider}/${p.coder.model}${p.coder.fallback ? ` (fallback: ${p.coder.fallback.provider}/${p.coder.fallback.model})` : ""}`;
+  document.querySelector(".project-cloud").hidden = ![p.planner, p.coder].some(
+    cloudModel,
   );
   $("test-badge").textContent = p.checks
     ? p.checks.passed
@@ -582,7 +582,7 @@ function renderChecks(p) {
     const title = document.createElement("strong");
     title.textContent = check.name;
     const detail = document.createElement("code");
-    detail.textContent = `${check.method} ${check.path} → HTTP ${check.status}`;
+    detail.textContent = `${check.restart_before ? "Restart server → " : ""}${check.method} ${check.path} → HTTP ${check.status}`;
     const covers = document.createElement("small");
     covers.textContent = (check.feature_indexes || [])
       .map((i) => p.plan.features[i])
@@ -730,17 +730,16 @@ $("edit-models").onclick = handle(() => {
   for (const role of ["planner", "coder"]) {
     $("project-" + role + "-provider").value = current[role].provider;
     $("project-" + role + "-model").value = current[role].model;
+    fillModelSettings(role, "project-", current[role]);
   }
   $("models-dialog").showModal();
 });
 $("close-models").onclick = () => $("models-dialog").close();
 $("model-form").onsubmit = handle(async () => {
-  const models = {};
-  for (const role of ["planner", "coder"])
-    models[role] = {
-      provider: $("project-" + role + "-provider").value,
-      model: $("project-" + role + "-model").value,
-    };
+  const models = {
+    planner: modelConfig("planner", "project-"),
+    coder: modelConfig("coder", "project-"),
+  };
   current = await api("/api/projects/" + current.id + "/models", models);
   $("models-dialog").close();
   $("project-cloud-consent").checked = false;

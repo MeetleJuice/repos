@@ -1458,3 +1458,50 @@ dialog .results-heading {
     scroll-behavior: auto !important;
   }
 }
+/* 0.6: review evidence and explicit model recovery controls. */
+.proposal-review {
+  border: 1px solid #bfd6b9;
+  border-left: 4px solid var(--green);
+  border-radius: 10px;
+  padding: 18px;
+  background: #f1f6ec;
+  margin: 12px 0 22px;
+}
+.proposal-review.review-failed {
+  border-color: #e4c19c;
+  border-left-color: #a75524;
+  background: #fff6ed;
+}
+.proposal-review ul {
+  margin: 10px 0;
+  padding-left: 20px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.proposal-review li {
+  margin: 8px 0;
+}
+.model-advanced {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin-top: 8px;
+}
+.model-advanced summary {
+  font-size: 12px;
+}
+.model-settings {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 10px 0;
+}
+.model-settings label,
+.model-settings input,
+.model-settings select {
+  grid-row: auto;
+  font-size: 12px;
+}
+.model-settings .check-line {
+  display: flex;
+  align-items: center;
+}
