@@ -1,4 +1,4 @@
-# Idea Foundry 0.10.0
+# Idea Foundry 0.10.1
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
@@ -6,7 +6,7 @@ An original, local-first Python workbench for Windows and VS Code. Ollama is the
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
 
-## 0.10.0 cloud-first studio
+## 0.10.1 cloud-first studio
 
 **Models → Choose your API key file → Check cloud providers.** Import the .env or .env.txt
 from your Desktop directly into your private local workspace. UTF-8 and Notepad UTF-16 work;
@@ -17,7 +17,7 @@ Choose advertised models and per-provider output limits, then **Use cloud for ne
 or **Use cloud for this project**. The ordered Gemini → Groq → OpenRouter route skips missing
 providers and fails over on service, quota and connection errors. Cloud jobs still require
 explicit consent. Local models, frozen checks, checkpoints and existing projects remain available.
-See [setup and testing](docs/RELEASE-0.10.0.md) and [research](docs/CLOUD-RESEARCH.md).
+See [setup and testing](docs/RELEASE-0.10.1.md) and [research](docs/CLOUD-RESEARCH.md).
 
 ## 0.8.1 repair-response recovery
 

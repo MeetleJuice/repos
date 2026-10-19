@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.10.0",
+  "version": "0.10.1",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.10.0.zip",
-  "sha256": "5d3a2037799ed16e5b0aaf3f3b3b0cd3106878b7a368b48a84a051bc1653f181",
-  "notes": "Resilient model routes: optional installed Ollama as the final fallback, handoff after output limits, 16K cloud output budgets, 120-second cloud socket timeout, and a shared checked-model setup from project settings. Saved projects and unfinished-task resume preserved."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.10.1.zip",
+  "sha256": "ee282e0731d096f06fd2fb783aa4c7ea515dc6a0e1eb73166b3cb3cde24ef7ec",
+  "notes": "Reject placeholder files, invalid Python and double-escaped HTML before replacing source. Accept database/module unit tests that import actual project code, avoiding a false-positive repair cycle. Saved projects, checks and model routes remain compatible."
 }

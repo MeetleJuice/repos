@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.10.0"
+__version__ = "0.10.1"
 
-__release_notes__ = "Resilient model routes: optional installed Ollama as the final fallback, handoff after output limits, 16K cloud output budgets, 120-second cloud socket timeout, and a shared checked-model setup from project settings. Saved projects and unfinished-task resume preserved."
+__release_notes__ = "Reject placeholder files, invalid Python and double-escaped HTML before replacing source. Accept database/module unit tests that import actual project code, avoiding a false-positive repair cycle. Saved projects, checks and model routes remain compatible."

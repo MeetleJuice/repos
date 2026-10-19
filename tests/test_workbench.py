@@ -143,7 +143,7 @@ class WorkbenchTests(unittest.TestCase):
 
     def test_static_repair_adds_missing_tests_without_execution(self):
         bench, ident, _ = self.create([
-            {"files": {"app.py": "def create_server(:\n"}},
+            {"files": {"app.py": APP}},
             {"files": {"app.py": APP, "test_app.py": TEST}},
         ])
         bench.verifier = lambda *a: self.fail("Static repair must not execute code")

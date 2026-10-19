@@ -116,7 +116,7 @@ class UpgradeTests(unittest.TestCase):
     def test_static_repairs_after_runtime_failure_share_the_cap(self):
         bench, state, _ = self.project(PLAN, [
             {'files': {'app.py': BROKEN, 'test_app.py': TEST}},
-            {'files': {'app.py': 'def create_server(:\n'}},
+            {'files': {'app.py': APP + '\nimport cgi\n'}},
             {'files': {'app.py': APP}},
         ])
         bench.start(state['id'], 'build', {'execute': True, 'consent': True, 'runtime': 'local', 'repairs': 2})

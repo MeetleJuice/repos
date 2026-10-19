@@ -1,6 +1,7 @@
 """Persistent projects and a deliberately bounded plan/build/check/repair state machine."""
 from datetime import datetime, timezone
 import copy
+import ast
 import difflib
 import hashlib
 import io
@@ -591,6 +592,15 @@ class Workbench:
                 raise ValueError("Generated file is too large or not text.")
             if name in state.get("frozen_tests", {}) and hashlib.sha256(content.encode()).hexdigest() != state["frozen_tests"][name]:
                 raise ValueError("Existing app tests are trusted regression tests and cannot be rewritten. Add new tests in another file.")
+            if content.strip().lower() in {'new file contents', 'complete file contents', 'file contents', 'your code here'}:
+                raise ValueError(name + ': Placeholder text is not source code. Return the actual complete file or exact edits.')
+            if name.endswith('.py'):
+                try:
+                    ast.parse(content, filename=name)
+                except (SyntaxError, ValueError) as exc:
+                    raise ValueError(name + ': Rejected invalid Python before file replacement: ' + str(exc)) from None
+            if name.endswith(('.html', '.htm')) and '<html' in content.lower() and re.search(r'<(?:html|meta|link|body|div)\b[^>]*=\\"', content, re.I) and r'\n' in content:
+                raise ValueError(name + ': HTML contains double-escaped markup. Return real text, not an encoded string.')
             targets.append((target, content))
         if sum(len(v) for v in (current | files).values()) > 70000:
             raise ValueError("Project exceeded the small-model context budget. Narrow the scope.")

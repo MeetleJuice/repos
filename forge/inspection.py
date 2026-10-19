@@ -33,6 +33,7 @@ def inspect_files(files, complete=True):
     tests = [name for name in files if Path(name).name.startswith("test_") and name.endswith(".py")]
     if not tests:
         issues.append("Missing unittest test file (for example test_app.py). Add tests of the approved features.")
+    application_modules = {Path(name).stem for name in files if name.endswith(".py") and not Path(name).name.startswith("test_")}
     methods = 0
     for name in tests:
         tree = trees.get(name)
@@ -45,8 +46,12 @@ def inspect_files(files, complete=True):
             continue  # Support helper-only test modules when another module has tests.
         imports_app = any(isinstance(n, ast.Import) and any(a.name == "app" or a.name.startswith("app.") for a in n.names) or isinstance(n, ast.ImportFrom) and n.module == "app" for n in nodes)
         dynamic_app = any(isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr in {"spec_from_file_location", "import_module"} for n in nodes) and any(isinstance(n, ast.Constant) and n.value in {"app.py", "app"} for n in nodes)
-        if not (imports_app or dynamic_app):
-            issues.append(f"{name}: Tests must import the real app.py instead of duplicating its server. Use from app import create_server, or import app.")
+        imports_module = any(
+            isinstance(n, ast.Import) and any(a.name.split('.')[0] in application_modules for a in n.names)
+            or isinstance(n, ast.ImportFrom) and n.module and n.module.split('.')[0] in application_modules
+            for n in nodes)
+        if not (imports_app or dynamic_app or imports_module):
+            issues.append(f"{name}: Tests must import the real app.py or another project module instead of duplicating application logic. Use from app import create_server, import app, or import the module under test.")
         if any(isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "handle_request" for n in nodes):
             issues.append(f"{name}: Do not call server.handle_request() as a response. Start serve_forever in a thread and send real urllib HTTP requests with timeouts.")
         if any(isinstance(n, ast.FunctionDef) and n.name in {"create_server", "do_GET", "do_POST", "do_DELETE"} for n in nodes):
