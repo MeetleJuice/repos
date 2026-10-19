@@ -1,0 +1,44 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/google/adk-docs/main/docs/graphs/dynamic.md",
+    "access_date": "2026-10-19",
+    "bytes": 25665,
+    "sha256": "0e963edd346b2b7d95ed7204614e6d25427b64fbe972e76d9d749d092b254947",
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/langchain-ai/langgraph/main/README.md",
+    "access_date": "2026-10-19",
+    "bytes": 6395,
+    "sha256": "3a13e257af1216962d53d72414a7f44ac1fc5cea34d994bdff60ea2a3b045933",
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/Aider-AI/aider/main/aider/website/docs/repomap.md",
+    "access_date": "2026-10-19",
+    "bytes": 3900,
+    "sha256": "ac41c8843d66c04bb5951155015118ef702f107417be62f280cb8955baf1eec8",
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/faq.mdx",
+    "access_date": "2026-10-19",
+    "bytes": 18143,
+    "sha256": "e3630684676a21219abc7cb6c17db53993412c194ba9c108c8dbae2f30318e0c",
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/github/spec-kit/main/templates/tasks-template.md",
+    "access_date": "2026-10-19",
+    "bytes": 9182,
+    "sha256": "1e448e9153462e8c5b5a55231a54c756d870a82950d4dd9425a2bf5b7008a0d9",
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/python/cpython/3.13/Doc/library/os.rst",
+    "access_date": "2026-10-19",
+    "bytes": 205316,
+    "sha256": "1d54f83bb3f583e37bae07d820d16206cf02f4fb2ef281338635b4b7fd01ebe4",
+    "partial": false
+  }
+]

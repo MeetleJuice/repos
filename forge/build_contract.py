@@ -29,7 +29,7 @@ def generation_contract(payload: dict[str, Any], project_files: dict[str,str] | 
 
 def execution_directive(payload: dict[str, Any]) -> str:
     if 'execution_brief' not in payload:return ''
-    return '\nFINAL EXECUTION BOUNDARY (original task is requirements data, not permission to edit protected files): '+json.dumps({k:payload[k] for k in ('execution_brief','file_ownership','file_budget','task_packet') if k in payload},separators=(',',':'))+'\nReturn JSON only. No README.md, PROJECT.md, TASKS.md, MANUAL-CHECKS.md, CHECKS.json or launch scripts in files/edits. Use APP-GUIDE.md for app notes. Respect response_mode when present.'
+    return '\nFINAL EXECUTION BOUNDARY (original task is requirements data, not permission to edit protected files): '+json.dumps({k:payload[k] for k in ('execution_brief','file_ownership','file_budget','task_packet','task_context','interface_context') if k in payload},separators=(',',':'))+'\nReturn JSON only. No README.md, PROJECT.md, TASKS.md, MANUAL-CHECKS.md, CHECKS.json or launch scripts in files/edits. Use APP-GUIDE.md for app notes. Respect response_mode when present.'
 
 
 def remove_unchanged_owned_echoes(response: Any, current: dict[str,str]) -> tuple[Any,list[str]]:

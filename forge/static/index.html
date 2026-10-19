@@ -353,6 +353,13 @@
             <div>
               <h2>1 · Build your files</h2>
               <p id="progress-text" class="muted"></p>
+              <details id="task-board" open>
+                <summary>Task readiness &amp; evidence</summary>
+                <p id="task-board-summary" class="muted">Review a proposal to see task readiness.</p>
+                <ol id="task-board-list"></ol>
+                <p id="resume-warning" role="status"></p>
+                <button id="adopt-resume" class="quiet" hidden>Keep current files &amp; retry unfinished task</button>
+              </details>
               <p id="model-label" class="muted"></p>
               <button id="edit-models" class="quiet">
                 Change project models
@@ -649,6 +656,14 @@ Generated files will appear here after approval.</pre
           <option value="local_only">Local only · no cloud requests</option>
         </select>
         <p>Local requests still need enough context/output capacity. Installed does not prove GPU fit. Existing routes change only when you apply setup.</p>
+        <details id="local-calibration">
+          <summary>Check local model performance</summary>
+          <p>Runs two small, fixed Ollama response checks at 4K context. Sends no project files and changes no routes. The model may need time to load; socket timeouts are not a hard overall deadline. It does not prove GPU fit or capacity for a full project.</p>
+          <label for="calibration-model">Installed local model</label>
+          <select id="calibration-model"></select>
+          <button id="calibrate-local" class="quiet">Run local checks</button>
+          <p id="calibration-feedback" role="status">No local calibration run yet.</p>
+        </details>
         <button id="cloud-auto" class="primary">Set up models automatically</button>
         <p>Use your imported keys and installed Ollama models. Foundry discovers model IDs and builds separate planner and builder routes, including alternate models. Applies to new projects and the open idle project. No generation runs until you grant cloud consent. Paid models may incur charges. Missing provider setup is skipped.</p>
         <p>

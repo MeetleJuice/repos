@@ -27,6 +27,10 @@ def validate_tasks(plan: dict[str, Any]) -> None:
             parts=name.split('/')
             reserved={'CON','PRN','AUX','NUL',*(f'COM{i}' for i in range(1,10)),*(f'LPT{i}' for i in range(1,10))}
             if any(p.split('.')[0].upper() in reserved for p in parts) or name.lower() in OWNED or len(name)>160 or not re.fullmatch(r'[A-Za-z0-9_. /-]+',name) or any(p in {'','.','..'} or p.startswith('.') or p.endswith((' ','.')) for p in parts):raise ValueError(label+': invalid or controller-owned file path '+name+'. Use app source/tests or APP-GUIDE.md.')
+        interfaces=task.get('interfaces',[])
+        if not isinstance(interfaces,list) or len(interfaces)>6:raise ValueError(label+': interfaces must list at most six contracts.')
+        for interface in interfaces:
+            if not isinstance(interface,dict) or set(interface)!={'file','symbol','contract'} or not all(isinstance(interface[k],str) and 0<len(interface[k])<=500 for k in interface):raise ValueError(label+': each interface needs file, symbol and contract text.')
         deps=task['depends_on']
         if not isinstance(deps,list) or any(type(n) is not int or not 0<=n<index for n in deps) or len(set(deps))!=len(deps):raise ValueError(label+': depends_on must contain unique earlier zero-based task indexes; no forward references or cycles.')
         criteria=task['done_when']
@@ -43,6 +47,7 @@ def task_packet(plan: dict[str, Any], index: int, saved_tasks: int) -> dict[str,
     return {'schema':1,'task_index':index,'task_count':len(plan['tasks']),'structured':structured,
             'outcome':task.get('outcome',task['title']), 'files':copy.deepcopy(task.get('files',[])) if structured else [],
             'depends_on':copy.deepcopy(deps),'done_when':copy.deepcopy(task.get('done_when',[])) if structured else [],
+            'interfaces':copy.deepcopy(task.get('interfaces',[])),
             'evidence_status':'Declared criteria only. Saved source/static inspection are not behavioral verification.',
             'scope_rule':'Implement only this task; preserve earlier behavior and interfaces. Do not implement later tasks or rebuild the entire app. The final task integrates prior work; it does not absorb missing features.'}
 

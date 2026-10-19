@@ -43,6 +43,7 @@ def validate_structure(plan: dict[str, Any]) -> dict[str, Any]:
     for task in tasks:
         if not isinstance(task, dict) or not all(isinstance(task.get(k), str) and 0 < len(task[k]) <= 6000 for k in ("title", "instructions")):
             raise ValueError("Each task needs a title and instructions.")
+    if not isinstance(plan.get("context_policy","full"),str) or plan.get("context_policy","full") not in {"full","focused_v1"}:raise ValueError("context_policy must be full or focused_v1.")
     coverage(tasks, "task")
     validate_tasks(plan)
     checks = plan.get("checks")

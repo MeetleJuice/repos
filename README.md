@@ -1,10 +1,16 @@
-# Idea Foundry 0.21.0
+# Idea Foundry 0.22.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.22.0 task delivery and recovery
+
+Build now shows task readiness and evidence. Saved task candidates can survive interruption without another implementation request; external source changes require explicit review. New proposals can approve focused context with complete-file retrieval and inspected Python interfaces. Models also offers optional fixed local response calibration. Old plans keep full context and their approved scope. [Research, behavior and limits](docs/delivery-control-0.22.0.md).
+
+Update/restart, then open a project’s **Build & results** panel. To try focused packets, create a new project or revise an unapproved proposal. For optional local checks use **Models → Check local model performance**; this changes no routes or projects.
 
 ## 0.21.0 hybrid execution
 

@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.21.0",
+  "version": "0.22.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.21.0.zip",
-  "sha256": "37a7592f30651f5dda6c34015db94464caa4958551a3b9b14b22f8cc79b08356",
-  "notes": "Hybrid execution: explicit cloud-first, hybrid, local-first and local-only routing; coding-specialist local selection; temporary repeated-transport circuits; source-supported existing-task responses without invented edits; pending verification remains explicit. Local inference timing is recorded. Existing routes, source, approvals and frozen checks preserved until you apply setup."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.22.0.zip",
+  "sha256": "42f5467dc3ee2cb07d70e9f06e6bb2f5b02b3e84cd1ba0f8c926bba40c7118eb",
+  "notes": "Delivery control: task readiness/evidence board, explicit focused-context plans with bounded source retrieval and observed interfaces, recoverable saved task candidates, source-drift detection and explicit baseline adoption, source-bound milestone receipts, optional local-only fixed calibration and clearer workflow guidance. Legacy plans retain full context; no extra reviewer calls by default."
 }

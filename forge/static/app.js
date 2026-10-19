@@ -210,6 +210,7 @@ function render() {
   $("proposal-content").hidden = !p.plan;
   if (p.plan) {
     fillList("features", p.plan.features);
+
     fillList("limits", [
       ...p.plan.out_of_scope.map((x) => "Later: " + x),
       ...p.plan.risks.map((x) => "Consider: " + x),

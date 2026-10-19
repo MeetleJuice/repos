@@ -21,6 +21,14 @@ function cloudHandle(fn) {
 }
 function renderCloudSetup(info) {
   const credentials = info.credentials || {};
+  const calibrationSelect=$("calibration-model"),previousModel=calibrationSelect.value;
+  calibrationSelect.replaceChildren();
+  for (const model of info.providers?.ollama?.models || []) if (!model.toLowerCase().includes("embed")) calibrationSelect.add(new Option(model,model));
+  if ([...calibrationSelect.options].some(o=>o.value===previousModel)) calibrationSelect.value=previousModel;
+  $("calibrate-local").disabled=!calibrationSelect.options.length;
+  const measurement=info.local_calibration;
+  if (measurement?.cases) $("calibration-feedback").textContent=measurement.model+": "+measurement.cases.map(c=>c.name+" "+(c.passed?"passed":"failed")+" ("+c.seconds+"s)").join("; ")+". Fixed 4K cases only; project capacity and GPU fit remain unproven.";
+
   if (info.routing_mode) $("routing-mode").value=info.routing_mode;
   const present = Object.values(credentials.keys || {}).filter(Boolean).length;
   $("cloud-env-status").textContent =
@@ -241,4 +249,14 @@ $("cloud-auto").onclick = cloudHandle(async () => {
     await connections();
     $("cloud-feedback").textContent = "Automatic routes ready for new projects" + (current ? " and this project" : "") + ". Model failures and invalid proposals advance through the route. Generation still requires cloud consent; paid models may incur charges. Catalogue access does not prove generation quota.";
   } finally { $("cloud-auto").disabled = false; }
+});
+
+$("calibrate-local").onclick=cloudHandle(async()=>{
+  $("calibrate-local").disabled=true;
+  $("calibration-feedback").textContent="Running fixed local checks. No project source is sent; the model may need to load.";
+  try {
+    const report=await api("/api/local/calibrate",{model:$("calibration-model").value});
+    $("calibration-feedback").textContent=report.model+": "+report.cases.map(c=>c.name+" "+(c.passed?"passed":"failed")+" ("+c.seconds+"s)").join("; ")+". These checks do not verify an app or GPU fit. Routes unchanged.";
+  } catch(error) { $("calibration-feedback").textContent=error.message;throw error; }
+  finally { $("calibrate-local").disabled=false; }
 });

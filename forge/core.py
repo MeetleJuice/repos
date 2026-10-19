@@ -21,6 +21,9 @@ from .model_status import ModelStatus
 from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
 from .tasks import task_packet, validate_task_response, task_document, existing_task_evidence
 from .circuit import TransportCircuit
+from .execution import resume_problem, begin_task, candidate_saved, finish_task, seal_checkpoint, file_hashes, plan_hash
+from .focus import prepare_context, retrieve_context, ContextRequestError
+from .calibration import calibrate
 from .models import output_contract, ModelClient, ModelError
 from . import history, __version__
 from .reporting import OWNED, evidence_status, file_manifest
@@ -445,6 +448,8 @@ class Workbench:
             state.pop("active_run_id", None)
             state.pop("history_warning", None)
             state.pop("verification_manifest", None)
+            for key in ('pending_task','execution_checkpoint','last_task_support'):state.pop(key,None)
+            state['task_receipts']=[]
             target = self.directory(state["id"]) / "source"
             target.mkdir(parents=True)
             for name, content in self.files(ident).items():
@@ -616,6 +621,30 @@ class Workbench:
             thread = threading.Thread(target=self._job, args=(state, action, options, cancel), daemon=True)
             self.jobs[ident] = (thread, cancel)
             thread.start()
+
+    def calibrate_local(self, model):
+        if not self.inference_lock.acquire(blocking=False):raise ValueError('A model request is already running. Wait for it to finish before calibration.')
+        try:
+            self.model_status.start('ollama',model,'calibration')
+            report=calibrate(model,self.root.parent/'local-calibration-v1.json',self.client_factory)
+            self.model_status.finish('ollama',model,'responded' if report['passed'] else 'response_rejected')
+            return report
+        finally:
+            if self.model_status.active:self.model_status.finish('ollama',model,'failed')
+            self.inference_lock.release()
+
+    def adopt_resume_baseline(self, ident):
+        with self.lock:
+            state=self.load(ident)
+            if state['status'] in ACTIVE or not state.get('approved'):raise ValueError('Stop the job and approve a proposal before adopting a source baseline.')
+            checkpoint=state.get('pending_task') or state.get('execution_checkpoint')
+            if checkpoint and (checkpoint.get('plan_sha256')!=plan_hash(state['plan']) or checkpoint.get('cursor')!=state['next_task']):raise ValueError('The approved plan or task position changed. Restore a consistent checkpoint; source-baseline adoption cannot approve a different plan.')
+            state.pop('pending_task',None);seal_checkpoint(state,self.context_files(ident))
+            state.update(status='approved',error=None,checks=None,manual_results={},verification_fingerprint=None)
+            state.pop('verification_manifest',None)
+            self.trace(state,'resume_baseline_adopted',{'cursor':state['next_task'],'source_sha256':state['execution_checkpoint']['source_sha256']},'user')
+            self.event(state,'Kept the current files as the resume baseline. No task advanced; verification is pending. Resume will retry the current task.')
+            return self.present(ident)
 
     def stop(self, ident):
         with self.lock:
@@ -805,6 +834,7 @@ class Workbench:
                     shutil.rmtree(staging)
             state.update(next_task=match["next_task"], status="approved", checks=None, manual_results={}, verification_fingerprint=None, preflight=None, frozen_tests=copy.deepcopy(match.get("frozen_tests", state.get("baseline_frozen_tests", state.get("frozen_tests", {}) if state.get("baseline_plan") else {}))))
             state.pop("verification_manifest", None)
+            state.pop("pending_task",None);seal_checkpoint(state,self.context_files(ident))
             self.trace(state, "checkpoint_restored", {"checkpoint_id":snapshot, "next_task":match["next_task"]}, "user")
             self.event(state, "Restored checkpoint: " + match["label"])
             return state
@@ -855,6 +885,7 @@ class Workbench:
         finally:
             if staging.exists():
                 shutil.rmtree(staging)
+        candidate_saved(state,self.context_files(state["id"]))
         self.trace(state, "files_committed", {"changed_files":file_manifest(files),
                    "before_source_sha256":fingerprint({n:t for n,t in current.items() if n.lower() not in OWNED}),
                    "after_source_sha256":fingerprint(self.context_files(state["id"])), "repair":repair})
@@ -868,14 +899,27 @@ class Workbench:
     def generate_and_apply(self, state, payload, cancel, repair=False):
         """One bounded correction for malformed code responses; rejected files never land."""
         state.pop("last_task_support",None)
-        payload = generation_contract(payload,self.files(state["id"]))
+        payload = prepare_context(generation_contract(payload,self.files(state["id"])),self.context_files(state["id"]))
         for attempt in range(2):
             try:
                 response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel)
+                for _ in range(3):
+                    expanded=retrieve_context(response,payload,self.context_files(state['id']))
+                    if expanded is None:break
+                    payload=expanded
+                    state.setdefault('generation_stats',{}).setdefault('context_retrievals',0)
+                    state['generation_stats']['context_retrievals']+=1
+                    self.trace(state,'task_context_expanded',{'included_files':payload['task_context']['included_files'],'remaining':payload['task_context']['retrievals_remaining']})
+                    if cancel.is_set():raise InterruptedError('Stopped before context follow-up.')
+                    response=self.call_model(state,'coder',CODE,json.dumps(payload),cancel)
+                if isinstance(response,dict) and 'request_context' in response:raise ContextRequestError('Task context retrieval limit reached.')
             except ModelError as exc:
                 if exc.category not in {"format", "parse_error"} or attempt:
                     raise
                 error = str(exc)
+            except ContextRequestError as exc:
+                if attempt:raise
+                error=str(exc)
             else:
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Model output discarded.")
@@ -885,6 +929,7 @@ class Workbench:
                     support=existing_task_evidence(response,self.files(state["id"]),payload.get("task_packet"))
                     if support:
                         state['last_task_support']=support
+                        candidate_saved(state,self.context_files(state['id']),support)
                         self.trace(state,'task_existing_source_supported',support)
                         self.event(state,'Task source references checked; no files changed. Behavioral verification remains pending.')
                         return
@@ -916,6 +961,8 @@ class Workbench:
             payload = {**payload, "response_validation_error": error, "response_mode": "complete_files",
                        "files": self.context_files(state["id"]),
                        "instruction": "The previous response was rejected and no file was changed. Recover by returning a nonempty files object with COMPLETE changed source files and optional summary. Do not return edits, diffs, ellipses or an empty object. Read the current source supplied here; repair the original reported problem, preserve frozen tests and approved checks. For a structured task already implemented, you may instead return already_satisfied with a reason and exact current-source evidence. Never invent an unnecessary edit. This overrides the earlier preference for edits."}
+            if payload.get('task_context'):
+                payload['task_context'].update(included_files=sorted(payload['files']),omitted_files=[],retrievals_remaining=0)
 
     def _inspect_and_repair(self, state, cancel, remaining, complete=True):
         for attempt in range(remaining + 1):
@@ -969,6 +1016,7 @@ class Workbench:
         result = self.milestone_verifier(self.directory(state["id"]) / "source", options.get("runtime", "docker"), cancel, state["plan"]["checks"][:limit])
         if cancel.is_set():
             state["next_task"] = task_index
+            seal_checkpoint(state,self.context_files(state["id"]))
             raise InterruptedError("Milestone verification stopped. Resume will retry this task.")
         state["milestones"][-1].update(behavior_verified=result["passed"], checks=limit, result=result)
         self.trace(state, "milestone_verified", {"task":task_index+1, "passed":result["passed"], "checks":limit,
@@ -981,6 +1029,7 @@ class Workbench:
             if remaining_repairs == 0 or result.get("failure_kind") == "environment" or current_fingerprint in seen:
                 # Re-run the incomplete task on resume; do not advance over failed behavior.
                 state["next_task"] = task_index
+                seal_checkpoint(state,self.context_files(state["id"]))
                 state["status"] = "needs_attention"
                 self.event(state, "Milestone check failed. Resume will retry this task. " + str(result.get("diagnosis", "")))
                 return None
@@ -992,17 +1041,24 @@ class Workbench:
             remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
             if remaining_repairs is None:
                 state["next_task"] = task_index
+                seal_checkpoint(state,self.context_files(state["id"]))
                 self.save(state)
                 return None
             result = self.milestone_verifier(self.directory(state["id"]) / "source", options.get("runtime", "docker"), cancel, state["plan"]["checks"][:limit])
             if cancel.is_set():
                 state["next_task"] = task_index
+                seal_checkpoint(state,self.context_files(state["id"]))
                 raise InterruptedError("Milestone verification stopped. Resume will retry this task.")
             state["milestones"][-1].update(behavior_verified=result["passed"], result=result)
             self.trace(state, "milestone_verified", {"task":task_index+1, "passed":result["passed"], "checks":limit,
                        "source_sha256":fingerprint(self.context_files(state["id"])), "failure_kind":result.get("failure_kind")})
             self.save(state)
+        evidence={'passed':True,'http_prefix_count':limit,'source_sha256':fingerprint(self.context_files(state['id'])),'meaning':'Executed approved HTTP prefix only; manual/browser acceptance is separate.'}
+        for receipt in state.get('task_receipts',[]):
+            if receipt['task']==task_index+1:receipt['milestone_evidence']=evidence
+        finish_task(state,self.context_files(state['id']))
         state["checks"] = None
+        self.save(state)
         return remaining_repairs
 
     def _job(self, state, action, options, cancel):
@@ -1079,6 +1135,10 @@ class Workbench:
                              planning_stats={"attempts": result.attempts, "fallback_used": result.fallback_used or any(record.get("fallback") for record in state.get("model_calls", []) if id(record) not in {id(old) for old in prior_model_records})})
                 self.event(state, "Proposal ready. Consistency review passed; no generated code has run. Review the scope and acceptance checks before approval.")
                 return
+            problem=resume_problem(state,self.context_files(state['id']))
+            if problem:
+                state.update(status='needs_attention',error=problem)
+                self.event(state,problem);return
             if state.get("baseline_plan") and "baseline_frozen_tests" not in state:
                 state["baseline_frozen_tests"] = copy.deepcopy(state.get("frozen_tests", {}))
             if options.get("execute"):
@@ -1118,7 +1178,12 @@ class Workbench:
                 before_task = self.context_files(state["id"])
                 self.trace(state, "task_started", {"task":index+1, "title":task["title"]})
                 self.event(state, f'Task {index+1}: {task["title"]}')
-                self.generate_and_apply(state, {"proposal": state["plan"], "current_task": task, "task_packet":task_packet(state["plan"],index,state["next_task"]), "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "frozen_tests": list(state.get("frozen_tests", {}))}, cancel)
+                recovered=begin_task(state,index,before_task)
+                self.save(state)
+                if recovered:self.event(state,'Recovered saved task candidate. Rechecking it without another implementation request.')
+                else:
+                    self.generate_and_apply(state, {"proposal": state["plan"], "current_task": task, "task_packet":task_packet(state["plan"],index,state["next_task"]), "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "frozen_tests": list(state.get("frozen_tests", {}))}, cancel)
+                if cancel.is_set():raise InterruptedError('Task candidate saved. Resume will inspect it before requesting more implementation.')
                 remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
                 if remaining_repairs is None:
                     return
@@ -1126,9 +1191,11 @@ class Workbench:
                 state.setdefault("milestones", []).append({"task": index + 1, "title": task["title"], "syntax_passed": True, "behavior_verified": False, "time": self.now()})
                 state["next_task"] = index + 1
                 after_task = self.context_files(state["id"])
-                changed = sorted(name for name in set(before_task)|set(after_task) if before_task.get(name)!=after_task.get(name))
-                receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":fingerprint(before_task),"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False,"task_packet":task_packet(state["plan"],index,index),"source_support":state.get("last_task_support"),"disposition":"source_changed" if changed else "existing_source_supported" if state.get("last_task_support") else "no_change"}
+                before_manifest=state['pending_task']['before_files'];after_manifest=file_hashes(after_task)
+                changed=sorted(n for n in set(before_manifest)|set(after_manifest) if before_manifest.get(n)!=after_manifest.get(n))
+                receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":state["pending_task"]["before_sha256"],"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False,"task_packet":task_packet(state["plan"],index,index),"source_support":state.get("last_task_support"),"disposition":"source_changed" if changed else "existing_source_supported" if state.get("last_task_support") else "no_change"}
                 state["task_receipts"]=[r for r in state.get("task_receipts",[]) if r["task"]!=index+1]+[receipt]
+                finish_task(state,after_task)
                 self.trace(state, "task_saved", receipt)
                 if not changed:self.event(state,"Task saved with no source changes. This is not evidence that its requested behavior was implemented.")
                 self.save(state)

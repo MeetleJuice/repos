@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 import zipfile
 
+from .calibration import read_calibration
 from .core import Workbench, ACTIVE
 from .history import totals_for
 from .models import connection_info
@@ -177,12 +178,17 @@ def make_server(port=8765, workbench=None, credentials=None):
                     if not local.get('connected') or local_model not in local.get('models', []):
                         raise ValueError('Connect Ollama and select an installed local model first.')
                 self.json(cloud.select(body.get('models'), body.get('limits'), local_model, body.get('order'), body.get('timeouts'), body.get('structured'))); return
+            if path == '/api/local/calibrate' and post:
+                model=body.get('model')
+                installed=connection_info().get('ollama',{}).get('models',[])
+                if not isinstance(model,str) or model not in installed or 'embed' in model.lower():raise ValueError('Choose an installed local chat/coding model. Start Ollama if none are listed.')
+                self.json(bench.calibrate_local(model));return
             if path == "/api/connections" and not post:
                 from .browser_runner import diagnostics
                 runtime = runtime_diagnostics()
                 provider_info = connection_info()
                 local_info.update(provider_info.get("ollama",{}))
-                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
+                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured, "local_calibration":read_calibration(bench.root.parent/"local-calibration-v1.json")})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:
@@ -194,6 +200,9 @@ def make_server(port=8765, workbench=None, credentials=None):
                 self.json(bench.present(ident))
                 return
             action = pieces[-1]
+            if action == 'resume-baseline' and post:
+                if body.get('confirm') is not True:raise ValueError('Explicit confirmation is required to keep these source changes as the resume baseline.')
+                self.json(bench.adopt_resume_baseline(ident));return
             if action == "workflow" and not post:
                 self.json(bench.workflow(ident)); return
             if action == "history" and not post:

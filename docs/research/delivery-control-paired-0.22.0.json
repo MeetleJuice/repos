@@ -1,0 +1,48 @@
+[
+  {
+    "version": "0.21.0",
+    "scope": "controlled adapter replay; no live models or generated-app execution",
+    "before_resume": {
+      "status": "stopped",
+      "cursor": 0,
+      "adapter_calls": 2
+    },
+    "after_resume": {
+      "status": "error",
+      "cursor": 0,
+      "adapter_calls": 3,
+      "source_preserved": true,
+      "behavior_executed": false
+    },
+    "isolated_budget_probe": {
+      "payload_utf8_bytes": 30157,
+      "reservation_eligible": false,
+      "context_tokens": 16384,
+      "output_cap": 8192,
+      "excluded": "Production CODE/system prompt, framing, live model and GPU execution; not billed tokens."
+    }
+  },
+  {
+    "version": "0.22.0",
+    "scope": "controlled adapter replay; no live models or generated-app execution",
+    "before_resume": {
+      "status": "stopped",
+      "cursor": 0,
+      "adapter_calls": 2
+    },
+    "after_resume": {
+      "status": "generated",
+      "cursor": 1,
+      "adapter_calls": 2,
+      "source_preserved": true,
+      "behavior_executed": false
+    },
+    "isolated_budget_probe": {
+      "payload_utf8_bytes": 855,
+      "reservation_eligible": true,
+      "context_tokens": 16384,
+      "output_cap": 8192,
+      "excluded": "Production CODE/system prompt, framing, live model and GPU execution; not billed tokens."
+    }
+  }
+]

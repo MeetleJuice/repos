@@ -13,10 +13,24 @@ async function refreshWorkflow(id) {
     if (!response.ok) throw new Error("Could not load workflow facts (HTTP "+response.status+").");
     const data = await response.json();
     if (sequence !== workflowRequest || current?.id !== id) return;
-    const signature = id + JSON.stringify(data);
+    const signature = id + current.status + JSON.stringify(data);
     if (signature === workflowSignature) return;
     workflowSignature = signature;
     $("workflow-summary").textContent = data.next_step;
+    const board=data.task_board;
+    if (board) {
+      $("task-board-summary").textContent="Context: "+(board.context_policy==="focused_v1"?"approved focused packets with bounded source reads":"full source")+". "+board.meaning;
+      $("resume-warning").textContent=board.resume_problem || (board.candidate_waiting?"A saved task candidate is ready for inspection on resume.":"");
+      $("adopt-resume").hidden=!board.adopt_allowed;
+      $("adopt-resume").disabled=activeStatuses.has(current.status);
+      $("task-board-list").replaceChildren();
+      for (const task of board.tasks) {
+        const li=document.createElement("li"),title=document.createElement("strong"),detail=document.createElement("small");
+        title.textContent=task.title+" — "+task.state;
+        detail.textContent=(task.files.length?"Files: "+task.files.join(", ")+". ":"")+(task.blocked_by.length?"Needs saved tasks "+task.blocked_by.join(", ")+". ":"")+(task.milestone_current?"Current approved HTTP prefix passed. ":task.milestone_evidence?"Historical milestone evidence; current checks may be pending. ":"")+"Declared criteria: "+(task.criteria.join("; ")||"legacy plan");
+        li.append(title,detail);$("task-board-list").append(li);
+      }
+    }
     $("workflow-categories").replaceChildren();
     for (const category of data.categories) {
       const card=document.createElement("article"); card.className="workflow-card";
@@ -48,3 +62,12 @@ async function refreshWorkflow(id) {
     if (workflowPending?.controller === controller) workflowPending = null;
   }
 }
+
+window.addEventListener("DOMContentLoaded",()=>{
+  $("adopt-resume").onclick=handle(async()=>{
+    if (!current || activeStatuses.has(current.status)) return;
+    await api("/api/projects/"+current.id+"/resume-baseline",{confirm:true});
+    workflowSignature="";
+    await openProject(current.id);
+  });
+});

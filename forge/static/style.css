@@ -1749,3 +1749,13 @@ a:focus-visible {
 .workflow-card h4 {font-size:12px;color:#9bb7d2;margin:0 0 10px;}
 .workflow-card strong {font-size:14px;}.workflow-card p {font-size:12px;line-height:1.5;color:#b9c5d4;}
 #workflow-warnings {white-space:pre-line;}#workflow-coverage li,#workflow-receipts li {overflow-wrap:anywhere;margin:8px 0;}
+
+/* Delivery facts stay readable without pushing controls off the workbench. */
+#task-board {margin:12px 0;padding:12px;border:1px solid #304054;border-radius:12px;background:#111c2b;}
+#task-board summary,#local-calibration summary {cursor:pointer;font-weight:650;}
+#task-board-list {max-height:22rem;overflow:auto;padding-left:22px;}
+#task-board-list li {padding:9px 4px;border-bottom:1px solid #26354a;overflow-wrap:anywhere;}
+#task-board-list small {display:block;margin-top:5px;color:#b9c5d4;line-height:1.5;}
+#resume-warning {color:#ffd58a;}
+#local-calibration {padding:12px;margin:12px 0;border:1px solid #304054;border-radius:10px;}
+#calibration-model {max-width:100%;}

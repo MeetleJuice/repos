@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 from .reporting import OWNED, evidence_status
+from .execution import task_board
 
 
 def ownership_warnings(plan: dict[str, Any]) -> list[dict[str, Any]]:
@@ -48,7 +49,7 @@ def workflow_snapshot(state: dict[str, Any], files: dict[str, str]) -> dict[str,
             {'id':'generation','name':'3 · Build & recovery','state':f'{saved}/{tasks} tasks saved','detail':f"{len(receipts)} task change receipts available. Static checks do not prove behavior.",'action':'build'},
             {'id':'verification','name':'4 · Verification','state':'Accepted' if fresh['accepted_current'] else 'Manual review' if fresh['automated_evidence_current'] else 'Not currently verified','detail':f"Manual: {passed} passed, {failed} failed, {manual_total-passed-failed} pending. Automated evidence: {'current' if fresh['automated_evidence_current'] else 'absent or stale'}.",'action':'build'},
             {'id':'delivery','name':'5 · Workspace & delivery','state':'Verified snapshot' if fresh['accepted_current'] else 'Unverified snapshot','detail':f'{len(files)} project files. Export includes a readable handoff guide and source-bound evidence.','action':'files'}],
-        'next_step':next_step,'coverage':coverage(plan),'ownership_warnings':ownership_warnings(plan),
+        'task_board':task_board(state,files),'next_step':next_step,'coverage':coverage(plan),'ownership_warnings':ownership_warnings(plan),
         'task_receipts':receipts,'receipt_coverage':{'available':len(receipts),'saved_tasks':saved,'meaning':'Receipts exist only for tasks saved after this feature was introduced; no legacy changes are inferred.'},
         'evidence':fresh,'manual':{'required':manual_total,'passed':passed,'failed':failed,'pending':manual_total-passed-failed,'observations_current':observations_current},
         'meaning':'Controller facts and declared coverage; no new model requests, app execution, approvals or acceptance results.'}

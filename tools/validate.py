@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-TYPED = ('contracts planning routing schemas models evidence edits cloud credentials handoffs capabilities context history reporting providers model_status build_contract workflow http_io tasks circuit').split()
+TYPED = ('contracts planning routing schemas models evidence edits cloud credentials handoffs capabilities context history reporting providers model_status build_contract workflow http_io tasks circuit execution focus calibration').split()
 
 
 def run(args, cwd=ROOT):
@@ -23,7 +23,7 @@ def main():
     run(['-m','unittest','discover','-q'])
     if args.types:run(['-m','mypy','--strict',*['forge/'+name+'.py' for name in TYPED]])
     if args.browser:
-        for name in ('workflow_overview','task_contract','hybrid_execution','model_activity','automatic_routing','proposal_import','upgrade','arcade'):
+        for name in ('workflow_overview','task_contract','hybrid_execution','delivery_control','model_activity','automatic_routing','proposal_import','upgrade','arcade'):
             run(['tests/browser_'+name+'_check.py'])
     if args.package:
         run(['package.py'])

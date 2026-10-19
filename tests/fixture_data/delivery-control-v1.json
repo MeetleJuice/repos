@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "baseline": "ba5bd36 / v0.21.0",
+  "provenance": "Synthetic scenarios frozen before implementation, based on research and observed Foundry task/routing failures; no live model success claims.",
+  "cases": [
+    "task-ready versus saved-source versus current verification",
+    "approved focused context preserves file values and exposes omitted-file manifest",
+    "bounded context retrieval and invalid requests",
+    "local calibration runs only explicit fixed local cases",
+    "candidate saved before interruption resumes without another implementation call",
+    "changed source/plan blocks silent resume",
+    "explicit source-baseline adoption never advances task cursor",
+    "milestone evidence is source-bound and prefix-limited",
+    "no additional reviewer calls by default"
+  ]
+}
