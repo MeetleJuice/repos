@@ -65,3 +65,22 @@ def task_document(plan: dict[str,Any]) -> str:
                           '   Dependencies: '+(', '.join('Task '+str(n+1) for n in task['depends_on']) or 'none'),
                           *['   Done when: '+criterion for criterion in task['done_when']]])
     return '\n'.join(lines)+'\n'
+
+
+def existing_task_evidence(response: Any, current: dict[str,str], packet: dict[str,Any] | None) -> dict[str,Any] | None:
+    """Check quoted source only. Never infer behavior or execute generated code."""
+    if not isinstance(response,dict) or 'already_satisfied' not in response:return None
+    if not packet or not packet.get('structured'):raise ValueError('Existing-work claims require a structured task packet.')
+    if set(response)-{'already_satisfied','summary'}:raise ValueError('Existing-work claim cannot be mixed with files or edits.')
+    claim=response['already_satisfied']
+    if not isinstance(claim,dict) or set(claim)!={'reason','evidence'}:raise ValueError('Existing-work claim needs reason and evidence only.')
+    reason=claim['reason'];evidence=claim['evidence']
+    if not isinstance(reason,str) or not 20<=len(reason.strip())<=1000:raise ValueError('Explain existing work in 20–1000 characters.')
+    if not isinstance(evidence,list) or not 1<=len(evidence)<=4:raise ValueError('Cite 1–4 exact source excerpts for existing work.')
+    for item in evidence:
+        if not isinstance(item,dict) or set(item)!={'file','contains'}:raise ValueError('Each source reference needs file and contains.')
+        name=item['file'];snippet=item['contains']
+        if not isinstance(name,str) or name not in packet['files'] or name not in current:raise ValueError('Cite an existing file inside the approved task scope.')
+        if not isinstance(snippet,str) or not 20<=len(snippet.strip())<=500 or snippet not in current[name]:raise ValueError('Source evidence must match an actual 20–500 character excerpt; do not guess.')
+    return {'kind':'existing_source_supported','reason':reason,'evidence':copy.deepcopy(evidence),
+            'behavior_verified':False,'note':'Quoted source exists. Semantics and acceptance remain unverified until execution/manual checks.'}

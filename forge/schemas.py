@@ -1,4 +1,6 @@
 """Small native Ollama JSON schemas. Semantic correctness is reviewed separately."""
+from typing import Any
+
 INDEXES = {'type': 'array', 'items': {'type': 'integer'}}
 PLAN_SCHEMA = {
     'type': 'object',
@@ -28,9 +30,11 @@ PLAN_SCHEMA = {
                                          'required_fields': {'type': 'array', 'items': {'type': 'string'}}}}},
     },
 }
-CODE_SCHEMA = {'type': 'object', 'anyOf': [{'required': ['files']}, {'required': ['edits']}], 'properties': {
+CODE_SCHEMA: dict[str, Any] = {'type': 'object', 'anyOf': [{'required': ['files']}, {'required': ['edits']}, {'required':['already_satisfied']}], 'properties': {
+    'already_satisfied': {'type':'object','required':['reason','evidence'],'properties':{'reason':{'type':'string'},'evidence':{'type':'array','items':{'type':'object','required':['file','contains'],'properties':{'file':{'type':'string'},'contains':{'type':'string'}}}}}},
     'summary': {'type': 'string'}, 'files': {'type': 'object', 'additionalProperties': {'type': 'string'}},
     'edits': {'type': 'array', 'maxItems': 12, 'items': {'type': 'object', 'required': ['file', 'search', 'replace'], 'additionalProperties': False, 'properties': {key: {'type': 'string'} for key in ['file', 'search', 'replace']}}}}}
 
-COMPLETE_CODE_SCHEMA = {'type': 'object', 'required': ['files'], 'additionalProperties': False, 'properties': {
+COMPLETE_CODE_SCHEMA = {'type': 'object', 'anyOf':[{'required':['files']},{'required':['already_satisfied']}], 'additionalProperties': False, 'properties': {
+    'already_satisfied': CODE_SCHEMA['properties']['already_satisfied'],
     'summary': {'type': 'string'}, 'files': {'type': 'object', 'minProperties': 1, 'additionalProperties': {'type': 'string'}}}}

@@ -160,7 +160,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     raise ValueError("Finish or stop running jobs before changing cloud setup.")
                 if path.endswith('/import'):
                     result = credentials.import_text(body.get('text'))
-                    cloud.checked = {}; bench.provider_cooldowns.clear(); bench.model_status.reset()
+                    cloud.checked = {}; bench.provider_cooldowns.clear(); bench.transport_circuit.reset(); bench.model_status.reset()
                     self.json(result); return
                 if path.endswith('/reload'):
                     result = credentials.reload()
@@ -170,7 +170,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.json(cloud.check()); return
                 if path.endswith('/automatic'):
                     local_info.update(connection_info()['ollama'])
-                    self.json(cloud.automatic(local_info.get('models',[]),bench.model_status.avoid)); return
+                    self.json(cloud.automatic(local_info.get('models',[]),bench.model_status.avoid,body.get('mode','cloud_first'))); return
                 local_model = body.get('local_model', '')
                 if local_model:
                     local = connection_info()['ollama']
@@ -182,7 +182,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                 runtime = runtime_diagnostics()
                 provider_info = connection_info()
                 local_info.update(provider_info.get("ollama",{}))
-                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
+                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:

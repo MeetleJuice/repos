@@ -37,7 +37,7 @@ async function refreshWorkflow(id) {
     $("workflow-warnings").textContent=data.ownership_warnings.map(w=>"Task "+w.task+": "+w.files.join(", ")+". "+w.message).join("\n") || "No protected file references found in task text.";
     $("workflow-receipts").replaceChildren();
     for (const receipt of data.task_receipts) {
-      const item=document.createElement("li");item.textContent="Task "+receipt.task+": "+(receipt.changed_files.join(", ")||"no source changes")+". Behavioral verification is separate.";
+      const item=document.createElement("li");item.textContent="Task "+receipt.task+": "+(receipt.disposition === "existing_source_supported" ? "existing source cited; verification pending" : (receipt.changed_files.join(", ")||"no source changes"))+". Behavioral verification is separate.";
       $("workflow-receipts").append(item);
     }
   } catch (error) {

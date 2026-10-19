@@ -19,7 +19,8 @@ from typing import Any, Callable
 from .workflow import workflow_snapshot, delivery_guide
 from .model_status import ModelStatus
 from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
-from .tasks import task_packet, validate_task_response, task_document
+from .tasks import task_packet, validate_task_response, task_document, existing_task_evidence
+from .circuit import TransportCircuit
 from .models import output_contract, ModelClient, ModelError
 from . import history, __version__
 from .reporting import OWNED, evidence_status, file_manifest
@@ -68,6 +69,7 @@ class Workbench:
         self.lock = threading.RLock()
         self.inference_lock = threading.Lock()
         self.provider_cooldowns = {}
+        self.transport_circuit = TransportCircuit()
         self.model_status = ModelStatus()
         self.jobs = {}
         self.warnings = []
@@ -247,6 +249,10 @@ class Workbench:
                 if selected["provider"] != "ollama" and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
                 identity = (selected["provider"], selected["model"])
+                if pool and self.transport_circuit.remaining(selected['provider'])>0:
+                    self.event(state,'Skipping '+selected['provider']+' during its temporary transport/service circuit cooldown; no request sent.')
+                    failures.append(selected['provider']+': temporary transport/service circuit cooldown (no request sent)')
+                    continue
                 rejected = state.get("job_model_rejections", {})
                 if rejected.get(selected["provider"] + "/" + selected["model"]):
                     self.event(state, "Skipping model already rejected during this job: " + selected["provider"] + "/" + selected["model"] + ".")
@@ -310,6 +316,7 @@ class Workbench:
                     state["job_inference_attempts"] = state.get("job_inference_attempts", 0) + 1
                     self.model_status.start(selected["provider"], selected["model"], role)
                     result = client.complete(system, effective_prompt)
+                    self.transport_circuit.success(selected["provider"])
                     if cancel.is_set(): raise InterruptedError("Stopped. Model output discarded.")
                     if review_candidate is not None:
                         result, review_result = review_candidate(result)
@@ -338,6 +345,9 @@ class Workbench:
                         self.event(state, "Response received from " + selected["provider"] + "/" + selected["model"] + ".")
                     return result
                 except ModelError as exc:
+                    if exc.category in {'transport','provider'}:self.transport_circuit.failure(selected['provider'])
+                    elif exc.category not in {'output_budget','configuration'}:self.transport_circuit.success(selected['provider'])
+                    if exc.http_status is not None:record["http_status"]=exc.http_status
                     category = 'truncated_output' if exc.category in {'truncated','truncated_output'} else exc.category
                     record['error_category'] = category
                     record['failure_class'] = category if category in {'truncated_output','parse_error','schema_error','output_budget','configuration'} else 'parse_error' if category == 'format' else 'provider_unavailable' if category in {'auth','rate_limit','provider','transport','quota','request','model','configuration'} else category
@@ -378,9 +388,9 @@ class Workbench:
                         if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model", "configuration", "format", "parse_error", "size"}:
                             raise
                         failures.append(selected["provider"] + ": " + exc.category)
-                        if exc.retry_after:
-                            self.provider_cooldowns[identity] = time.monotonic() + exc.retry_after
-                        self.event(state, selected["provider"] + " request failed (" + exc.category + "). " + ("Trying the next configured tier." if index + 1 < len(choices) else "No more configured tiers."))
+                        if exc.retry_after or exc.category == 'rate_limit':
+                            self.provider_cooldowns[identity] = time.monotonic() + (exc.retry_after or 30)
+                        self.event(state, selected["provider"] + " request failed (" + exc.category + (" HTTP " + str(exc.http_status) if exc.http_status else "") + "). " + ("Trying the next configured tier." if index + 1 < len(choices) else "No more configured tiers."))
                         continue
                     if is_fallback or not allow_fallback or not config.get("fallback"):
                         raise
@@ -857,6 +867,7 @@ class Workbench:
 
     def generate_and_apply(self, state, payload, cancel, repair=False):
         """One bounded correction for malformed code responses; rejected files never land."""
+        state.pop("last_task_support",None)
         payload = generation_contract(payload,self.files(state["id"]))
         for attempt in range(2):
             try:
@@ -871,6 +882,12 @@ class Workbench:
                 try:
                     if attempt and (not isinstance(response, dict) or response.get("edits")):
                         raise ValueError("Response recovery requires complete changed files, not more exact edits.")
+                    support=existing_task_evidence(response,self.files(state["id"]),payload.get("task_packet"))
+                    if support:
+                        state['last_task_support']=support
+                        self.trace(state,'task_existing_source_supported',support)
+                        self.event(state,'Task source references checked; no files changed. Behavioral verification remains pending.')
+                        return
                     response,ignored=remove_unchanged_owned_echoes(response,self.files(state["id"]))
                     validate_task_response(response,self.files(state["id"]),payload.get("task_packet"))
                     self.apply(state, response, repair=repair)
@@ -898,7 +915,7 @@ class Workbench:
             stats["rejected_responses"] = stats.get("rejected_responses", 0) + 1
             payload = {**payload, "response_validation_error": error, "response_mode": "complete_files",
                        "files": self.context_files(state["id"]),
-                       "instruction": "The previous response was rejected and no file was changed. Recover by returning a nonempty files object with COMPLETE changed source files and optional summary. Do not return edits, diffs, ellipses or an empty object. Read the current source supplied here; repair the original reported problem, preserve frozen tests and approved checks. This overrides the earlier preference for edits."}
+                       "instruction": "The previous response was rejected and no file was changed. Recover by returning a nonempty files object with COMPLETE changed source files and optional summary. Do not return edits, diffs, ellipses or an empty object. Read the current source supplied here; repair the original reported problem, preserve frozen tests and approved checks. For a structured task already implemented, you may instead return already_satisfied with a reason and exact current-source evidence. Never invent an unnecessary edit. This overrides the earlier preference for edits."}
 
     def _inspect_and_repair(self, state, cancel, remaining, complete=True):
         for attempt in range(remaining + 1):
@@ -1110,7 +1127,7 @@ class Workbench:
                 state["next_task"] = index + 1
                 after_task = self.context_files(state["id"])
                 changed = sorted(name for name in set(before_task)|set(after_task) if before_task.get(name)!=after_task.get(name))
-                receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":fingerprint(before_task),"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False,"task_packet":task_packet(state["plan"],index,index)}
+                receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":fingerprint(before_task),"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False,"task_packet":task_packet(state["plan"],index,index),"source_support":state.get("last_task_support"),"disposition":"source_changed" if changed else "existing_source_supported" if state.get("last_task_support") else "no_change"}
                 state["task_receipts"]=[r for r in state.get("task_receipts",[]) if r["task"]!=index+1]+[receipt]
                 self.trace(state, "task_saved", receipt)
                 if not changed:self.event(state,"Task saved with no source changes. This is not evidence that its requested behavior was implemented.")

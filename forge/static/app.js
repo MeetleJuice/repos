@@ -316,6 +316,8 @@ function render() {
   if (Number.isInteger(lastRequest?.requested_max_output_tokens))
     $("model-usage").textContent +=
       ` Output reservation: ${lastRequest.requested_max_output_tokens} tokens; recovery: ${lastRequest.recovery_path || "initial"}; finish: ${lastRequest.finish_reason || "not reported"}.`;
+  if (lastRequest?.provider === "ollama" && Number.isFinite(lastRequest.ollama_eval_seconds))
+    $("model-usage").textContent += ` Local timing: load ${lastRequest.ollama_load_seconds ?? "unknown"}s, generation ${lastRequest.ollama_eval_seconds}s, ${lastRequest.ollama_tokens_per_second ?? "unknown"} output tokens/s (Ollama-reported).`;
   const measured = (p.model_calls || []).filter(
     (c) =>
       Number.isInteger(c.prompt_tokens) ||
@@ -1196,7 +1198,7 @@ async function loadHistory() {
       description.className = "history-description";
       if (data.message) description.textContent = data.message;
       else if (record.kind === "model_attempt")
-        description.textContent = `${data.role || "Model"}: ${data.provider}/${data.model} · ${data.success ? "Response accepted as JSON" : data.failure_class || "Failed"} · ${data.seconds ?? "?"}s · ${data.recovery_path || "initial"}`;
+        description.textContent = `${data.role || "Model"}: ${data.provider}/${data.model} · ${data.success ? "Response accepted as JSON" : data.failure_class || "Failed"} · ${data.seconds ?? "?"}s${data.http_status ? " · HTTP " + data.http_status : ""} · ${data.recovery_path || "initial"}`;
       else if (record.kind === "files_committed")
         description.textContent = `Saved ${(data.changed_files || []).map((f) => f.file).join(", ")}. Previous source is checkpointed.`;
       else if (record.kind === "job_started")

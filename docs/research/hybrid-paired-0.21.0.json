@@ -1,0 +1,22 @@
+[
+  {
+    "version": "0.20.0",
+    "scope": "synthetic source-support replay, no live models or generated-code execution",
+    "status": "error",
+    "saved_tasks": 1,
+    "source_preserved": true,
+    "behavior_verified": false,
+    "last_disposition": null,
+    "error": "Model must return 1\u201324 complete source files or exact edits."
+  },
+  {
+    "version": "0.21.0",
+    "scope": "synthetic source-support replay, no live models or generated-code execution",
+    "status": "generated",
+    "saved_tasks": 2,
+    "source_preserved": true,
+    "behavior_verified": false,
+    "last_disposition": "existing_source_supported",
+    "error": null
+  }
+]

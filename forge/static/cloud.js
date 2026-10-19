@@ -21,6 +21,7 @@ function cloudHandle(fn) {
 }
 function renderCloudSetup(info) {
   const credentials = info.credentials || {};
+  if (info.routing_mode) $("routing-mode").value=info.routing_mode;
   const present = Object.values(credentials.keys || {}).filter(Boolean).length;
   $("cloud-env-status").textContent =
     `${present}/${Object.keys(credentials.keys || {}).length || 7} API keys detected. Preferred private file: ${credentials.path || "not available"}.` +
@@ -234,7 +235,7 @@ $("cloud-auto").onclick = cloudHandle(async () => {
   $("cloud-auto").disabled = true;
   try {
     $("cloud-feedback").textContent = "Discovering available models and preparing automatic planner and builder routes…";
-    const profile = await api("/api/cloud/automatic", {});
+    const profile = await api("/api/cloud/automatic", {mode:$("routing-mode").value});
     await applyCloudProfile(profile, false);
     if (current && !activeStatuses.has(current.status)) await applyCloudProfile(profile, true);
     await connections();

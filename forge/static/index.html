@@ -641,6 +641,14 @@ Generated files will appear here after approval.</pre
       </p>
       <section aria-labelledby="cloud-setup-title">
         <h3 id="cloud-setup-title">Automatic model studio</h3>
+        <label for="routing-mode">Automatic routing mode</label>
+        <select id="routing-mode">
+          <option value="hybrid">Hybrid · cloud planner, local coder first</option>
+          <option value="cloud_first">Cloud first · local fallback last</option>
+          <option value="local_first">Local first · cloud fallback</option>
+          <option value="local_only">Local only · no cloud requests</option>
+        </select>
+        <p>Local requests still need enough context/output capacity. Installed does not prove GPU fit. Existing routes change only when you apply setup.</p>
         <button id="cloud-auto" class="primary">Set up models automatically</button>
         <p>Use your imported keys and installed Ollama models. Foundry discovers model IDs and builds separate planner and builder routes, including alternate models. Applies to new projects and the open idle project. No generation runs until you grant cloud consent. Paid models may incur charges. Missing provider setup is skipped.</p>
         <p>

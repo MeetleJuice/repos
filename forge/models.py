@@ -23,7 +23,8 @@ from .providers import PROVIDERS as PROVIDERS, endpoint, key_for
 
 
 class ModelError(ValueError):
-    def __init__(self, message: str, category: str = "format", retry_after: int = 0, partial_content: str = "") -> None:
+    def __init__(self, message: str, category: str = "format", retry_after: int = 0, partial_content: str = "", http_status: int | None = None) -> None:
+        self.http_status=http_status if type(http_status) is int and 100<=http_status<=599 else None
         self.partial_content = partial_content
         self.category = category
         self.retry_after = retry_after
@@ -50,7 +51,7 @@ def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[
         if exc.fp is not None:
             exc.close()
         category = "rate_limit" if exc.code == 429 else "auth" if exc.code in {401, 403} else "quota" if exc.code == 402 else "model" if exc.code == 404 else "request" if exc.code == 400 else "provider"
-        raise ModelError(f"Provider returned HTTP {exc.code}. Check the key, model access, quota and service availability.", category, retry) from None
+        raise ModelError(f"Provider returned HTTP {exc.code}. Check the key, model access, quota and service availability.", category, retry, http_status=exc.code) from None
     except TimeoutError as exc:
         raise ModelError("Model request timed out or exceeded its elapsed response-read budget. Trying another configured model may help.", "transport") from exc
     except (OSError, http.client.HTTPException) as exc:
@@ -124,7 +125,7 @@ class ModelClient:
                 messages.append({"role":"user","content":"Emit the minimum viable SCHEMA-COMPLETE proposal. Keep all required fields, full task instructions, acceptance checks, feature indexes and requested behavior. Use short strings and few focused tasks. Omit explanatory prose; do not omit checks, invent a skeleton schema or weaken approval scope. Return a fresh complete JSON object."})
         complete_recovery = system == CODE and json.loads(prompt).get("response_mode") == "complete_files"
         if complete_recovery:
-            messages[0]["content"] += "\nRESPONSE RECOVERY: Return a nonempty files object containing COMPLETE changed source files and optional summary. Do not return edits, diffs or ellipses. Read the current source in the request. This recovery requirement overrides the earlier preference for exact edits."
+            messages[0]["content"] += "\nRESPONSE RECOVERY: Return a nonempty files object containing COMPLETE changed source files and optional summary. Do not return edits, diffs or ellipses. Read the current source in the request. For structured tasks with no needed changes, the explicit already_satisfied source-evidence response is also allowed; do not invent a change. This recovery requirement overrides the earlier preference for exact edits."
         if system == CODE and (directive := execution_directive(json.loads(prompt))):
             messages.append({"role":"user","content":directive})
         self.last_metadata.update(input_characters=sum(len(m['content']) for m in messages),
@@ -169,6 +170,10 @@ class ModelClient:
             }, timeout=self.options['timeout_seconds'])
             self._identity(result)
             self.last_usage = {label: result[key] for key, label in [("prompt_eval_count", "prompt_tokens"), ("eval_count", "completion_tokens")] if type(result.get(key)) is int and result[key] >= 0}
+            for source,target in [('load_duration','ollama_load_seconds'),('eval_duration','ollama_eval_seconds'),('prompt_eval_duration','ollama_prompt_seconds')]:
+                if type(result.get(source)) is int and 0<=result[source]<=10**15:self.last_metadata[target]=round(result[source]/1_000_000_000,3)
+            if self.last_metadata.get('ollama_eval_seconds',0)>0 and type(result.get('eval_count')) is int and 0<=result['eval_count']<=1_000_000_000:
+                self.last_metadata['ollama_tokens_per_second']=round(result['eval_count']/self.last_metadata['ollama_eval_seconds'],2)
             self._finish(result.get("done_reason"), result.get("message", {}).get("content", "") if isinstance(result.get("message"),dict) else "")
             message = result.get("message")
             if not isinstance(message, dict):

@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.20.0",
+  "version": "0.21.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.20.0.zip",
-  "sha256": "2dbf54d0853930718c720844354e01586fc72a8bd273fe1a82f9e8fe6e55818f",
-  "notes": "Bounded task contracts: new planner schema includes outcomes, 1\u20133 editable files, earlier-task dependencies and completion criteria. Up to 16 focused tasks, dependency validation, atomic execution scope enforcement, explicit task packets and receipts. Remove the final-task catch-all instruction. Legacy approvals remain unchanged; tests and consent stay protected."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.21.0.zip",
+  "sha256": "37a7592f30651f5dda6c34015db94464caa4958551a3b9b14b22f8cc79b08356",
+  "notes": "Hybrid execution: explicit cloud-first, hybrid, local-first and local-only routing; coding-specialist local selection; temporary repeated-transport circuits; source-supported existing-task responses without invented edits; pending verification remains explicit. Local inference timing is recorded. Existing routes, source, approvals and frozen checks preserved until you apply setup."
 }

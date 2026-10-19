@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "baseline": "8fe8f1a / v0.20.0",
+  "provenance": "Frozen before implementation. Synthetic replay derived from Quest Board log; no source files/raw rejected responses supplied.",
+  "cases": [
+    "local coder participates before cloud in explicit hybrid mode",
+    "cloud-first historical default remains compatible",
+    "embedding and vision models excluded from coding",
+    "source-supported existing work advances without invented edits or execution evidence",
+    "uncited or false no-change claims rejected",
+    "repeated transport failures open temporary provider circuit",
+    "success and dotenv reload clear transport circuit"
+  ],
+  "not_proven": [
+    "semantic correctness from snippets",
+    "local GPU fit",
+    "live provider quota",
+    "model repair quality"
+  ]
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5",
+    "bytes": 54614
+  },
+  {
+    "url": "https://raw.githubusercontent.com/groq/groq-python/main/README.md",
+    "sha256": "fbe2d274b599ac6cb9bf4a201bd80301f8274edfa3f6e6718da6794afc1473ae",
+    "bytes": 15749
+  },
+  {
+    "url": "https://raw.githubusercontent.com/github/spec-kit/main/templates/tasks-template.md",
+    "sha256": "1e448e9153462e8c5b5a55231a54c756d870a82950d4dd9425a2bf5b7008a0d9",
+    "bytes": 9182
+  },
+  {
+    "url": "https://raw.githubusercontent.com/googleapis/python-genai/main/README.md",
+    "sha256": "66952d47594d7a9c588782f57cb02d04fa4fd27b108112fd06b036234cdebc34",
+    "bytes": 56828,
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/OpenRouterTeam/typescript-sdk/main/README.md",
+    "sha256": "3c911c1f989444d8115407e1b6ccff80a67c8581a973c0e133c6261c380c77bd",
+    "bytes": 6719,
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/huggingface/huggingface_hub/main/docs/source/en/guides/inference.md",
+    "sha256": "fd2a799ff89eb6cc2f2d0a347bce428028bab594cffcf319738c222fb8035d42",
+    "bytes": 33297,
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/cloudflare/cloudflare-python/main/README.md",
+    "sha256": "15b4aef66b9b0bd61c6c6485d67a01bd24c452774d6031832c6fce0e1b7113f6",
+    "bytes": 15226,
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/NVIDIA/GenerativeAIExamples/main/README.md",
+    "sha256": "2aeef697a532e46ed287fe35b4250ff922ce64aa5b301e4f8ffb3fabc4bbbfd1",
+    "bytes": 11056,
+    "partial": false
+  },
+  {
+    "url": "https://raw.githubusercontent.com/requestyai/requesty-python/main/README.md",
+    "unavailable": "HTTPError"
+  }
+]

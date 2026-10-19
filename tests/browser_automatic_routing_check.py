@@ -32,6 +32,7 @@ def main():
                 page.goto('http://127.0.0.1:'+str(server.server_port))
                 page.locator('#connections-button').click()
                 expect(page.locator('#cloud-advanced')).not_to_have_attribute('open','')
+                page.locator('#routing-mode').select_option('cloud_first')
                 page.locator('#cloud-auto').click()
                 expect(page.locator('#cloud-feedback')).to_contain_text('Automatic routes ready',timeout=15000)
                 assert not models.calls
