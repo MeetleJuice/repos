@@ -80,6 +80,7 @@ function updateCloud() {
   const models = selectedModels();
   document.querySelector(".cloud-option").hidden =
     !Object.values(models).some(cloudModel);
+  if (typeof refreshStudio === "function") refreshStudio();
 }
 function tab(name) {
   document.querySelectorAll("[data-tab]").forEach((b) => {
@@ -171,6 +172,8 @@ function render() {
   if (!current) return;
   const p = current,
     busy = activeStatuses.has(p.status);
+  if (typeof refreshStudio === "function") refreshStudio();
+  if (typeof observeStudioJob === "function") observeStudioJob(p);
   refreshWorkflow(p.id);
   $("breadcrumb").textContent = p.title;
   $("project-title").textContent = p.title;
@@ -490,9 +493,11 @@ async function connections() {
   const info = await api("/api/connections");
   if (sequence !== connectionSequence) return;
   lastConnectionInfo = info;
-  // Restore server-persisted automatic defaults in a fresh browser, without inference.
-  if (!localStorage.getItem("foundry-models") && info.automatic_routes?.planner && info.automatic_routes?.coder) {
-    const profile = info.automatic_routes;
+  if (typeof refreshStudio === "function") refreshStudio();
+  // Restore validated server defaults without inference; explicit browser choices win.
+  const savedRoutes = info.saved_routes || info.automatic_routes;
+  if (!localStorage.getItem("foundry-models") && savedRoutes?.planner && savedRoutes?.coder) {
+    const profile = savedRoutes;
     for (const role of ["planner", "coder"]) {
       $(role+"-provider").value = profile[role].provider;
       $(role+"-model").value = profile[role].model;
@@ -570,6 +575,7 @@ $("idea-form").onsubmit = handle(async () => {
 });
 $("new-project").onclick = handle(async () => {
   current = null;
+  if (typeof refreshStudio === "function") refreshStudio();
   lastPlan = "";
   $("create-view").hidden = false;
   $("project-view").hidden = true;

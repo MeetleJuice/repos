@@ -1,0 +1,35 @@
+[
+  {
+    "name": "ollama-faq",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/faq.mdx",
+    "sha256": "e3630684676a21219abc7cb6c17db53993412c194ba9c108c8dbae2f30318e0c",
+    "bytes": 18143,
+    "retrieved_utc": "2026-10-19"
+  },
+  {
+    "name": "web-audio",
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/api/web_audio_api/best_practices/index.md",
+    "sha256": "85987e50724b90d07a7c437a9690b71995dc5f0fc3ceccdbb1516d43a55fd56b",
+    "bytes": 8419,
+    "retrieved_utc": "2026-10-19"
+  },
+  {
+    "name": "reduced-motion",
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/css/@media/prefers-reduced-motion/index.md",
+    "error": "HTTPError"
+  },
+  {
+    "name": "details",
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/html/reference/elements/details/index.md",
+    "sha256": "9774d52bab6c1051ccb00b030d68dc6ed394fe3143fd49ea7e9af452efb12d9c",
+    "bytes": 10021,
+    "retrieved_utc": "2026-10-19"
+  },
+  {
+    "name": "reduced-motion-current",
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/css/reference/at-rules/@media/prefers-reduced-motion/index.md",
+    "bytes": 5730,
+    "sha256": "e88b5fe5612a99f88ec00200bb13e656adf643b9f69ca95b6b7125bc65414a0b",
+    "retrieved_utc": "2026-10-19"
+  }
+]

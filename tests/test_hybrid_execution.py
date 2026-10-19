@@ -43,7 +43,12 @@ class HybridExecutionTests(unittest.TestCase):
             first=setup.automatic(local,mode='local_first');self.assertEqual(first['planner']['provider'],'ollama')
             with patch.object(setup,'check') as check:
                 only=setup.automatic(local,mode='local_only');check.assert_not_called()
-            self.assertTrue(all(c['provider']=='ollama' and not c.get('fallbacks') for c in only.values()))
+            for config in only.values():
+                entries=[config,*config.get('fallbacks',[])]
+                self.assertEqual(len(entries),2)
+                self.assertTrue(all(c['provider']=='ollama' for c in entries))
+                self.assertEqual(len({c['model'] for c in entries}),2)
+            self.assertEqual(CloudSetup(d).automatic_routes,only)
             with self.assertRaises(ValueError):setup.automatic(local,mode={})
 
     def test_source_claim_requires_real_scoped_excerpts_not_behavior_claims(self):

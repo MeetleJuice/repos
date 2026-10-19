@@ -112,7 +112,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
                 elif path == "/icon.png":
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "image/png")
-                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/activity.js", "/workflow.js", "/style.css"}:
+                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/activity.js", "/workflow.js", "/studio.js", "/studio.css", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
                     self.json({"error": "Not found."}, 404)
@@ -188,7 +188,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                 runtime = runtime_diagnostics()
                 provider_info = connection_info()
                 local_info.update(provider_info.get("ollama",{}))
-                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured, "local_calibration":read_calibration(bench.root.parent/"local-calibration-v1.json")})
+                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "saved_routes":cloud.saved_profiles(), "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured, "local_calibration":read_calibration(bench.root.parent/"local-calibration-v1.json")})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:

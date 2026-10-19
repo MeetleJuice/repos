@@ -30,7 +30,7 @@ def main():
                 page=browser.new_page(viewport={'width':1280,'height':1000});errors=[]
                 page.on('pageerror',lambda e:errors.append(str(e)))
                 page.goto(f'http://127.0.0.1:{server.server_port}')
-                page.locator('#connections-button').click();page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
+                page.locator('#connections-button').click();page.locator('#studio-keys').evaluate('(e)=>e.open=true');page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
                 expect(page.locator('#cloud-env-status')).to_contain_text('0/7 API keys')
                 content='\ufeffGEMINI_API_KEY=fixture-gemini\nGROQ_API_KEY=fixture-groq\nOPENROUTER_KEY=fixture-router\n'
                 page.locator('#cloud-env-file').set_input_files({'name':'.env.txt','mimeType':'text/plain','buffer':content.encode('utf-16le')})
@@ -41,7 +41,13 @@ def main():
                 expect(page.locator('#cloud-model-gemini')).to_have_value('gemini-2.5-flash',timeout=10000)
                 expect(page.locator('#cloud-model-groq')).to_have_value('llama-3.3-70b-versatile')
                 page.locator('#cloud-new').click()
-                expect(page.locator('#cloud-feedback')).to_contain_text('Cloud route applied')
+                fresh=browser.new_page()
+                fresh.goto(f'http://127.0.0.1:{server.server_port}')
+                expect(fresh.locator('#planner-provider')).to_have_value('gemini',timeout=10000)
+                expect(fresh.locator('#planner-model')).to_have_value(page.locator('#cloud-model-gemini').input_value())
+                expect(fresh.locator('#studio-route-cards')).to_contain_text('openrouter')
+                fresh.close()
+                expect(page.locator('#cloud-feedback')).to_contain_text('Route applied')
                 assert len(models.calls)==0
                 page.locator('#close-connections').click()
                 page.reload()
@@ -76,10 +82,10 @@ def main():
                 info=page.request.get(f'http://127.0.0.1:{server.server_port}/api/connections',headers={'X-Foundry-Token':token}).text()
                 assert all(key not in info for key in KEYS.values())
                 before=bench.files(state['id']);calls=len(models.calls)
-                page.locator('#connections-button').click();page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
+                page.locator('#connections-button').click();page.locator('#studio-keys').evaluate('(e)=>e.open=true');page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
                 page.locator('#cloud-limit-groq').select_option('2048')
                 page.locator('#cloud-project').click()
-                expect(page.locator('#cloud-feedback')).to_contain_text('Cloud route applied')
+                expect(page.locator('#cloud-feedback')).to_contain_text('Route applied')
                 changed=bench.load(state['id'])
                 assert changed['coder']['fallbacks'][0]['options']['num_predict']==2048
                 assert changed['approved'] and changed['plan']==state['plan']

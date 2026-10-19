@@ -29,7 +29,7 @@ function renderCloudSetup(info) {
   const measurement=info.local_calibration;
   if (measurement?.cases) $("calibration-feedback").textContent=measurement.model+": "+measurement.cases.map(c=>c.name+" "+(c.passed?"passed":"failed")+" ("+c.seconds+"s)").join("; ")+". Fixed 4K cases only; project capacity and GPU fit remain unproven.";
 
-  if (info.routing_mode) $("routing-mode").value=info.routing_mode;
+  if (info.routing_mode) $("routing-mode").value=info.routing_mode === "manual" ? "hybrid" : info.routing_mode;
   const present = Object.values(credentials.keys || {}).filter(Boolean).length;
   $("cloud-env-status").textContent =
     `${present}/${Object.keys(credentials.keys || {}).length || 7} API keys detected. Preferred private file: ${credentials.path || "not available"}.` +
@@ -231,7 +231,8 @@ async function applyCloudProfile(profile, project, ident = current?.id) {
     $("create-cloud").checked = false;
   }
   $("cloud-feedback").textContent =
-    `Cloud route applied: ${routeLabel(profile.coder)}. No generation started. Approve cloud use when starting the job.`;
+    `Route applied: ${routeLabel(profile.coder)}. No generation started. Cloud use requires separate consent.`;
+  if (typeof refreshStudio === "function") refreshStudio();
 }
 $("cloud-new").onclick = cloudHandle(() => applyCloud(false));
 $("cloud-project").onclick = cloudHandle(() => applyCloud(true));
@@ -239,17 +240,35 @@ window.addEventListener("DOMContentLoaded", () => {
   if (lastConnectionInfo) renderCloudSetup(lastConnectionInfo);
 });
 
-$("cloud-auto").onclick = cloudHandle(async () => {
-  $("cloud-auto").disabled = true;
+let studioSetupRunning = false;
+async function setupAutomaticModels(mode) {
+  if (studioSetupRunning) return;
+  studioSetupRunning = true;
+  const ident = current?.id;
+  for (const id of ["cloud-auto", "preset-local", "preset-hybrid", "studio-local"]) $(id).disabled = true;
   try {
-    $("cloud-feedback").textContent = "Discovering available models and preparing automatic planner and builder routes…";
-    const profile = await api("/api/cloud/automatic", {mode:$("routing-mode").value});
+    $("cloud-feedback").textContent = mode === "local_only"
+      ? "Finding installed Ollama models. No cloud catalogue or generation requests…"
+      : "Discovering model IDs and preparing planner and builder routes. No generation requests…";
+    const profile = await api("/api/cloud/automatic", {mode});
     await applyCloudProfile(profile, false);
-    if (current && !activeStatuses.has(current.status)) await applyCloudProfile(profile, true);
+    let applied = false;
+    if (ident && current?.id === ident && !activeStatuses.has(current.status)) {
+      await applyCloudProfile(profile, true, ident);
+      applied = true;
+    }
     await connections();
-    $("cloud-feedback").textContent = "Automatic routes ready for new projects" + (current ? " and this project" : "") + ". Model failures and invalid proposals advance through the route. Generation still requires cloud consent; paid models may incur charges. Catalogue access does not prove generation quota.";
-  } finally { $("cloud-auto").disabled = false; }
-});
+    const scope = applied ? " and this project" : "";
+    $("cloud-feedback").textContent = "Automatic routes ready for new projects" + scope + ". " +
+      (mode === "local_only" ? "Local only: no cloud fallback or cloud generation. Context limits still apply." : "Cloud generation still requires consent; paid models may incur charges. Catalogue access does not prove quota.") +
+      (ident && !applied ? " The open project was not changed; apply again while it is idle." : "");
+    if (typeof refreshStudio === "function") refreshStudio();
+  } finally {
+    studioSetupRunning = false;
+    for (const id of ["cloud-auto", "preset-local", "preset-hybrid", "studio-local"]) $(id).disabled = false;
+  }
+}
+$("cloud-auto").onclick = cloudHandle(() => setupAutomaticModels($("routing-mode").value));
 
 $("calibrate-local").onclick=cloudHandle(async()=>{
   $("calibrate-local").disabled=true;

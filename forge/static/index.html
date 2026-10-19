@@ -15,6 +15,8 @@
     <script src="/activity.js" defer></script>
     <script src="/cloud.js" defer></script>
     <script src="/updates.js" defer></script>
+    <script src="/studio.js" defer></script>
+    <link rel="stylesheet" href="/studio.css" />
   </head>
   <body>
     <aside class="sidebar">
@@ -54,12 +56,16 @@
         <div class="topbar-actions">
           <button id="update-button" class="update-button">↻ Update</button
           ><button id="connections-button" class="quiet">Models</button
-          ><button id="workspace-button" class="quiet">
+          ><button id="sound-toggle" class="quiet" aria-pressed="false" title="Optional completion sounds">Sound off</button><button id="workspace-button" class="quiet">
             Workspace & backups
           </button>
         </div>
       </header>
       <div id="notice" role="status" hidden></div>
+      <section id="studio-strip" aria-label="Applied model routes">
+        <div><span class="eyebrow">YOUR MODEL STUDIO</span><strong id="studio-route-title">Checking your setup…</strong><p id="studio-route-note">Your saved routes stay in place until you apply a change.</p></div>
+        <div class="studio-strip-actions"><button id="studio-local" class="secondary" type="button">Use only this PC</button><button id="studio-settings" class="quiet" type="button">Manage models →</button></div>
+      </section>
       <section id="create-view">
         <div class="workspace-summary">
           <span id="workspace-version">Idea Foundry</span
@@ -593,7 +599,7 @@ Generated files will appear here after approval.</pre
         are kept. Cloud use still requires consent before inference.
       </p>
       <button id="project-route-setup" type="button" class="secondary">
-        Choose checked cloud models and optional local fallback
+        Open model studio · automatic routes & local-only mode
       </button>
       <form id="model-form">
         <div class="model-grid">
@@ -633,7 +639,7 @@ Generated files will appear here after approval.</pre
     </dialog>
     <dialog id="connections">
       <div class="results-heading">
-        <h2>Your model connections</h2>
+        <h2>Your model studio</h2>
         <button
           id="close-connections"
           class="quiet"
@@ -642,12 +648,14 @@ Generated files will appear here after approval.</pre
           ✕
         </button>
       </div>
-      <p>
-        Ollama runs on your computer. Optional API keys belong in your local
-        <code>.env</code> file; restart the workbench after editing it.
-      </p>
+      <p class="studio-lead">A clear route from idea to working files. Choose where the work happens; your saved projects stay intact.</p>
+      <div class="studio-presets" aria-label="Quick model setup">
+        <button id="preset-local" type="button"><span class="preset-symbol" aria-hidden="true">⌂</span><strong>Just this computer</strong><small>Cloud quota used up? Use installed Ollama models. No cloud fallback.</small></button>
+        <button id="preset-hybrid" type="button"><span class="preset-symbol" aria-hidden="true">✦</span><strong>A little of both</strong><small>Cloud plans, local code first. Cloud fallbacks still require consent.</small></button>
+      </div>
+      <section class="studio-routes" aria-labelledby="studio-applied-title"><h3 id="studio-applied-title">Applied routes</h3><p id="studio-scope" class="muted"></p><div id="studio-route-cards"></div><p id="studio-route-warning" role="status"></p></section>
       <section aria-labelledby="cloud-setup-title">
-        <h3 id="cloud-setup-title">Automatic model studio</h3>
+        <h3 id="cloud-setup-title">Customize automatic setup</h3>
         <label for="routing-mode">Automatic routing mode</label>
         <select id="routing-mode">
           <option value="hybrid">Hybrid · cloud planner, local coder first</option>
@@ -666,6 +674,7 @@ Generated files will appear here after approval.</pre
         </details>
         <button id="cloud-auto" class="primary">Set up models automatically</button>
         <p>Use your imported keys and installed Ollama models. Foundry discovers model IDs and builds separate planner and builder routes, including alternate models. Applies to new projects and the open idle project. No generation runs until you grant cloud consent. Paid models may incur charges. Missing provider setup is skipped.</p>
+        <details class="studio-details" id="studio-keys"><summary>API keys & provider checks</summary>
         <p>
           Choose your Desktop .env file (a Notepad .env.txt also works). It is
           copied to your private Foundry workspace on this computer. Key values
@@ -681,6 +690,7 @@ Generated files will appear here after approval.</pre
           content or prove generation quota. Choose models below, then apply the
           cloud route. Generation can incur API charges.
         </p>
+        <details class="studio-details"><summary>How fallback and output limits work</summary>
         <p>
           Arrange provider cards with Earlier / Later; the first selected model
           is primary. Skipped providers receive no requests. Service, timeout
@@ -699,6 +709,8 @@ Generated files will appear here after approval.</pre
           Missing setup does not block other providers. Import the Desktop file
           again after edits.
         </p>
+        </details>
+        </details>
         <details id="cloud-advanced"><summary>Advanced model choices and manual routing</summary>
         <div id="cloud-providers"></div>
         <label for="cloud-local-model"
@@ -728,6 +740,12 @@ Generated files will appear here after approval.</pre
         verified it. Model names are entered explicitly. Automatic setup configures bounded routes; cloud consent is still required.
       </p>
       <button id="refresh-connections" class="secondary">Check again</button>
+      <details class="studio-details" id="studio-comfort"><summary>Appearance & gentle sounds</summary>
+        <label for="studio-accent">Studio accent</label><select id="studio-accent"><option value="cyan">Blue flame</option><option value="violet">Violet dusk</option><option value="mint">Quiet mint</option></select>
+        <label class="check-line"><input id="studio-sounds" type="checkbox" />Play a gentle cue when an observed job finishes or needs attention</label>
+        <label for="studio-volume">Sound volume</label><input id="studio-volume" type="range" min="0" max="100" value="25" />
+        <button id="studio-sound-test" class="secondary" type="button">Try sound</button><p id="studio-sound-status" role="status">Sounds are off by default. No downloads, microphone, or cloud connection.</p>
+      </details>
     </dialog>
 
     <dialog id="update-dialog" aria-labelledby="update-title">

@@ -37,7 +37,7 @@ class CloudSetup:
         self.structured = {p:True for p in ORDER}
         try:
             saved = json.loads(self.path.read_text(encoding='utf-8'))
-            if saved.get('mode') in {'cloud_first','hybrid','local_first','local_only'}:self.mode=saved['mode']
+            if saved.get('mode') in {'cloud_first','hybrid','local_first','local_only','manual'}:self.mode=saved['mode']
             if saved.get('automatic_routes'):
                 self.automatic_routes = {role:dict(validate_config(saved['automatic_routes'][role])) for role in ('planner','coder')}
             self.limits.update({p:n for p,n in saved.get('limits',{}).items() if p in ORDER and type(n) is int and n in {1024,2048,4096,8192,16384}})
@@ -127,10 +127,22 @@ class CloudSetup:
             result[provider] = model
         if not result: raise ValueError('No checked cloud models selected.')
         self.automatic_routes = {}
+        self.mode = 'manual'
         self.selected=result; self.local_model=local_model.strip(); self.order=list(order)
         self.limits.update(limits); self.timeouts.update(timeouts); self.structured.update(structured)
-        atomic_text(self.path,json.dumps({'models':result,'limits':self.limits,'local_model':self.local_model,'order':self.order,'timeouts':self.timeouts,'structured':self.structured},indent=2)+'\n')
+        atomic_text(self.path,json.dumps({'mode':self.mode,'models':result,'limits':self.limits,'local_model':self.local_model,'order':self.order,'timeouts':self.timeouts,'structured':self.structured},indent=2)+'\n')
         return {role:self.profile(role) for role in ('planner','coder')}
+
+    def saved_profiles(self) -> dict[str, Any]:
+        """Expose validated saved defaults for a fresh browser, including manual routes."""
+        if self.automatic_routes:
+            return self.automatic_routes
+        if self.selected:
+            try:
+                return {role:dict(validate_config(self.profile(role))) for role in ('planner','coder')}
+            except ValueError:
+                return {}
+        return {}
 
     def profile(self, role: str) -> dict[str, Any]:
         if self.automatic_routes:
@@ -189,11 +201,15 @@ class CloudSetup:
                     primary.append(configs[0]); alternates.extend(configs[1:])
             configs = primary + alternates
             if local:
-                local_config={'provider':'ollama','model':sorted(local,key=lambda m:((self.rank(m,role)[0]-100 if role=='coder' and 'coder' in m.lower() else self.rank(m,role)[0]),m))[0],
+                ranked_local = sorted(set(local), key=lambda m:((self.rank(m,role)[0]-100 if role=='coder' and 'coder' in m.lower() else self.rank(m,role)[0]),m))
+                local_configs = [{'provider':'ollama','model':model,
                     'options':{'num_ctx':32768,'num_predict':8192,'structured_outputs':True,'timeout_seconds':120}}
+                    for model in ranked_local[:2 if mode=='local_only' else 1]]
                 position=0 if mode in {'local_first','local_only'} or (mode=='hybrid' and role=='coder') else min(1,len(configs)) if mode=='hybrid' else len(configs)
-                configs.insert(position,local_config)
-            if not configs: raise ValueError('No eligible models discovered. Check key status or start Ollama. Missing Cloudflare Account ID can be left unconfigured.')
+                configs[position:position] = local_configs
+            if not configs:
+                if mode == 'local_only': raise ValueError('No eligible local models found. Start Ollama and install a text/chat or coding model, then try again. Cloud was not contacted.')
+                raise ValueError('No eligible models discovered. Check key status or start Ollama. Missing Cloudflare Account ID can be left unconfigured.')
             routes[role] = dict(validate_config({**configs[0], **({'fallbacks':configs[1:]} if len(configs)>1 else {})}))
         self.mode=mode
         self.automatic_routes = routes

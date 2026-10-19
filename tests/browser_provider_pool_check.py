@@ -32,7 +32,7 @@ def main():
             with sync_playwright() as p:
                 browser=p.chromium.launch(executable_path=shutil.which('chromium'));page=browser.new_page(viewport={'width':1440,'height':1000})
                 errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-                page.goto('http://127.0.0.1:'+str(server.server_port));page.locator('#connections-button').click();page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
+                page.goto('http://127.0.0.1:'+str(server.server_port));page.locator('#connections-button').click();page.locator('#studio-keys').evaluate('(e)=>e.open=true');page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
                 expect(page.locator('#cloud-env-status')).to_contain_text('0/7 API keys')
                 env='\n'.join(k+'='+v for k,v in ENV.items() if k!='CLOUDFLARE_ACCOUNT_ID')
                 page.locator('#cloud-env-file').set_input_files({'name':'.env.txt','mimeType':'text/plain','buffer':env.encode()})
@@ -49,7 +49,7 @@ def main():
                 assert order[0]=='nvidia'
                 page.locator('#cloud-timeout-nvidia').select_option('15')
                 page.locator('#cloud-json-nvidia').uncheck()
-                page.locator('#cloud-new').click();expect(page.locator('#cloud-feedback')).to_contain_text('Cloud route applied')
+                page.locator('#cloud-new').click();expect(page.locator('#cloud-feedback')).to_contain_text('Route applied')
                 page.locator('#close-connections').click();page.reload()
                 expect(page.locator('#planner-provider')).to_have_value('nvidia')
                 expect(page.locator('#planner-timeout')).to_have_value('15')
@@ -72,7 +72,7 @@ def main():
                     report=json.loads(archive.read('generated-app/BUILD-REPORT.json'))
                     assert report['evidence_status']['automated_evidence_current']
                     assert len(report['models']['coder']['fallbacks'])==6
-                page.locator('#connections-button').click();page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
+                page.locator('#connections-button').click();page.locator('#studio-keys').evaluate('(e)=>e.open=true');page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
                 expect(page.locator('#cloud-timeout-nvidia')).to_have_value('15')
                 page.set_viewport_size({'width':390,'height':844})
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')

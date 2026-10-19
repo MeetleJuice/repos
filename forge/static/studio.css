@@ -1,0 +1,51 @@
+/* Model studio v1. All type, colour, and sound assets remain local. */
+:root { --studio-accent:#69d7ff; --studio-accent-light:#b8eeff; --studio-glow:#123144; }
+:root[data-studio-accent="violet"] { --studio-accent:#c1a5ff; --studio-accent-light:#e6d9ff; --studio-glow:#29203c; }
+:root[data-studio-accent="mint"] { --studio-accent:#7be4be; --studio-accent-light:#c8ffe9; --studio-glow:#12352e; }
+:root { --green:var(--studio-accent); --lime:var(--studio-accent-light); }
+body { background:radial-gradient(ellipse at 85% 0%,var(--studio-glow),transparent 48%),#0c1119; }
+.primary,.update-button {background:var(--studio-accent);border-color:var(--studio-accent);color:#071923;}
+.primary:hover,.update-button:hover {background:var(--studio-accent-light);border-color:var(--studio-accent-light);}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible {outline:2px solid var(--studio-accent);outline-offset:4px;}
+#studio-strip {display:flex;justify-content:space-between;align-items:center;gap:18px;padding:18px 22px;margin:18px 0 24px;border:1px solid #304357;border-radius:18px;background:linear-gradient(110deg,var(--studio-glow),#121d2a 70%);box-shadow:0 12px 35px #00000012;}
+#studio-strip strong {display:block;font-size:17px;letter-spacing:-.25px;margin:3px 0;}
+#studio-strip p {margin:0;color:#b1c3d4;font-size:12px;max-width:64ch;}
+.studio-strip-actions {display:flex;gap:8px;flex-shrink:0;}
+#connections {max-width:840px;padding:28px;scrollbar-gutter:stable;}
+#connections .results-heading {position:sticky;top:-28px;z-index:2;background:var(--paper);padding:16px 0 12px;margin-top:-12px;border-bottom:1px solid var(--line);}
+#connections h2 {font-size:26px;letter-spacing:-.8px;margin:0;}
+.studio-lead {color:#b1c3d4;max-width:62ch;}
+.studio-presets {display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0;}
+.studio-presets button {padding:20px;text-align:left;border:1px solid #3a536b;border-radius:15px;background:linear-gradient(130deg,var(--studio-glow),#121d2b);color:var(--ink);}
+.studio-presets button:hover {border-color:var(--studio-accent);background:#1b2b3d;}
+.studio-presets strong,.studio-presets small {display:block;}
+.studio-presets strong {font-size:16px;margin:10px 0 7px;}
+.studio-presets small {font-size:12px;color:#bbcbdb;line-height:1.6;}
+.preset-symbol {font-size:24px;line-height:1;color:var(--studio-accent);}
+.studio-routes {padding:16px;background:#0c1520;border:1px solid var(--line);border-radius:15px;margin-bottom:20px;}
+.studio-routes h3 {margin-top:0;}
+#studio-route-cards {display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+.studio-route-card {padding:14px;border:1px solid #2c4055;border-radius:12px;background:#142131;min-width:0;}
+.studio-route-card h4 {margin:0 0 14px;color:var(--studio-accent-light);font-size:12px;overflow-wrap:anywhere;}
+.studio-route-card div+div {border-top:1px solid #304052;padding-top:13px;margin-top:13px;}
+.studio-route-card strong {font-size:11px;color:#b7c9d9;text-transform:uppercase;letter-spacing:.6px;}
+.studio-route-card p {margin:4px 0;font-size:13px;overflow-wrap:anywhere;}
+.studio-route-card small {display:block;max-height:7rem;overflow:auto;font-size:11px;color:#b6c6d6;overflow-wrap:anywhere;}
+#studio-route-warning {font-size:12px;color:#c7d7e6;margin-bottom:0;}
+.studio-details,#cloud-advanced {border-top:1px solid #304052;padding:15px 0;margin-top:8px;}
+.studio-details summary,#cloud-advanced summary {cursor:pointer;font-weight:650;min-height:30px;}
+#connection-list {display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:20px 0 10px;}
+#connection-list .connection-item {padding:12px;border:1px solid #2b3c50;border-radius:12px;margin:0;background:#111c29;min-width:0;}
+#connection-list .connection-item p {font-size:11px;line-height:1.6;overflow-wrap:anywhere;margin-bottom:0;}
+#connection-list .connection-item strong {font-size:12px;color:var(--studio-accent-light);}
+#studio-comfort label {display:block;margin-top:14px;}
+#studio-comfort .check-line {display:flex;}
+#studio-volume {accent-color:var(--studio-accent);padding:0;width:100%;}
+#sound-toggle[aria-pressed="true"] {color:var(--studio-accent-light);background:#22364a;}
+@media(max-width:1000px) {#studio-strip {align-items:flex-start;flex-direction:column;}.studio-strip-actions {flex-wrap:wrap;}}
+@media(max-width:600px) {#connections {padding:20px;width:calc(100% - 20px);}#connections .results-heading {top:-20px;}#connections h2 {font-size:22px;}.studio-presets,#studio-route-cards,#connection-list {grid-template-columns:minmax(0,1fr);}.studio-presets button {padding:16px;}#studio-strip {padding:16px;margin-top:12px;}.studio-strip-actions {width:100%;}.studio-strip-actions button {flex:1;}#model-status-panel {order:3;width:100%;}}
+@media(prefers-reduced-motion:reduce) {*,*::before,*::after {animation:none!important;transition:none!important;scroll-behavior:auto!important;}}
+
+/* Repair inherited light surfaces that made pale text unreadable. */
+.improve-panel,.execution-box {background:var(--paper);color:var(--ink);border-color:var(--line);}
+.improve-panel {box-shadow:0 10px 30px #00000012;}

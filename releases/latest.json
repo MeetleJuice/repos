@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.22.0",
+  "version": "0.23.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.22.0.zip",
-  "sha256": "42f5467dc3ee2cb07d70e9f06e6bb2f5b02b3e84cd1ba0f8c926bba40c7118eb",
-  "notes": "Delivery control: task readiness/evidence board, explicit focused-context plans with bounded source retrieval and observed interfaces, recoverable saved task candidates, source-drift detection and explicit baseline adoption, source-bound milestone receipts, optional local-only fixed calibration and clearer workflow guidance. Legacy plans retain full context; no extra reviewer calls by default."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.23.0.zip",
+  "sha256": "b2094a2743b51ca3c144963d21110fc8c2c390df71d7aa73042ff8acdca21f06",
+  "notes": "Model studio: one-click local-only and hybrid presets, separate applied route previews for new and current projects, up to two sequential local-only models, clearer setup feedback, fresh-browser restoration of manual defaults, expandable key/technical settings, blue/violet/mint accents, optional user-controlled completion cues and reduced-motion support. No automatic route migration, cloud consent or verification changes."
 }

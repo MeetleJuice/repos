@@ -1,10 +1,18 @@
-# Idea Foundry 0.22.0
+# Idea Foundry 0.23.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.23.0 a calmer model studio
+
+Cloud quota gone for the day? Click **Use only this PC**, or **Models → Just this computer**. This explicitly applies local-only routes for new projects and the open idle project, with up to two installed models tried sequentially. No cloud catalogues or cloud generation are requested by local-only setup. A missing/unsuitable local model leaves the previous setup in place. Local requests still need sufficient context and output capacity; installed models are not proven GPU fits.
+
+The model studio now separates new-project and current-project routes, with expandable key/provider and advanced settings. **A little of both** applies hybrid routing and still requires separate cloud consent for generation. Existing projects are not migrated on update.
+
+**Sound off** in the header is the default. Enable optional gentle job cues there, or use **Models → Appearance & gentle sounds** for volume, a test cue, and Blue flame / Violet dusk / Quiet mint accents. Preferences stay in this browser; audio needs a user gesture after reopening a tab. Cues indicate an observed job transition, never proof of app correctness. The interface respects reduced motion and uses no remote fonts or sound files. [Research and release details](docs/model-studio-0.23.0.md).
 
 ## 0.22.0 task delivery and recovery
 
