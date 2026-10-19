@@ -170,11 +170,11 @@ def make_server(port=8765, workbench=None, credentials=None):
                     local = connection_info()['ollama']
                     if not local.get('connected') or local_model not in local.get('models', []):
                         raise ValueError('Connect Ollama and select an installed local model first.')
-                self.json(cloud.select(body.get('models'), body.get('limits'), local_model)); return
+                self.json(cloud.select(body.get('models'), body.get('limits'), local_model, body.get('order'), body.get('timeouts'), body.get('structured'))); return
             if path == "/api/connections" and not post:
                 from .browser_runner import diagnostics
                 runtime = runtime_diagnostics()
-                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model})
+                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:

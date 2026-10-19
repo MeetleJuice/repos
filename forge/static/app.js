@@ -18,6 +18,10 @@ let current = null,
 const defaults = {
   ollama: "qwen3.5:9b",
   groq: "",
+  cloudflare: "",
+  nvidia: "",
+  requesty: "",
+  huggingface: "",
   openrouter: "",
   gemini: "gemini-2.5-flash",
 };
@@ -292,6 +296,9 @@ function render() {
   if (lastResponse)
     $("model-usage").textContent +=
       ` Last response: ${lastResponse.provider}/${lastResponse.model}.`;
+  if (lastResponse?.response_model)
+    $("model-usage").textContent +=
+      ` Provider-reported model: ${lastResponse.response_model}${lastResponse.response_provider ? " via " + lastResponse.response_provider : ""}.`;
   const lastRequest = (p.model_calls || []).at(-1);
   if (Number.isInteger(lastRequest?.input_characters))
     $("model-usage").textContent +=

@@ -1,10 +1,21 @@
-# Idea Foundry 0.14.0
+# Idea Foundry 0.15.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
-Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
+Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.15.0 seven-provider studio
+
+Import your Desktop .env again to recognize all seven supported cloud providers.
+**Models → Check cloud providers → select chat models → Earlier/Later → apply route.**
+Set provider socket timeouts and native JSON-format preferences. Cloudflare needs both a Workers AI
+token and an Account ID. Key/catalogue checks do not establish generation quota or JSON support.
+Eligible errors advance through configured providers without cooldown sleeps; hung requests must
+first time out. Truncation retains bounded same-model recovery and capacity-safe fallback.
+Compact planning can fit the full approval schema at the existing output floor when a conservative
+estimate would otherwise block the route. [Setup and testing](docs/RELEASE-0.15.0.md).
 
 ## 0.14.0 workflow history and evidence integrity
 

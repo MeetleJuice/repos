@@ -5,8 +5,9 @@ import re
 import uuid
 from typing import Any, Iterable
 
-KEYS = ('GEMINI_API_KEY', 'GROQ_API_KEY', 'OPENROUTER_API_KEY')
-ALLOWED = {*KEYS, 'OPENROUTER_KEY', 'OLLAMA_URL'}
+from .providers import KEYS, ALIASES, CONFIG_NAMES, environment_value
+
+ALLOWED = {*KEYS, *ALIASES, *CONFIG_NAMES, 'OLLAMA_URL'}
 
 
 def parse_dotenv(text: str) -> dict[str, str]:
@@ -29,8 +30,9 @@ def parse_dotenv(text: str) -> dict[str, str]:
             raise ValueError('A recognized .env entry contains unsupported characters.')
         if value and value not in {'...', 'YOUR_KEY', 'your-key-here'}:
             values[name] = value
-    if 'OPENROUTER_API_KEY' not in values and values.get('OPENROUTER_KEY'):
-        values['OPENROUTER_API_KEY'] = values['OPENROUTER_KEY']
+    for alias,canonical in ALIASES.items():
+        if canonical not in values and values.get(alias):
+            values[canonical] = values[alias]
     return values
 
 
@@ -78,12 +80,13 @@ class CredentialStore:
     def status(self) -> dict[str, Any]:
         return {'path': str(self.path), 'warnings': self.warnings, 'loaded_files': self.loaded_files,
                 'txt_warning': any(p.with_name('.env.txt').is_file() for p in self.paths),
-                'keys': {name: bool(os.getenv(name) or name == 'OPENROUTER_API_KEY' and os.getenv('OPENROUTER_KEY')) for name in KEYS}}
+                'keys': {name: bool(environment_value(name)) for name in KEYS},
+                'configuration': {name:bool(environment_value(name)) for name in CONFIG_NAMES}}
 
     def import_text(self, text: str) -> dict[str, Any]:
         if not isinstance(text, str): raise ValueError('Choose a plain-text .env file.')
-        values = {k:v for k,v in parse_dotenv(text).items() if k in KEYS}
-        if not values: raise ValueError('No nonempty Gemini, Groq or OpenRouter API keys were found.')
+        values = {k:v for k,v in parse_dotenv(text).items() if k in {*KEYS, *CONFIG_NAMES}}
+        if not values: raise ValueError('No recognized nonempty provider keys or Cloudflare account configuration were found.')
         existing = read_dotenv(self.path) if self.path.exists() else ''
         kept = [line for line in existing.splitlines() if line.strip().removeprefix('export ').split('=',1)[0].strip() not in values]
         content = '\n'.join(kept + [f'{k}="{v}"' for k,v in values.items()]) + '\n'

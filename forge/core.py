@@ -245,7 +245,7 @@ class Workbench:
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
                           "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, prompt),
                           "recovery_path": recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
-                          "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated, "transport_attempted":None}
+                          "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated, "transport_attempted":None, "timeout_seconds":selected.get("options", {}).get("timeout_seconds",120)}
                 started = time.monotonic()
                 client = None
                 try:
@@ -262,7 +262,16 @@ class Workbench:
                                 reserve = registry.reserve if role == 'planner' else registry.reserve_builder
                                 budget = reserve(selected['provider'],selected['model'],client.options,system+prefix,prompt)
                             except ValueError as exc:
-                                raise ModelError(str(exc),'output_budget') from None
+                                if role != 'planner': raise ModelError(str(exc),'output_budget') from None
+                                try:
+                                    budget = registry.reserve(selected['provider'],selected['model'],client.options,system+prefix,prompt,compact=True)
+                                except ValueError:
+                                    raise ModelError(str(exc),'output_budget') from None
+                                if recovery_mode == 'initial':
+                                    recovery_mode = 'budget_compaction'
+                                    record['recovery_path'] = recovery_mode
+                                record['budget_compacted'] = True
+                                self.event(state,'Estimated proposal exceeds capacity; reserving the unchanged output floor for a compact schema-complete proposal. No request content or checks were omitted.')
                             client.planner_budget = budget
                             client.recovery_mode, client.continuation_prefix = recovery_mode, prefix
                             record.update(requested_max_output_tokens=budget.max_output_tokens,
@@ -279,13 +288,13 @@ class Workbench:
                 except ModelError as exc:
                     category = 'truncated_output' if exc.category in {'truncated','truncated_output'} else exc.category
                     record['error_category'] = category
-                    record['failure_class'] = category if category in {'truncated_output','parse_error','schema_error','output_budget'} else 'parse_error' if category == 'format' else 'provider_unavailable' if category in {'auth','rate_limit','provider','transport','quota','request','model'} else category
+                    record['failure_class'] = category if category in {'truncated_output','parse_error','schema_error','output_budget','configuration'} else 'parse_error' if category == 'format' else 'provider_unavailable' if category in {'auth','rate_limit','provider','transport','quota','request','model','configuration'} else category
                     if category == 'truncated_output' or (role in {'planner', 'coder'} and recovery_mode == 'continuation' and category in {'format','parse_error','output_budget'}):
                         minimum_ceiling = max(minimum_ceiling, capability.max_output_tokens)
                         if role == "planner": state["planner_truncation_ceiling"] = minimum_ceiling
                         if role in {'planner', 'coder'} and recovery_mode != 'shortening':
                             partial = getattr(exc,'partial_content','')
-                            mode = 'continuation' if recovery_mode == 'initial' and partial else 'shortening'
+                            mode = 'continuation' if recovery_mode in {'initial','budget_compaction'} and partial else 'shortening'
                             choices.insert(index+1,(selected,is_fallback))
                             recoveries[index+1] = (mode,partial if mode == 'continuation' else '')
                             self.event(state,role.title()+' truncated_output recovery: '+mode+' on '+selected['provider']+'/'+selected['model']+'.')
@@ -299,11 +308,11 @@ class Workbench:
                     if category == 'output_budget':
                         budget_failed = True
                         failures.append(selected['provider']+': output_budget')
-                        self.event(state,'Planner reservation refused before inference; trying the next configured model without lowering the required budget.')
+                        self.event(state,role.title()+' reservation refused before inference; trying the next configured model without lowering the required budget.')
                         continue
                     if exc.retry_after: record["retry_after_seconds"] = exc.retry_after
                     if pool:
-                        if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model"}:
+                        if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model", "configuration", "format", "parse_error", "size"}:
                             raise
                         failures.append(selected["provider"] + ": " + exc.category)
                         if exc.retry_after:
@@ -329,7 +338,7 @@ class Workbench:
             if minimum_ceiling:
                 raise ModelError('Output remained truncated after bounded recovery. No eligible equal/larger configured fallback resolved it. '+ '; '.join(failures),'truncated_output')
             if budget_failed:
-                raise ModelError('No configured model can fit the planner output reservation. '+ '; '.join(failures),'output_budget')
+                raise ModelError('Configured route exhausted. Some models could not fit the output/context reservation; other provider failures are listed here: '+ '; '.join(failures),'output_budget')
             if pool:
                 raise ModelError("All configured models failed: " + "; ".join(failures), "exhausted")
         finally:

@@ -7,13 +7,14 @@ import os
 from pathlib import Path
 from typing import Any
 import uuid
+from .providers import SECRET_NAMES
 
 MAX_HISTORY_BYTES = 16_000_000
 
 
 def redact(value: Any) -> Any:
     if isinstance(value, str):
-        for name in ('GEMINI_API_KEY', 'GROQ_API_KEY', 'OPENROUTER_API_KEY', 'OPENROUTER_KEY'):
+        for name in SECRET_NAMES:
             secret = os.getenv(name)
             if secret:
                 value = value.replace(secret, '[redacted]')

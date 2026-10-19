@@ -133,7 +133,11 @@
                 <option value="ollama">Ollama · local</option>
                 <option value="groq">Groq</option>
                 <option value="openrouter">OpenRouter</option>
-                <option value="gemini">Gemini</option></select
+                <option value="gemini">Gemini</option>
+                <option value="cloudflare">Cloudflare Workers AI</option>
+                <option value="nvidia">NVIDIA NIM</option>
+                <option value="requesty">Requesty</option>
+                <option value="huggingface">Hugging Face</option></select
               ><label for="planner-model">Model</label
               ><input
                 id="planner-model"
@@ -149,7 +153,11 @@
                 <option value="ollama">Ollama · local</option>
                 <option value="groq">Groq</option>
                 <option value="openrouter">OpenRouter</option>
-                <option value="gemini">Gemini</option></select
+                <option value="gemini">Gemini</option>
+                <option value="cloudflare">Cloudflare Workers AI</option>
+                <option value="nvidia">NVIDIA NIM</option>
+                <option value="requesty">Requesty</option>
+                <option value="huggingface">Hugging Face</option></select
               ><label for="coder-model">Model</label
               ><input
                 id="coder-model"
@@ -580,7 +588,11 @@ Generated files will appear here after approval.</pre
               <option value="ollama">Ollama · local</option>
               <option value="groq">Groq</option>
               <option value="openrouter">OpenRouter</option>
-              <option value="gemini">Gemini</option></select
+              <option value="gemini">Gemini</option>
+              <option value="cloudflare">Cloudflare Workers AI</option>
+              <option value="nvidia">NVIDIA NIM</option>
+              <option value="requesty">Requesty</option>
+              <option value="huggingface">Hugging Face</option></select
             ><label for="project-planner-model">Model</label
             ><input id="project-planner-model" list="ollama-models" required />
           </fieldset>
@@ -591,7 +603,11 @@ Generated files will appear here after approval.</pre
               <option value="ollama">Ollama · local</option>
               <option value="groq">Groq</option>
               <option value="openrouter">OpenRouter</option>
-              <option value="gemini">Gemini</option></select
+              <option value="gemini">Gemini</option>
+              <option value="cloudflare">Cloudflare Workers AI</option>
+              <option value="nvidia">NVIDIA NIM</option>
+              <option value="requesty">Requesty</option>
+              <option value="huggingface">Hugging Face</option></select
             ><label for="project-coder-model">Model</label
             ><input id="project-coder-model" list="ollama-models" required />
           </fieldset>
@@ -632,16 +648,22 @@ Generated files will appear here after approval.</pre
           cloud route. Generation can incur API charges.
         </p>
         <p>
-          Route order: Gemini → Groq → OpenRouter → optional Ollama. Skipped
-          providers receive no requests. Planner and builder truncation try one
-          same-model continuation and one shortening before an
-          equal/larger-capacity fallback. Service failures can use the next
-          configured provider. Planner output reserves schema-derived room with
-          a minimum 8192 text tokens plus bounded thinking where supported; the
-          selected planner value is a floor, not a hard spending cap. Invalid
-          JSON gets a bounded correction. Builder caps reserve visible output
-          plus bounded thinking where supported. Cloud requests have a
-          120-second socket timeout.
+          Arrange provider cards with Earlier / Later; the first selected model
+          is primary. Skipped providers receive no requests. Service, timeout
+          and invalid-JSON failures move to the next configured provider without
+          sleeping. A hanging request must time out first. Truncation gets
+          bounded same-model recovery and never falls back to a smaller output
+          ceiling. Planner output reserves at least 8192 text tokens plus
+          supported thinking; compact planning can reduce an estimate without
+          dropping requirements or lowering your floor. Per-provider socket
+          timeouts are not an absolute whole-job deadline.
+        </p>
+        <p class="muted">
+          Cloudflare Workers AI needs both CLOUDFLARE_API_TOKEN and
+          CLOUDFLARE_ACCOUNT_ID in your local .env. A global Cloudflare API key
+          is not a Workers AI bearer token. Hugging Face accepts HF_TOKEN.
+          Missing setup does not block other providers. Import the Desktop file
+          again after edits.
         </p>
         <div id="cloud-providers"></div>
         <label for="cloud-local-model"

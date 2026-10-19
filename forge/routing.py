@@ -3,13 +3,17 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
-PROVIDER_NAMES = {'ollama', 'groq', 'openrouter', 'gemini'}
+from .providers import PROVIDERS
+
+PROVIDER_NAMES = set(PROVIDERS)
+MAX_FALLBACKS = len(PROVIDERS) - 1
 
 
 class ModelSettings(TypedDict):
     num_ctx: int
     num_predict: int
     structured_outputs: bool
+    timeout_seconds: int
 
 
 class ModelIdentity(TypedDict):
@@ -24,7 +28,7 @@ class ModelConfig(ModelIdentity, total=False):
 
 
 def validate_options(options: Any) -> ModelSettings:
-    if not isinstance(options, dict) or set(options) - {'num_ctx', 'num_predict', 'structured_outputs'}:
+    if not isinstance(options, dict) or set(options) - {'num_ctx', 'num_predict', 'structured_outputs', 'timeout_seconds'}:
         raise ValueError('Unsupported model settings.')
     context = options.get('num_ctx', 16384)
     output = options.get('num_predict', min(8192, context // 2) if type(context) is int else 8192)
@@ -35,7 +39,10 @@ def validate_options(options: Any) -> ModelSettings:
         raise ValueError('Output limit must be 1024/2048/4096/8192/16384 and smaller than context.')
     if type(structured) is not bool:
         raise ValueError('structured_outputs must be true or false.')
-    return {'num_ctx': context, 'num_predict': output, 'structured_outputs': structured}
+    timeout = options.get('timeout_seconds', 120)
+    if type(timeout) is not int or timeout not in {15,30,60,120}:
+        raise ValueError('Request timeout must be 15, 30, 60 or 120 seconds.')
+    return {'num_ctx': context, 'num_predict': output, 'structured_outputs': structured, 'timeout_seconds':timeout}
 
 
 def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
@@ -51,8 +58,8 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
         result['options'] = validate_options(config['options'])
     if 'fallbacks' in config:
         entries = config['fallbacks']
-        if not allow_fallback or 'fallback' in config or not isinstance(entries, list) or not 1 <= len(entries) <= 3:
-            raise ValueError('Choose either one legacy fallback or a flat list of one to three fallbacks.')
+        if not allow_fallback or 'fallback' in config or not isinstance(entries, list) or not 1 <= len(entries) <= MAX_FALLBACKS:
+            raise ValueError('Choose either one legacy fallback or a flat list of one to seven fallbacks.')
         chain = [validate_config(entry, allow_fallback=False) for entry in entries]
         identities = [(provider, model.strip()), *((entry['provider'], entry['model']) for entry in chain)]
         if len(set(identities)) != len(identities):

@@ -1,0 +1,323 @@
+{
+  "schema": 1,
+  "provenance": "User Tiny Colony proposal and manually reviewed correction; controlled response, not an actual provider generation. Frozen before release comparison.",
+  "baseline_version": "0.14.0",
+  "provider": "openrouter",
+  "model": "openrouter/free",
+  "request": {
+    "idea": "Build Tiny Colony ant simulation",
+    "previous_proposal": {
+      "title": "Tiny Colony",
+      "app_kind": "browser",
+      "summary": "Interactive ant-foraging simulation served by a Python stdlib HTTP server. One nest, 40 ants, food patches, obstacles, and a fading food-trail pheromone field. Tools for placing food, drawing/erasing obstacles. Controls: Pause/Resume, 1\u00d7/2\u00d7/4\u00d7 speed, Show Pheromones toggle, Reset with confirmation. Dark earthy theme with amber ants, green food, recognizable nest, translucent pheromone overlay. Mouse and touch input, narrow-screen friendly. Starting scene with two reachable food patches and short barriers. No external dependencies, no database, no save/load.",
+      "features": [
+        "Serve the local simulation (HTML/JS/CSS delivery via Python stdlib HTTP server)",
+        "Ant foraging behavior: wandering search, pheromone-following, food pickup, visible carry, nest deposit, pheromone deposition on return, search resume",
+        "Food accounting conservation: remaining food + carried food + stored food stays constant when no food is added or reset",
+        "Ant navigation around barriers: ants avoid obstacles, cannot cross them, recover from stuck states",
+        "Pheromone trails forming and fading over simulation time; Show Pheromones toggle hides overlay without disabling pheromone behavior",
+        "Pause/Resume freezes and continues the entire simulation (movement, decay, collection, deposits)",
+        "Speed controls (1\u00d7/2\u00d7/4\u00d7) change simulation rate consistently",
+        "Food placement (click/tap) and obstacle drawing/erasing (drag); obstacles cannot cover nest, food, or ants; no fully enclosed barriers",
+        "Reset with confirmation: cancellation changes nothing; confirmation restores initial colony, food, obstacles, counters, and controls without duplicate animation loops",
+        "Touch controls and narrow-screen layout: tools and controls usable on small viewports"
+      ],
+      "out_of_scope": [
+        "Ant reproduction, combat, rival colonies, weather",
+        "Completely enclosed barriers",
+        "Save/load persistence",
+        "Database or external services",
+        "External packages or downloaded assets",
+        "Authentication, deployment, multiplayer"
+      ],
+      "risks": [
+        "Gameplay behavior requires manual play-testing; HTTP checks only prove delivery",
+        "Canvas rendering and simulation loop must stay in sync across pause/speed/reset",
+        "Touch and mouse event handling must not conflict",
+        "Bounded timestep needed to avoid huge jumps after tab inactivity",
+        "Pheromone field storage must remain bounded",
+        "Reset must cleanly stop and restart the animation loop without duplicates"
+      ],
+      "tasks": [
+        {
+          "title": "Project structure and Python server with static file serving",
+          "instructions": "Create project directory layout: app.py (server with create_server(host, port) returning HTTPServer, main block with --host/--port), static/ for HTML/CSS/JS, tests/ for Python tests. Implement GET /health -> {\"status\":\"ok\"}, GET / -> index.html, GET /static/* -> serve files from static/. Add health and page delivery tests. Ensure server runs on stdlib only (http.server, socketserver, json, pathlib, mimetypes).",
+          "feature_indexes": [
+            0
+          ]
+        },
+        {
+          "title": "Core simulation engine: world, ants, nest, food, obstacles, pheromones",
+          "instructions": "In static/js/simulation.js implement: World class with fixed size, nest position, 40 ants, food patches (position, amount), obstacles (grid or segment list), pheromone field (2D array with fade). Ant class: state (searching/returning), position, velocity, carried food flag. Wandering movement with noise. Probabilistic pheromone following (stronger nearby trails favored). Food pickup: remove 1 unit from patch, set carrying=true. Returning: steer toward nest, avoid obstacles (raycast or grid check), deposit pheromone along path. Nest arrival: deposit carried unit, increment stored food, clear carrying, resume searching. Pheromone fade per simulation timestep. Bounded timestep (max dt) for tab-inactivity safety. Obstacle collision: ants slide along or bounce, with stuck recovery (random wiggle after N stuck frames). No enclosed barrier validation in this version (user draws short segments). Cap ants at 40, pheromone array bounded.",
+          "feature_indexes": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "title": "Canvas rendering: terrain, nest, food, ants, pheromone overlay, legend, counters",
+          "instructions": "In static/js/render.js implement draw(ctx, world, showPheromones): dark earthy background, nest (distinct shape), food patches (green, size ~ amount), ants (amber, carrying ants visually distinct e.g. brighter/larger), obstacles (dark barrier lines), optional translucent pheromone overlay (amber gradient by intensity). Top-left counters: Stored Food, Remaining Food, Carrying Ants, Total Ants (40). Small legend: ant colors, food, nest, obstacle, pheromone. Tool instructions line. Responsive canvas sizing (CSS size vs device pixels).",
+          "feature_indexes": [
+            1,
+            2,
+            3,
+            4,
+            7
+          ]
+        },
+        {
+          "title": "UI controls: tool buttons, speed, pause, pheromone toggle, reset with confirmation",
+          "instructions": "In static/js/ui.js and static/index.html: Toolbar with labeled buttons - Place Food, Draw Obstacle, Erase Obstacle (radio group, one active). Speed selector: 1\u00d7/2\u00d7/4\u00d7 (dropdown or buttons). Pause/Resume button (toggles). Show Pheromones checkbox. Reset button -> confirm dialog (native confirm or custom modal); on confirm, reinitialize world to starting scene (2 food patches, few short barriers, 40 ants at nest, zero stored food, clear pheromones), reset speed to 1\u00d7, pause off, pheromones shown, tool = Place Food. Ensure no duplicate requestAnimationFrame loops: single loop reference, cancel on reset before starting new. Controls stacked vertically on narrow screens (CSS flex/grid with media query).",
+          "feature_indexes": [
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "title": "Input handling: mouse and touch for tools, obstacle draw/erase, food placement",
+          "instructions": "In static/js/input.js: Track active tool. Place Food: click/tap -> add food patch at world coordinates (clamped, not on nest/obstacle/ant). Draw Obstacle: drag -> add short barrier segments (line segments or grid cells) along path; prevent drawing over nest, existing food, ants. Erase Obstacle: drag -> remove barrier segments intersecting path. Touch: treat single touch as pointer, prevent default scroll on canvas. Coordinate transform from screen to world (account for canvas CSS scale). Tool cursor feedback (crosshair, brush, eraser).",
+          "feature_indexes": [
+            7,
+            9
+          ]
+        },
+        {
+          "title": "Integration, starting scene, polish, and Python tests",
+          "instructions": "Wire simulation, render, ui, input in static/js/main.js: init world with starting scene (nest center, 2 food patches reachable, 3-4 short barrier segments), start animation loop (requestAnimationFrame with timestamp, compute dt = min(now - last, maxDt) * speedMultiplier, step simulation, render). Add CSS polish: dark theme, earthy palette, readable fonts, button states, narrow-screen layout. Write Python tests in tests/test_server.py: test_health, test_root_serves_html, test_static_assets_served. Run tests with python -m pytest or unittest. Verify no console errors.",
+          "feature_indexes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        }
+      ],
+      "checks": [
+        {
+          "name": "Health endpoint",
+          "method": "GET",
+          "path": "/health",
+          "status": 200,
+          "json_contains": {
+            "status": "ok"
+          },
+          "feature_indexes": [
+            0
+          ]
+        },
+        {
+          "name": "Root serves HTML with canvas",
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "contains": "<canvas",
+          "feature_indexes": [
+            0
+          ]
+        },
+        {
+          "name": "Static JS served",
+          "method": "GET",
+          "path": "/static/js/main.js",
+          "status": 200,
+          "contains": "requestAnimationFrame",
+          "feature_indexes": [
+            0
+          ]
+        },
+        {
+          "name": "Static CSS served",
+          "method": "GET",
+          "path": "/static/style.css",
+          "status": 200,
+          "contains": "canvas",
+          "feature_indexes": [
+            0
+          ]
+        }
+      ],
+      "manual_checks": [
+        {
+          "name": "Complete food round trip",
+          "steps": [
+            "Start simulation (unpaused, 1\u00d7)",
+            "Observe ants leaving nest",
+            "Wait for an ant to reach a food patch",
+            "Verify ant visually changes to carrying state",
+            "Watch ant return to nest",
+            "Verify stored food counter increments by 1",
+            "Verify ant resumes searching"
+          ],
+          "expected": "Ant picks up exactly one food unit, visibly carries it to nest, deposits it (stored food +1), and resumes searching. No food lost or duplicated.",
+          "feature_indexes": [
+            1
+          ]
+        },
+        {
+          "name": "Food accounting conservation",
+          "steps": [
+            "Note initial Remaining Food + Stored Food + Carrying Ants (each carrying ant = 1)",
+            "Let simulation run for several round trips without adding food or resetting",
+            "Periodically sum Remaining Food + Stored Food + Carrying Ants"
+          ],
+          "expected": "The sum remains constant throughout. Food is only transferred between patches, ants, and storage.",
+          "feature_indexes": [
+            2
+          ]
+        },
+        {
+          "name": "Ants navigate around barriers",
+          "steps": [
+            "Use Draw Obstacle to place a barrier segment between nest and a food patch",
+            "Observe ants approaching the barrier",
+            "Verify ants do not cross the barrier",
+            "Verify ants path around the barrier ends and reach food/nest"
+          ],
+          "expected": "Ants treat barriers as solid, slide along or turn away, and successfully navigate around segment ends to complete trips.",
+          "feature_indexes": [
+            3
+          ]
+        },
+        {
+          "name": "Pheromone trails form, fade, and toggle",
+          "steps": [
+            "Enable Show Pheromones",
+            "Let ants make several food trips",
+            "Observe amber trails forming on return paths",
+            "Wait and observe trails fading over time",
+            "Uncheck Show Pheromones",
+            "Verify overlay disappears but ants still follow trails (behavior unchanged)",
+            "Re-enable Show Pheromones, verify trails visible again"
+          ],
+          "expected": "Trails appear where returning ants deposit pheromone, fade gradually, toggle hides only the visual overlay not the underlying pheromone field.",
+          "feature_indexes": [
+            4
+          ]
+        },
+        {
+          "name": "Pause freezes simulation, Resume continues",
+          "steps": [
+            "Run simulation at 1\u00d7",
+            "Click Pause",
+            "Observe: ants stop moving, counters freeze, pheromones stop fading",
+            "Wait 5 seconds real time",
+            "Click Resume",
+            "Observe: simulation continues from exact state"
+          ],
+          "expected": "Pause halts all simulation updates (movement, decay, collection, deposits). Resume restores updates without time jump.",
+          "feature_indexes": [
+            5
+          ]
+        },
+        {
+          "name": "Speed controls change simulation rate",
+          "steps": [
+            "Set speed to 1\u00d7, note ant movement pace and pheromone fade rate",
+            "Set speed to 2\u00d7, observe roughly double pace",
+            "Set speed to 4\u00d7, observe roughly quadruple pace",
+            "Return to 1\u00d7, verify normal pace"
+          ],
+          "expected": "All simulation processes (movement, pheromone decay, food pickup/deposit) scale linearly with speed setting.",
+          "feature_indexes": [
+            6
+          ]
+        },
+        {
+          "name": "Food placement and obstacle drawing/erasing",
+          "steps": [
+            "Select Place Food, click empty area -> food patch appears",
+            "Select Draw Obstacle, drag -> barrier segment appears along drag path",
+            "Attempt to draw over nest/food/ant -> barrier not placed there",
+            "Select Erase Obstacle, drag over barrier -> barrier removed",
+            "Verify ants can now pass through erased gap"
+          ],
+          "expected": "Tools work as labeled. Obstacles respect protected entities. Erasing restores passable terrain.",
+          "feature_indexes": [
+            7
+          ]
+        },
+        {
+          "name": "Reset cancellation and confirmation",
+          "steps": [
+            "Modify scene: add food, draw barriers, let ants gather stored food",
+            "Click Reset, click Cancel in confirmation",
+            "Verify nothing changed (stored food, barriers, ants, speed, pause state)",
+            "Click Reset, click Confirm",
+            "Verify: 40 ants at nest, 2 initial food patches, initial barriers, stored food = 0, speed = 1\u00d7, pause off, pheromones shown, tool = Place Food, no duplicate animation loops"
+          ],
+          "expected": "Cancellation leaves state untouched. Confirmation fully restores initial scene and controls cleanly.",
+          "feature_indexes": [
+            8
+          ]
+        },
+        {
+          "name": "Touch controls and narrow-screen layout",
+          "steps": [
+            "Open in mobile viewport (or resize browser narrow)",
+            "Verify toolbar stacks vertically, buttons are tappable",
+            "Tap Place Food, tap canvas -> food placed",
+            "Tap Draw Obstacle, drag finger -> barrier drawn",
+            "Tap Erase Obstacle, drag finger -> barrier erased",
+            "Tap Pause/Resume, speed buttons, Show Pheromones, Reset -> all respond"
+          ],
+          "expected": "All tools and controls work via touch. Layout adapts to narrow width without horizontal scroll. No hover-only interactions.",
+          "feature_indexes": [
+            9
+          ]
+        }
+      ],
+      "api_contracts": [
+        {
+          "method": "GET",
+          "path": "/health",
+          "status": 200,
+          "response_kind": "object",
+          "required_fields": [
+            "status"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "response_kind": "text",
+          "required_fields": []
+        }
+      ]
+    },
+    "revision": "Keep all features. Use unittest, enforce separated barriers, BFS return paths, one animation loop, bounded substeps, paused reset cancellation and a 60-simulation-second delivery check."
+  },
+  "response": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "message": {
+          "content": "{\"title\": \"Tiny Colony\", \"app_kind\": \"browser\", \"summary\": \"Interactive ant-foraging simulation served by a Python stdlib HTTP server. One nest, 40 ants, food patches, obstacles, and a fading food-trail pheromone field. Tools for placing food, drawing/erasing obstacles. Controls: Pause/Resume, 1\\u00d7/2\\u00d7/4\\u00d7 speed, Show Pheromones toggle, Reset with confirmation. Dark earthy theme with amber ants, green food, recognizable nest, translucent pheromone overlay. Mouse and touch input, narrow-screen friendly. Starting scene with two reachable food patches and short barriers. No external dependencies, no database, no save/load.\", \"features\": [\"Serve the local simulation (HTML/JS/CSS delivery via Python stdlib HTTP server)\", \"Ant foraging behavior: wandering search, pheromone-following, food pickup, visible carry, nest deposit, pheromone deposition on return, search resume\", \"Food accounting conservation: remaining food + carried food + stored food stays constant when no food is added or reset\", \"Ant navigation around barriers: ants avoid obstacles, cannot cross them, recover from stuck states\", \"Pheromone trails forming and fading over simulation time; Show Pheromones toggle hides overlay without disabling pheromone behavior\", \"Pause/Resume freezes and continues the entire simulation (movement, decay, collection, deposits)\", \"Speed controls (1\\u00d7/2\\u00d7/4\\u00d7) change simulation rate consistently\", \"Food placement (click/tap) and obstacle drawing/erasing (drag); obstacles cannot cover nest, food, or ants; no fully enclosed barriers\", \"Reset with confirmation: cancellation changes nothing; confirmation restores initial colony, food, obstacles, counters, and controls without duplicate animation loops\", \"Touch controls and narrow-screen layout: tools and controls usable on small viewports\"], \"out_of_scope\": [\"Ant reproduction, combat, rival colonies, weather\", \"Completely enclosed barriers\", \"Save/load persistence\", \"Database or external services\", \"External packages or downloaded assets\", \"Authentication, deployment, multiplayer\"], \"risks\": [\"Gameplay behavior requires manual play-testing; HTTP checks only prove delivery\", \"Canvas rendering and simulation loop must stay in sync across pause/speed/reset\", \"Touch and mouse event handling must not conflict\", \"Bounded timestep needed to avoid huge jumps after tab inactivity\", \"Pheromone field storage must remain bounded\", \"The single animation loop must remain single across reset; returning ants require a valid clearance-aware navigation grid.\"], \"tasks\": [{\"title\": \"Project structure and Python server with static file serving\", \"instructions\": \"Create app.py with create_server(host, port), GET /health returning {\\\"status\\\":\\\"ok\\\"}, GET / serving static/index.html, and explicit safe serving for local static assets. Main accepts --host and --port. Use Python standard library only. Write discoverable root-level test_server.py using unittest to test real server health, HTML and assets; do not use pytest or a nested tests directory. Preserve the reviewed starter foundation test. Coordinate all filenames with the subsequent tasks.\", \"feature_indexes\": [0]}, {\"title\": \"Core simulation engine: world, ants, nest, food, obstacles, pheromones\", \"instructions\": \"Implement compact static/js/simulation.js: one nest, exactly 40 ants, finite food patches and a bounded grid for pheromones/navigation. Searching ants wander and probabilistically favor stronger nearby food trails while retaining exploration. Pickup subtracts exactly one food unit and marks the ant carrying one unit; only nest arrival increments stored food, clears carrying and resumes search. Food remaining + carrying + stored is conserved between user food additions/resets. Returning ants deposit food-trail pheromone and follow a BFS distance field from the nest, recomputed when obstacles change. Account for ant body clearance in blocked cells. Collision-check movement with bounded substeps at every speed; ants cannot cross obstacles or world edges. A random wiggle may recover local stalls but cannot replace obstacle-aware return navigation. Pheromone decay uses simulation dt; hiding its overlay never changes this field or search logic. Keep storage bounded. The initial reachable food positions and initial ant directions must support an actual pickup and nest deposit within 60 simulation seconds without user input; prove this through the manual check, not a self-report.\", \"feature_indexes\": [1, 2, 3, 4]}, {\"title\": \"Canvas rendering: terrain, nest, food, ants, pheromone overlay, legend, counters\", \"instructions\": \"In static/js/render.js implement draw(ctx, world, showPheromones): dark earthy background, nest (distinct shape), food patches (green, size ~ amount), ants (amber, carrying ants visually distinct e.g. brighter/larger), obstacles (dark barrier lines), optional translucent pheromone overlay (amber gradient by intensity). Top-left counters: Stored Food, Remaining Food, Carrying Ants, Total Ants (40). Small legend: ant colors, food, nest, obstacle, pheromone. Tool instructions line. Responsive canvas sizing (CSS size vs device pixels). Display elapsed simulation seconds so the 60-second starting-scene check is measurable. Keep rendering independent of simulation updates, including when paused. Maintain a clear world-to-canvas coordinate transform and a compact implementation.\", \"feature_indexes\": [1, 2, 3, 4, 7]}, {\"title\": \"UI controls: tool buttons, speed, pause, pheromone toggle, reset with confirmation\", \"instructions\": \"Implement toolbar and controls in static/js/ui.js and static/index.html: Place Food, Draw Obstacle, Erase Obstacle; Pause/Resume; 1x/2x/4x; Show Pheromones; Reset with confirmation. Reset cancellation preserves world, controls and prior pause state. Confirmed reset reinitializes the existing world to exactly 40 ants, two original food patches, original barriers, zero stored food, elapsed simulation seconds zero, speed 1x, unpaused, overlay shown and Place Food selected. Keep exactly one animation loop for the lifetime of the page; reset changes state without cancelling/restarting or adding animation loops. Keep controls and simulation state separate and mobile-friendly.\", \"feature_indexes\": [5, 6, 7, 8]}, {\"title\": \"Input handling: mouse and touch for tools, obstacle draw/erase, food placement\", \"instructions\": \"Implement pointer-based mouse/touch input in static/js/input.js with correct screen-to-world conversion and touch-action handling. Place Food adds a finite patch only on valid terrain. Each obstacle placement, including every drag update, must produce a short straight segment and validate it before committing. Reject segments touching/overlapping other barriers or the world boundary, and preserve navigable clearance between segments. Protect nest, food and ants with body-radius clearance. Reject placements that block nest-to-food navigation on the actual navigation grid. Barriers must remain separated rather than joining into closed loops; dragging can place a sequence of separated short segments. Eraser removes selected segments. Recompute nest BFS after successful obstacle changes. Keep starting barriers valid under the same rules.\", \"feature_indexes\": [7, 9]}, {\"title\": \"Integration, starting scene, polish, and Python tests\", \"instructions\": \"Integrate modules in static/js/main.js and finish compact CSS. Create one requestAnimationFrame loop only. Clamp elapsed real dt to avoid inactive-tab jumps, then apply speed and process it in bounded simulation substeps. While paused, continue refreshing the real-time reference but do not advance movement, pheromone decay, food transfers or simulation clock. Resume cannot catch up paused time. Initialize two reachable food patches and a few separated barriers with a delivery possible within 60 simulation seconds. Complete root-level unittest test_server.py for actual health, root and every local JS/CSS module; use unittest only. Verify source/static checks and run real server tests only through approved execution. Keep the whole implementation within Foundry limits and never claim browser/manual tests were run merely because files were generated.\", \"feature_indexes\": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]}], \"checks\": [{\"name\": \"Health endpoint\", \"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"json_contains\": {\"status\": \"ok\"}, \"feature_indexes\": [0]}, {\"name\": \"Root serves HTML with canvas\", \"method\": \"GET\", \"path\": \"/\", \"status\": 200, \"contains\": \"<canvas\", \"feature_indexes\": [0]}, {\"name\": \"Static JS served\", \"method\": \"GET\", \"path\": \"/static/js/main.js\", \"status\": 200, \"contains\": \"requestAnimationFrame\", \"feature_indexes\": [0]}, {\"name\": \"Static CSS served\", \"method\": \"GET\", \"path\": \"/static/style.css\", \"status\": 200, \"contains\": \"canvas\", \"feature_indexes\": [0]}], \"manual_checks\": [{\"name\": \"Complete food round trip\", \"steps\": [\"Reset to the original scene; leave speed 1x and unpaused.\", \"Observe the simulation clock and ants leaving the nest.\", \"Before 60 simulation seconds elapse, observe food pickup, visible carrying, return, a stored-food increment and the ant resuming search.\"], \"expected\": \"At least one real food pickup and nest delivery completes within 60 simulation seconds without user intervention. Each pickup/deposit transfers one unit without loss or duplication.\", \"feature_indexes\": [1]}, {\"name\": \"Food accounting conservation\", \"steps\": [\"Note initial Remaining Food + Stored Food + Carrying Ants (each carrying ant = 1)\", \"Let simulation run for several round trips without adding food or resetting\", \"Periodically sum Remaining Food + Stored Food + Carrying Ants\"], \"expected\": \"The sum remains constant throughout. Food is only transferred between patches, ants, and storage.\", \"feature_indexes\": [2]}, {\"name\": \"Ants navigate around barriers\", \"steps\": [\"Use Draw Obstacle to place a barrier segment between nest and a food patch\", \"Observe ants approaching the barrier\", \"Verify ants do not cross the barrier\", \"Verify ants path around the barrier ends and reach food/nest\"], \"expected\": \"Ants treat barriers as solid, slide along or turn away, and successfully navigate around segment ends to complete trips.\", \"feature_indexes\": [3]}, {\"name\": \"Pheromone trails form, fade, and toggle\", \"steps\": [\"Enable Show Pheromones\", \"Let ants make several food trips\", \"Observe amber trails forming on return paths\", \"Wait and observe trails fading over time\", \"Uncheck Show Pheromones\", \"Verify overlay disappears but ants still follow trails (behavior unchanged)\", \"Re-enable Show Pheromones, verify trails visible again\"], \"expected\": \"Trails appear where returning ants deposit pheromone, fade gradually, toggle hides only the visual overlay not the underlying pheromone field.\", \"feature_indexes\": [4]}, {\"name\": \"Pause freezes simulation, Resume continues\", \"steps\": [\"Run simulation at 1\\u00d7\", \"Click Pause\", \"Observe: ants stop moving, counters freeze, pheromones stop fading\", \"Wait 5 seconds real time\", \"Click Resume\", \"Observe: simulation continues from exact state\"], \"expected\": \"Pause halts all simulation updates (movement, decay, collection, deposits). Resume restores updates without time jump.\", \"feature_indexes\": [5]}, {\"name\": \"Speed controls change simulation rate\", \"steps\": [\"Set speed to 1\\u00d7, note ant movement pace and pheromone fade rate\", \"Set speed to 2\\u00d7, observe roughly double pace\", \"Set speed to 4\\u00d7, observe roughly quadruple pace\", \"Return to 1\\u00d7, verify normal pace\"], \"expected\": \"All simulation processes (movement, pheromone decay, food pickup/deposit) scale linearly with speed setting.\", \"feature_indexes\": [6]}, {\"name\": \"Food placement and obstacle drawing/erasing\", \"steps\": [\"Select Place Food, click empty area -> food patch appears\", \"Select Draw Obstacle, drag -> barrier segment appears along drag path\", \"Attempt to draw over nest/food/ant -> barrier not placed there\", \"Select Erase Obstacle, drag over barrier -> barrier removed\", \"Verify ants can now pass through erased gap\", \"Try joining a new segment to another segment or the boundary, including during a continuous drag: invalid placements must be rejected.\", \"Try drawing across nest, food or ants; protected areas must remain unobstructed.\"], \"expected\": \"Tools work as labeled. Obstacles respect protected entities. Erasing restores passable terrain. Every segment placement is validated, barriers remain separated with passable gaps, and invalid placements are rejected.\", \"feature_indexes\": [7]}, {\"name\": \"Reset cancellation and confirmation\", \"steps\": [\"Modify the scene and controls, then pause the simulation. Note food totals, obstacles, ant positions, elapsed simulation time and control settings.\", \"Click Reset and Cancel.\", \"While still paused, verify the entire noted state is unchanged and the simulation remains paused.\", \"Click Reset and Confirm.\", \"Verify original barriers and two food patches, 40 ants, stored food zero, simulation time zero, speed 1x, unpaused, overlay shown and Place Food selected.\", \"Repeat confirmed reset several times and verify the simulation does not accelerate or create duplicate animation loops.\"], \"expected\": \"Cancelling preserves the paused world and controls. Confirming restores the original scene and settings while retaining one animation loop.\", \"feature_indexes\": [8]}, {\"name\": \"Touch controls and narrow-screen layout\", \"steps\": [\"Open in mobile viewport (or resize browser narrow)\", \"Verify toolbar stacks vertically, buttons are tappable\", \"Tap Place Food, tap canvas -> food placed\", \"Tap Draw Obstacle, drag finger -> barrier drawn\", \"Tap Erase Obstacle, drag finger -> barrier erased\", \"Tap Pause/Resume, speed buttons, Show Pheromones, Reset -> all respond\"], \"expected\": \"All tools and controls work via touch. Layout adapts to narrow width without horizontal scroll. No hover-only interactions.\", \"feature_indexes\": [9]}], \"api_contracts\": [{\"method\": \"GET\", \"path\": \"/health\", \"status\": 200, \"response_kind\": \"object\", \"required_fields\": [\"status\"]}, {\"method\": \"GET\", \"path\": \"/\", \"status\": 200, \"response_kind\": \"text\", \"required_fields\": []}]}"
+        }
+      }
+    ]
+  },
+  "expected_features": [
+    "Serve the local simulation (HTML/JS/CSS delivery via Python stdlib HTTP server)",
+    "Ant foraging behavior: wandering search, pheromone-following, food pickup, visible carry, nest deposit, pheromone deposition on return, search resume",
+    "Food accounting conservation: remaining food + carried food + stored food stays constant when no food is added or reset",
+    "Ant navigation around barriers: ants avoid obstacles, cannot cross them, recover from stuck states",
+    "Pheromone trails forming and fading over simulation time; Show Pheromones toggle hides overlay without disabling pheromone behavior",
+    "Pause/Resume freezes and continues the entire simulation (movement, decay, collection, deposits)",
+    "Speed controls (1\u00d7/2\u00d7/4\u00d7) change simulation rate consistently",
+    "Food placement (click/tap) and obstacle drawing/erasing (drag); obstacles cannot cover nest, food, or ants; no fully enclosed barriers",
+    "Reset with confirmation: cancellation changes nothing; confirmation restores initial colony, food, obstacles, counters, and controls without duplicate animation loops",
+    "Touch controls and narrow-screen layout: tools and controls usable on small viewports"
+  ],
+  "live_usage": null
+}

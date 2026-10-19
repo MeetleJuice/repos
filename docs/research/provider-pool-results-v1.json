@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "version": "0.15.0",
+  "date": "2026-10-19",
+  "baseline_version": "0.14.0",
+  "providers": [
+    "gemini",
+    "groq",
+    "cloudflare",
+    "openrouter",
+    "nvidia",
+    "requesty",
+    "huggingface"
+  ],
+  "compaction_before": {
+    "version": "0.14.0",
+    "outcome": "output_budget",
+    "api_invocations": 0,
+    "recovery_paths": [
+      "initial"
+    ],
+    "requested_cap": null
+  },
+  "compaction_after": {
+    "version": "0.15.0",
+    "outcome": "schema_complete_response",
+    "features": 10,
+    "tasks": 6,
+    "manual_checks": 9,
+    "api_invocations": 1,
+    "recovery_paths": [
+      "budget_compaction"
+    ],
+    "requested_cap": 8192
+  },
+  "validation": {
+    "provider_regressions": {
+      "tests": 21,
+      "passed": true
+    },
+    "focused_provider_cloud_planner": {
+      "tests": 52,
+      "passed": true,
+      "seconds": 2.237
+    },
+    "focused_workflows": {
+      "tests": 82,
+      "passed": true,
+      "seconds": 10.524
+    },
+    "strict_types": "15 modules passed",
+    "seven_provider_browser": "Passed: private import, missing Cloudflare account then local config import, seven catalogues, reordered route, persisted timeouts/JSON settings, seven-tier fixture failover, real app verification/export, mobile and privacy",
+    "legacy_cloud_browser": "Passed",
+    "update_history_export_browser": "Passed",
+    "extracted_distribution": {
+      "tests": 279,
+      "passed": true,
+      "seconds": 107.865,
+      "browser_checks": 3,
+      "browser_checks_passed": true
+    }
+  },
+  "live_provider_access": null,
+  "live_provider_quality": null,
+  "native_windows_run": null,
+  "cloudflare_user_account_id_present": false,
+  "documentation_limits": [
+    "Direct Requesty documentation/catalogue and NVIDIA reference access blocked; adapters use known compatible endpoints and fixture contracts, not live generation verification."
+  ]
+}

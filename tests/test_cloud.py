@@ -123,7 +123,7 @@ class DiscoveryTests(unittest.TestCase):
             self.assertNotIn('fallbacks',profile['coder']);self.assertEqual(profile['coder']['provider'],'groq')
             with self.assertRaises(ValueError):cloud.select({'groq':'made-up-model'})
         with tempfile.TemporaryDirectory() as temp,patch.dict(os.environ,KEYS,clear=True),patch('forge.cloud.request_json',side_effect=ModelError('Unauthorized','auth')):
-            cloud=CloudSetup(temp);self.assertTrue(all(c['status']=='auth' for c in cloud.check().values()))
+            cloud=CloudSetup(temp);checked=cloud.check();self.assertTrue(all(checked[p]['status']=='auth' for p in ('gemini','groq','openrouter')))
             with self.assertRaises(ValueError):cloud.select({'gemini':'gemini-3.8-flash'})
 
 
@@ -168,14 +168,14 @@ class PoolTests(unittest.TestCase):
             cloud.select({'gemini':'fixture'})
             self.assertNotIn('fallbacks',cloud.profile('coder'))
 
-    def test_format_errors_stay_in_correction_loop_not_service_failover(self):
+    def test_invalid_json_uses_next_configured_model_without_bypassing_consent(self):
         with tempfile.TemporaryDirectory() as temp:
-            models=ScriptedModels([ModelError('Invalid JSON','format')]);bench=Workbench(Path(temp),models);state=state_for(bench)
-            with self.assertRaises(ModelError) as error:bench.call_model(state,'coder','fixture','{}',threading.Event())
-            self.assertEqual(error.exception.category,'format');self.assertEqual(len(models.calls),1)
+            models=ScriptedModels([ModelError('Invalid JSON','format'),PLAN]);bench=Workbench(Path(temp),models);state=state_for(bench)
+            self.assertEqual(bench.call_model(state,'coder','fixture','{}',threading.Event()),PLAN)
+            self.assertEqual(state['model_calls'][0]['failure_class'],'parse_error');self.assertEqual(len(models.calls),2)
             state['job_cloud_consent']=False
             with self.assertRaisesRegex(ValueError,'consent'):bench.call_model(state,'coder','fixture','{}',threading.Event())
-            self.assertEqual(len(models.calls),1)
+            self.assertEqual(len(models.calls),2)
 
     def test_all_tiers_fail_once_and_planner_stops_without_repeating_pool(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -192,7 +192,7 @@ class PoolTests(unittest.TestCase):
             'usage':{'prompt_tokens':123,'completion_tokens':17}}):
             bench=Workbench(Path(temp));state=state_for(bench)
             with self.assertRaises(ModelError):bench.call_model(state,'coder','fixture','{}',threading.Event())
-            self.assertEqual(len(state['model_calls']),1)
+            self.assertEqual(len(state['model_calls']),3)
             self.assertFalse(state['model_calls'][0]['success'])
             self.assertEqual(state['model_calls'][0]['prompt_tokens'],123)
             self.assertEqual(state['model_calls'][0]['completion_tokens'],17)

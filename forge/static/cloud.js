@@ -1,4 +1,13 @@
 "use strict";
+let cloudProviderOrder = [
+  "gemini",
+  "groq",
+  "cloudflare",
+  "openrouter",
+  "nvidia",
+  "requesty",
+  "huggingface",
+];
 function cloudHandle(fn) {
   return handle(async (...args) => {
     $("cloud-feedback").textContent = "Working…";
@@ -14,7 +23,7 @@ function renderCloudSetup(info) {
   const credentials = info.credentials || {};
   const present = Object.values(credentials.keys || {}).filter(Boolean).length;
   $("cloud-env-status").textContent =
-    `${present}/3 API keys detected. Preferred private file: ${credentials.path || "not available"}.` +
+    `${present}/${Object.keys(credentials.keys || {}).length || 7} API keys detected. Preferred private file: ${credentials.path || "not available"}.` +
     ` Loaded files: ${(credentials.loaded_files || []).join("; ") || "none (process environment or no keys)"}.` +
     (credentials.txt_warning
       ? " A .env.txt file was found; use the file picker to import it."
@@ -31,10 +40,12 @@ function renderCloudSetup(info) {
   local.value = info.cloud_local_model || "";
   local.disabled = !info.providers?.ollama?.connected;
   let available = 0;
-  for (const provider of ["gemini", "groq", "openrouter"]) {
+  cloudProviderOrder = info.cloud_order || cloudProviderOrder;
+  for (const provider of cloudProviderOrder) {
     const status = info.cloud?.[provider];
     const card = document.createElement("div");
-    card.className = "connection-item";
+    card.className = "connection-item cloud-provider-card";
+    card.dataset.provider = provider;
     const title = document.createElement("strong");
     title.textContent = provider;
     const detail = document.createElement("p");
@@ -72,7 +83,54 @@ function renderCloudSetup(info) {
     limit.value =
       info.cloud_limits?.[provider] || (provider === "groq" ? 4096 : 8192);
     limitLabel.append(limit);
-    card.append(title, detail, select, limitLabel);
+    const timeoutLabel = document.createElement("label");
+    timeoutLabel.textContent = "Socket timeout before failover";
+    const timeout = document.createElement("select");
+    timeout.id = "cloud-timeout-" + provider;
+    for (const n of [15, 30, 60, 120])
+      timeout.append(new Option(n + " seconds", n));
+    timeout.value = info.cloud_timeouts?.[provider] || 60;
+    timeoutLabel.append(timeout);
+    const formatLabel = document.createElement("label");
+    formatLabel.className = "check-line";
+    const format = document.createElement("input");
+    format.type = "checkbox";
+    format.id = "cloud-json-" + provider;
+    format.checked = info.cloud_structured?.[provider] !== false;
+    formatLabel.append(
+      format,
+      document.createTextNode(
+        "Request native JSON output (model support varies)",
+      ),
+    );
+    const orderButtons = document.createElement("div");
+    orderButtons.className = "cloud-order-buttons";
+    const earlier = document.createElement("button");
+    earlier.className = "secondary";
+    earlier.textContent = "↑ Earlier";
+    earlier.setAttribute("aria-label", "Move " + provider + " earlier");
+    earlier.onclick = () => {
+      if (card.previousElementSibling)
+        card.parentNode.insertBefore(card, card.previousElementSibling);
+    };
+    const later = document.createElement("button");
+    later.className = "secondary";
+    later.textContent = "↓ Later";
+    later.setAttribute("aria-label", "Move " + provider + " later");
+    later.onclick = () => {
+      if (card.nextElementSibling)
+        card.parentNode.insertBefore(card.nextElementSibling, card);
+    };
+    orderButtons.append(earlier, later);
+    card.append(
+      title,
+      orderButtons,
+      detail,
+      select,
+      limitLabel,
+      timeoutLabel,
+      formatLabel,
+    );
     $("cloud-providers").append(card);
   }
   $("cloud-new").disabled = !available;
@@ -124,21 +182,24 @@ $("cloud-check").onclick = cloudHandle(async () => {
 async function applyCloud(project) {
   const ident = current?.id;
   const models = Object.fromEntries(
-    ["gemini", "groq", "openrouter"].map((p) => [
-      p,
-      $("cloud-model-" + p).value,
-    ]),
+    cloudProviderOrder.map((p) => [p, $("cloud-model-" + p).value]),
   );
   const limits = Object.fromEntries(
-    ["gemini", "groq", "openrouter"].map((p) => [
-      p,
-      Number($("cloud-limit-" + p).value),
-    ]),
+    cloudProviderOrder.map((p) => [p, Number($("cloud-limit-" + p).value)]),
   );
   const profile = await api("/api/cloud/select", {
     models,
     limits,
     local_model: $("cloud-local-model").value,
+    order: [...document.querySelectorAll(".cloud-provider-card")].map(
+      (card) => card.dataset.provider,
+    ),
+    timeouts: Object.fromEntries(
+      cloudProviderOrder.map((p) => [p, Number($("cloud-timeout-" + p).value)]),
+    ),
+    structured: Object.fromEntries(
+      cloudProviderOrder.map((p) => [p, $("cloud-json-" + p).checked]),
+    ),
   });
   if (project) {
     if (!ident || current?.id !== ident)

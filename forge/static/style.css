@@ -1721,3 +1721,10 @@ a:focus-visible {
   overflow: auto;
   font-size: 12px;
 }
+
+.cloud-order-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}

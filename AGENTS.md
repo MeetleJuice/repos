@@ -23,6 +23,9 @@ Use the existing checkout; do not create a worktree unless the user requests one
 - If displaying attempt totals → separate retained details, cumulative attempts and actual transport attempts; absent token usage remains unknown. Disclose legacy/history retention gaps.
 - If a foundation test passes → also verify intended test-bearing modules were collected. A nonzero total does not establish collection of every module.
 
+- If adding a provider → update the central registry, dotenv aliases, private configuration, redaction, discovery, model controls, route bounds and wire tests together. Missing setup is not a provider outage. No catalogue check proves generation quota.
+- If a conservative planner estimate exceeds capacity → a compact schema-complete request may use the unchanged output floor only if input/context/output room permits. Preserve all request data and approval requirements; never override a hard capability or lower the configured floor. Keep truncation recovery bounded.
+
 ## Research and promotion
 
 Read docs/status.md and the frozen dataset contract before changing the measured handoff path. All eighteen cases are replay scenarios with labeled provenance, not independent historical model builds. No vector database, unbounded retry/tree search, hidden evaluator weakening, or autonomous source promotion. The next proposal lives in docs/research/harness-audit.json and requires a new reviewed measurement cycle.

@@ -1,5 +1,6 @@
 """Small provider adapter. No provider SDKs or automatic paid fallbacks."""
 import json
+import re
 import hashlib
 import http.client
 import os
@@ -13,12 +14,8 @@ from .capabilities import PlannerBudget
 from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
 from .prompts import PLAN, CODE
 
-PROVIDERS = {
-    "ollama": (None, None),
-    "groq": ("https://api.groq.com/openai/v1", "GROQ_API_KEY"),
-    "openrouter": ("https://openrouter.ai/api/v1", "OPENROUTER_API_KEY"),
-    "gemini": ("https://generativelanguage.googleapis.com/v1beta/openai", "GEMINI_API_KEY"),
-}
+from .providers import PROVIDERS as PROVIDERS, endpoint, key_for
+
 
 
 class ModelError(ValueError):
@@ -102,12 +99,12 @@ class ModelClient:
     def _complete(self, system: str, prompt: str) -> dict[str, Any]:
         self.last_usage = {}
         output = self.planner_budget.max_output_tokens if self.planner_budget else self.options['num_predict']
-        self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None,'transport_attempted':False}
+        self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None,'transport_attempted':False,'timeout_seconds':self.options['timeout_seconds']}
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
         if self.recovery_mode == "continuation":
             messages += [{"role":"assistant","content":self.continuation_prefix},
                          {"role":"user","content":"Continue exactly where the previous response was cut off, no recap. Return only the missing JSON suffix, without fences or repeating the prefix."}]
-        elif self.recovery_mode == "shortening":
+        elif self.recovery_mode in {"shortening", "budget_compaction"}:
             if system == CODE:
                 messages.append({"role":"user","content":"Return a fresh complete JSON object with only necessary changed files or exact edits. Keep the approved behavior and tests. Prefer small exact edits over rewriting unchanged files. Omit explanatory prose and never use placeholders or truncated file contents."})
             else:
@@ -118,9 +115,11 @@ class ModelClient:
         self.last_metadata.update(input_characters=sum(len(m['content']) for m in messages),
                                   effective_request_sha256=hashlib.sha256(json.dumps(messages).encode()).hexdigest())
         if self.provider == "gemini" and self.planner_budget and (system == PLAN or self.planner_budget.thinking_budget > 0):
-            key = os.getenv('GEMINI_API_KEY')
+            key = key_for('gemini')
             if not key: raise ModelError('Set GEMINI_API_KEY in your local .env file.', 'auth')
-            generation: dict[str, Any] = {'maxOutputTokens':output,'temperature':0.2,'responseMimeType':'application/json'}
+            generation: dict[str, Any] = {'maxOutputTokens':output,'temperature':0.2}
+            if self.options['structured_outputs']:
+                generation['responseMimeType'] = 'application/json'
             if self.planner_budget.thinking_budget:
                 generation['thinkingConfig'] = {'thinkingBudget':self.planner_budget.thinking_budget}
             gemini_base = PROVIDERS['gemini'][0]
@@ -130,7 +129,8 @@ class ModelClient:
                 'systemInstruction':{'parts':[{'text':messages[0]['content']}]},
                 'contents':[{'role':'model' if m['role']=='assistant' else 'user','parts':[{'text':m['content']}]} for m in messages[1:]],
                 'generationConfig':generation,
-            }, {'x-goog-api-key':key}, timeout=120)
+            }, {'x-goog-api-key':key}, timeout=self.options["timeout_seconds"])
+            self._identity(result)
             usage = result.get('usageMetadata',{})
             if not isinstance(usage,dict): usage = {}
             for source,target in [('promptTokenCount','prompt_tokens'),('candidatesTokenCount','visible_output_tokens'),('thoughtsTokenCount','thinking_tokens')]:
@@ -151,7 +151,8 @@ class ModelClient:
             result = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", {
                 "model": self.model, "messages": messages, "stream": False, "format": schema if self.options["structured_outputs"] else "json", "keep_alive": "5m",
                 "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": output},
-            })
+            }, timeout=self.options['timeout_seconds'])
+            self._identity(result)
             self.last_usage = {label: result[key] for key, label in [("prompt_eval_count", "prompt_tokens"), ("eval_count", "completion_tokens")] if type(result.get(key)) is int and result[key] >= 0}
             self._finish(result.get("done_reason"), result.get("message", {}).get("content", "") if isinstance(result.get("message"),dict) else "")
             message = result.get("message")
@@ -159,17 +160,23 @@ class ModelClient:
                 raise ModelError("Ollama did not return a chat message.")
             content = message.get("content", "")
         else:
-            base, variable = PROVIDERS[self.provider]
-            if base is None or variable is None:
-                raise ModelError("Invalid cloud provider adapter.", "provider")
-            key = os.getenv(variable) or (os.getenv("OPENROUTER_KEY") if self.provider == "openrouter" else None)
+            variable = PROVIDERS[self.provider][1]
+            try:
+                base = endpoint(self.provider)
+            except ValueError as exc:
+                raise ModelError(str(exc), "configuration") from None
+            key = key_for(self.provider)
             if not key:
                 raise ModelError(f"Set {variable} in your local .env file and restart. Never put keys in project prompts.", "auth")
+            payload: dict[str, Any] = {"model":self.model,"messages":messages,"temperature":0.2,"max_tokens":output,"stream":False}
+            if self.options['structured_outputs']:
+                payload['response_format'] = {"type":"json_object"}
+            if self.provider == 'cloudflare':
+                payload['options'] = {'rejectIfBusy':True}
             self.last_metadata['transport_attempted'] = True
-            result = request_json(base + "/chat/completions", {
-                "model": self.model, "messages": messages, "temperature": 0.2,
-                "max_tokens": output, "response_format": {"type": "json_object"},
-            }, {"Authorization": "Bearer " + key}, timeout=120)
+            result = request_json(base + "/chat/completions", payload,
+                                  {"Authorization":"Bearer "+key}, timeout=self.options["timeout_seconds"])
+            self._identity(result)
             usage = result.get("usage", {})
             self.last_usage = {key: usage[key] for key in ("prompt_tokens", "completion_tokens") if isinstance(usage, dict) and type(usage.get(key)) is int and usage[key] >= 0}
             choices = result.get("choices")
@@ -183,6 +190,13 @@ class ModelClient:
         if self.recovery_mode == 'continuation': content = self.continuation_prefix + content
         return extract_json(content)
 
+    def _identity(self, result: dict[str, Any]) -> None:
+        for field,value in [('response_model',result.get('modelVersion',result.get('model'))),
+                            ('response_provider',result.get('provider'))]:
+            if isinstance(value,str) and re.fullmatch(r'[A-Za-z0-9_./:@+-]{1,200}',value):
+                if not any(secret and secret in value for provider in PROVIDERS if (secret := key_for(provider))):
+                    self.last_metadata[field] = value
+
     def _finish(self, reason: Any, content: Any) -> None:
         reason = reason[:64] if isinstance(reason,str) else None
         self.last_metadata.update(finish_reason=reason, observed_output_tokens=self.last_usage.get('completion_tokens'))
@@ -192,7 +206,11 @@ class ModelClient:
 
 
 def connection_info() -> dict[str, Any]:
-    info: dict[str, Any] = {p: {"configured": p == "ollama" or bool(os.getenv(v or "") or p == "openrouter" and os.getenv("OPENROUTER_KEY")), "key_variable": v} for p, (_, v) in PROVIDERS.items()}
+    info: dict[str, Any] = {p: {"configured": p == "ollama" or bool(key_for(p)), "key_variable": v} for p, (_, v) in PROVIDERS.items()}
+    for provider in info:
+        if provider == 'cloudflare':
+            try: endpoint(provider)
+            except ValueError as exc: info[provider]['configuration_detail'] = str(exc)
     try:
         data = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/tags", timeout=5)
         info["ollama"].update(connected=True, models=[m["name"] for m in data.get("models", [])])

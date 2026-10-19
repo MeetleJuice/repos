@@ -20,7 +20,7 @@ class PlanningResult:
 
 
 class PlanningEngine:
-    """At most three requests, including at most one configured fallback request."""
+    """At most three proposal-generation rounds; the router can make multiple bounded attempts per round."""
     def run(self, request: Plan, generate: Callable[[Plan, bool], Plan],
             review: Callable[[Plan], tuple[Plan, Review]],
             report: Callable[[Plan | None, Review], None],

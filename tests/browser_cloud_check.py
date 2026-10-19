@@ -31,10 +31,10 @@ def main():
                 page.on('pageerror',lambda e:errors.append(str(e)))
                 page.goto(f'http://127.0.0.1:{server.server_port}')
                 page.locator('#connections-button').click()
-                expect(page.locator('#cloud-env-status')).to_contain_text('0/3 API keys')
+                expect(page.locator('#cloud-env-status')).to_contain_text('0/7 API keys')
                 content='\ufeffGEMINI_API_KEY=fixture-gemini\nGROQ_API_KEY=fixture-groq\nOPENROUTER_KEY=fixture-router\n'
                 page.locator('#cloud-env-file').set_input_files({'name':'.env.txt','mimeType':'text/plain','buffer':content.encode('utf-16le')})
-                expect(page.locator('#cloud-env-status')).to_contain_text('3/3 API keys',timeout=10000)
+                expect(page.locator('#cloud-env-status')).to_contain_text('3/7 API keys',timeout=10000)
                 assert all(key not in page.content() for key in KEYS.values())
                 assert (Path(temp)/'.env').is_file()
                 page.locator('#cloud-check').click()

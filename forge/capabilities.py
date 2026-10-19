@@ -79,7 +79,31 @@ class CapabilityRegistry:
         if self.path:
             atomic_text(self.path, json.dumps({'schema':1,'models':self.overrides}, indent=2)+'\n')
 
-    def reserve(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str) -> PlannerBudget:
+    def discover_models(self, provider: str, entries: list[Any]) -> None:
+        if provider == 'openrouter':
+            self.discover_openrouter(entries)
+            return
+        changed = False
+        for entry in entries:
+            if not isinstance(entry,dict): continue
+            model = entry.get('name' if provider in {'gemini','cloudflare'} else 'id')
+            if not isinstance(model,str) or len(model)>210: continue
+            model = model.removeprefix('models/')
+            output = entry.get('outputTokenLimit',entry.get('max_completion_tokens',entry.get('max_output_tokens')))
+            context = entry.get('inputTokenLimit',entry.get('context_length',entry.get('max_context_length')))
+            if type(output) is not int or not 256 <= output <= 1048576: continue
+            previous = self.get(provider,model)
+            # Input-only limits are used conservatively as joint budget room.
+            valid_context = type(context) is int and 256 <= context <= 16777216
+            self.overrides[provider+'/'+model] = {'max_output_tokens':output,
+                'max_context_tokens':context if valid_context else max(previous.max_context_tokens,output),
+                'supports_thinking_budget':previous.supports_thinking_budget,'thinking_budget_default':previous.thinking_budget_default,
+                'estimated':not valid_context,'source':'Authenticated catalogue published output limit; unavailable context retains conservative estimate.'}
+            changed = True
+        if changed and self.path:
+            atomic_text(self.path,json.dumps({'schema':1,'models':self.overrides},indent=2)+'\n')
+
+    def reserve(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str, compact: bool = False) -> PlannerBudget:
         cap = self.get(provider, model, options)
         try: payload = json.loads(prompt)
         except ValueError: payload = {}
@@ -95,7 +119,7 @@ class CapabilityRegistry:
         # guarantee or billing measurement. Reserve schema/message framing too.
         input_estimate = (len((system+prompt).encode('utf-8',errors='surrogatepass')) + len(json.dumps(PLAN_SCHEMA)) + 1)//2 + 512
         room = min(cap.max_output_tokens, cap.max_context_tokens-input_estimate)
-        text = max(self.builtin['planner_output_floor'], options.get('num_predict',4096), estimate)
+        text = max(self.builtin['planner_output_floor'], options.get('num_predict',4096), 0 if compact else estimate)
         if text+thinking > room: raise ValueError('Planner output reservation exceeds the model output/context budget. Use a larger-capacity configured model or narrow the proposal; no request was sent.')
         return PlannerBudget(text+thinking, text, thinking, input_estimate, estimate)
 

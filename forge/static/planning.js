@@ -17,6 +17,7 @@ function modelConfig(role, prefix = "") {
       num_ctx: Number(context.value),
       num_predict: Number(document.getElementById(id + "-output").value),
       structured_outputs: document.getElementById(id + "-structured").checked,
+      timeout_seconds: Number(document.getElementById(id + "-timeout").value),
     };
   const fallback = document.getElementById(id + "-fallback-provider");
   if (fallback?.value)
@@ -49,6 +50,8 @@ function fillModelSettings(role, prefix, config) {
   context.dispatchEvent(new Event("change"));
   document.getElementById(id + "-output").value =
     config.options?.num_predict || Math.min(8192, Number(context.value) / 2);
+  document.getElementById(id + "-timeout").value =
+    config.options?.timeout_seconds || 120;
   document.getElementById(id + "-structured").checked =
     config.options?.structured_outputs !== false;
   document.getElementById(id + "-fallback-provider").value =
@@ -161,19 +164,21 @@ window.addEventListener("DOMContentLoaded", () => {
         <label for="${id}-context">Ollama context (uses RAM/VRAM)</label>
         <select id="${id}-context"><option>4096</option><option>8192</option><option selected>16384</option><option>32768</option></select>
         <label for="${id}-output">${role === "planner" ? "Planner output floor (automatic minimum 8192)" : "Maximum output tokens"}</label><select id="${id}-output"></select>
-        <label class="check-line"><input id="${id}-structured" type="checkbox" checked>Use native Ollama JSON schema</label>
+        <label class="check-line"><input id="${id}-structured" type="checkbox" checked>Request native JSON format / Ollama schema</label>
         <p id="${id}-pool-label" class="muted"></p><button type="button" id="${id}-clear-pool" hidden>Use manual model settings</button>
+        <label for="${id}-timeout">Request socket timeout</label>
+        <select id="${id}-timeout"><option>15</option><option>30</option><option>60</option><option selected>120</option></select>
         <label for="${id}-fallback-provider">Fallback provider · optional</label>
         <select id="${id}-fallback-provider">
           <option value="">None · use primary only</option>
           <option value="ollama">Ollama</option>
           <option value="groq">Groq</option>
           <option value="gemini">Gemini</option>
-          <option value="openrouter">OpenRouter</option>
+          <option value="openrouter">OpenRouter</option><option value="cloudflare">Cloudflare Workers AI</option><option value="nvidia">NVIDIA NIM</option><option value="requesty">Requesty</option><option value="huggingface">Hugging Face</option>
         </select>
         <label for="${id}-fallback-model">Fallback model ID</label>
         <input id="${id}-fallback-model" disabled placeholder="Choose a provider first">
-        <p class="muted">Manual mode supports one fallback. Cloud-first mode supports three fallbacks, including optional Ollama. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
+        <p class="muted">Manual mode supports one fallback. Cloud-first mode supports seven cloud providers plus optional Ollama; arrange the route in Models. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
       details.append(controls);
       document
         .getElementById(id + "-model")
