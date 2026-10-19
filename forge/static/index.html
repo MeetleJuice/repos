@@ -610,10 +610,13 @@ Generated files will appear here after approval.</pre
         </p>
         <p>
           Route order: Gemini → Groq → OpenRouter → optional Ollama. Skipped
-          providers receive no requests. Each configured model is tried at most
-          once per request. Service failures and output-limit failures hand off
-          to the next model; invalid JSON gets a bounded correction. Cloud
-          requests have a 120-second socket timeout.
+          providers receive no requests. Planner truncation tries one same-model
+          continuation and one shortening before an equal/larger-capacity
+          fallback. Service failures can use the next configured provider.
+          Planner output reserves schema-derived room with a minimum 8192 text
+          tokens plus bounded thinking where supported; the selected planner
+          value is a floor, not a hard spending cap. Invalid JSON gets a bounded
+          correction. Cloud requests have a 120-second socket timeout.
         </p>
         <div id="cloud-providers"></div>
         <label for="cloud-local-model"

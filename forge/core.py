@@ -18,9 +18,10 @@ from typing import Any
 
 from .models import ModelClient, ModelError
 from .handoffs import handoff_metrics
+from .capabilities import CapabilityRegistry
 from .contracts import validate_structure as validate_plan, require_consistent, review_plan, Review, Finding, starter_contracts
 from .planning import PlanningEngine
-from .routing import validate_config, uses_cloud, validate_options
+from .routing import validate_config, uses_cloud, validate_options, truncation_fallback_allowed
 from .prompts import PLAN, CODE
 from .inspection import inspect_files
 from .edits import expand_response
@@ -146,18 +147,29 @@ class Workbench:
             if pool and allow_fallback:
                 choices.extend((entry, True) for entry in config["fallbacks"])
             failures = []
+            registry = CapabilityRegistry(self.root.parent / 'model-capabilities-v1.json')
+            minimum_ceiling = state.get("planner_truncation_ceiling", 0) if role == "planner" else 0
+            recoveries = {}
+            budget_failed = False
             for index, (selected, is_fallback) in enumerate(choices):
                 if cancel.is_set():
                     raise InterruptedError("Stopped before model inference.")
                 if selected["provider"] != "ollama" and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
+                capability = registry.get(selected['provider'], selected['model'], selected.get('options',{}))
+                if minimum_ceiling and not truncation_fallback_allowed(minimum_ceiling, capability.max_output_tokens):
+                    self.event(state, 'Skipped ' + selected['provider'] + '/' + selected['model'] + ': output ceiling ' + str(capability.max_output_tokens) + ' is smaller than truncated model ceiling ' + str(minimum_ceiling) + '.')
+                    continue
+                recovery_mode, prefix = recoveries.get(index, ('initial', ''))
                 identity = (selected["provider"], selected["model"])
                 if pool and self.provider_cooldowns.get(identity, 0) > time.monotonic():
                     failures.append(selected["provider"] + ": cooldown")
                     self.event(state, "Skipping " + selected["provider"] + " during its temporary rate-limit cooldown.")
                     continue
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
-                          "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, prompt)}
+                          "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, prompt),
+                          "recovery_path": recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
+                          "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated}
                 started = time.monotonic()
                 client = None
                 try:
@@ -167,16 +179,52 @@ class Workbench:
                     client = self.client_factory(selected["provider"], selected["model"])
                     if isinstance(client, ModelClient):
                         client.options = validate_options(selected.get("options", {}))
+                        if role == 'planner':
+                            try:
+                                budget = registry.reserve(selected['provider'],selected['model'],client.options,system+prefix,prompt)
+                            except ValueError as exc:
+                                raise ModelError(str(exc),'output_budget') from None
+                            client.planner_budget = budget
+                            client.recovery_mode, client.continuation_prefix = recovery_mode, prefix
+                            record.update(requested_max_output_tokens=budget.max_output_tokens,
+                                          reserved_text_output_tokens=budget.text_output_tokens,
+                                          thinking_budget=budget.thinking_budget,
+                                          estimated_required_output_tokens=budget.estimated_required_tokens,
+                                          input_estimate_tokens=budget.input_estimate_tokens)
+                            self.event(state, 'Planner output reservation: '+str(budget.text_output_tokens)+' text + '+str(budget.thinking_budget)+' thinking tokens; recovery '+record['recovery_path']+'.')
                     result = client.complete(system, prompt)
                     record.update(success=True, **getattr(client, "last_usage", {}))
                     if pool and is_fallback:
                         self.event(state, "Response received from " + selected["provider"] + "/" + selected["model"] + ".")
                     return result
                 except ModelError as exc:
-                    record["error_category"] = exc.category
+                    category = 'truncated_output' if exc.category in {'truncated','truncated_output'} else exc.category
+                    record['error_category'] = category
+                    record['failure_class'] = category if category in {'truncated_output','parse_error','schema_error','output_budget'} else 'parse_error' if category == 'format' else 'provider_unavailable' if category in {'auth','rate_limit','provider','transport','quota','request','model'} else category
+                    if category == 'truncated_output' or (role == 'planner' and recovery_mode == 'continuation' and category in {'format','parse_error','output_budget'}):
+                        minimum_ceiling = max(minimum_ceiling, capability.max_output_tokens)
+                        if role == "planner": state["planner_truncation_ceiling"] = minimum_ceiling
+                        if role == 'planner' and recovery_mode != 'shortening':
+                            partial = getattr(exc,'partial_content','')
+                            mode = 'continuation' if recovery_mode == 'initial' and partial else 'shortening'
+                            choices.insert(index+1,(selected,is_fallback))
+                            recoveries[index+1] = (mode,partial if mode == 'continuation' else '')
+                            self.event(state,'Planner truncated_output recovery: '+mode+' on '+selected['provider']+'/'+selected['model']+'.')
+                            continue
+                        failures.append(selected['provider']+': truncated_output')
+                        # Legacy planner fallback orchestration must obey the same ceiling gate.
+                        if role == 'planner' and not fallback and config.get('fallback') and not any(c is config['fallback'] for c,_ in choices):
+                            choices.append((config['fallback'],True))
+                        self.event(state,'Output recovery exhausted; considering only configured models with output ceiling >= '+str(minimum_ceiling)+'.')
+                        continue
+                    if category == 'output_budget':
+                        budget_failed = True
+                        failures.append(selected['provider']+': output_budget')
+                        self.event(state,'Planner reservation refused before inference; trying the next configured model without lowering the required budget.')
+                        continue
                     if exc.retry_after: record["retry_after_seconds"] = exc.retry_after
                     if pool:
-                        if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model", "truncated"}:
+                        if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model"}:
                             raise
                         failures.append(selected["provider"] + ": " + exc.category)
                         if exc.retry_after:
@@ -191,10 +239,15 @@ class Workbench:
                 finally:
                     if client is not None:
                         record.update(**getattr(client, "last_usage", {}))
+                        record.update(**getattr(client, "last_metadata", {}))
                     record["seconds"] = round(time.monotonic() - started, 2)
                     state.setdefault("model_calls", []).append(record)
                     state["model_calls"] = state["model_calls"][-100:]
                     self.save(state)
+            if minimum_ceiling:
+                raise ModelError('Output remained truncated after bounded recovery. No eligible equal/larger configured fallback resolved it. '+ '; '.join(failures),'truncated_output')
+            if budget_failed:
+                raise ModelError('No configured model can fit the planner output reservation. '+ '; '.join(failures),'output_budget')
             if pool:
                 raise ModelError("All configured models failed: " + "; ".join(failures), "exhausted")
         finally:
@@ -747,6 +800,7 @@ class Workbench:
         previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint")} if retain_failures else None
         try:
             if action == "plan":
+                state.pop("planner_truncation_ceiling", None)
                 prior_model_records = list(state.get("model_calls", []))
                 self.event(state, "Planning with " + state["planner"]["provider"] + "/" + state["planner"]["model"])
                 revision = options.get("revision", "")
@@ -771,6 +825,10 @@ class Workbench:
                     return candidate, require_consistent(candidate, state.get("starter"))
 
                 def report(candidate: dict[str, Any] | None, result: Review) -> None:
+                    if state.get('model_calls'):
+                        record = state['model_calls'][-1]
+                        record['proposal_valid'] = result.passed
+                        if not result.passed: record['failure_class'] = 'schema_error'
                     state["plan_review"] = result.to_dict()
                     state["failed_candidate"] = candidate if not result.passed else None
                     # Preserve a structurally valid failed candidate for direct editor repair.

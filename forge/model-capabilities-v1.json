@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "planner_output_floor": 8192,
+  "defaults": {"max_output_tokens": 8192, "max_context_tokens": 131072, "supports_thinking_budget": false, "thinking_budget_default": 0, "estimated": true, "source": "Conservative unknown-model fallback; not a provider guarantee."},
+  "models": {
+    "gemini/gemini-3.8-flash": {"max_output_tokens": 65536, "max_context_tokens": 1048576, "supports_thinking_budget": true, "thinking_budget_default": 1024, "estimated": true, "source": "User-specified Gemini 3.8 output ceiling; context/capability profile not live-verified."},
+    "gemini/gemini-2.5-flash": {"max_output_tokens": 65536, "max_context_tokens": 1048576, "supports_thinking_budget": true, "thinking_budget_default": 1024, "estimated": false, "source": "Google Gemini model specifications; runtime access/quota remains unproven."},
+    "openrouter/openrouter/free": {"max_output_tokens": 8192, "max_context_tokens": 131072, "supports_thinking_budget": false, "thinking_budget_default": 0, "estimated": true, "source": "Dynamic free router: unknown selected downstream model; conservative 8192 output assumption."}
+  }
+}

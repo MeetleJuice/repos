@@ -46,7 +46,7 @@ class PlanningEngine:
                 last_review = Review(())
                 service_failed = True
                 event('Planner request failed: ' + str(exc))
-                if fallback or attempt == 2 or (not has_fallback and getattr(exc, "category", None) in {"auth", "provider", "rate_limit", "size", "truncated", "exhausted", "quota", "model", "request"}):
+                if getattr(exc,"category",None) in {"truncated_output","output_budget"} or fallback or attempt == 2 or (not has_fallback and getattr(exc, "category", None) in {"auth", "provider", "rate_limit", "size", "truncated", "exhausted", "quota", "model", "request"}):
                     raise
                 feedback = {'validation_error': str(exc), 'instruction': 'Return the requested JSON proposal using the supplied contract.'}
                 continue

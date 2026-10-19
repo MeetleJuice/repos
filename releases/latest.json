@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.11.0",
+  "version": "0.12.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.11.0.zip",
-  "sha256": "4b7e51d6987de4052d9ecc084abc816ca45956dcffaebe6a04e8e491bd0d9386",
-  "notes": "Measured harness research and request observability: six gap memos, frozen replay evaluation, three unpromoted prompt prototypes, and character-count/digest metadata for actual model calls. Existing prompts, bounded repairs, verification, model routes and saved projects remain compatible. No live repair-rate improvement is claimed."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.12.0.zip",
+  "sha256": "438ab3f898f56a362b432d6092a018927080df52cd46b158862bf5921f208739",
+  "notes": "Planner output reservation and truncation recovery: versioned model ceilings, bounded Gemini thinking, same-model continuation then schema-complete shortening, and fallback only to equal/larger output ceilings after truncation. Finish reasons, requested caps and observed tokens recorded separately from provider outages. Approval and acceptance checks remain unchanged."
 }

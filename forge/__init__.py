@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
-__release_notes__ = "Measured harness research and request observability: six gap memos, frozen replay evaluation, three unpromoted prompt prototypes, and character-count/digest metadata for actual model calls. Existing prompts, bounded repairs, verification, model routes and saved projects remain compatible. No live repair-rate improvement is claimed."
+__release_notes__ = "Planner output reservation and truncation recovery: versioned model ceilings, bounded Gemini thinking, same-model continuation then schema-complete shortening, and fallback only to equal/larger output ceilings after truncation. Finish reasons, requested caps and observed tokens recorded separately from provider outages. Approval and acceptance checks remain unchanged."

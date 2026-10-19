@@ -271,6 +271,9 @@ function render() {
   if (Number.isInteger(lastRequest?.input_characters))
     $("model-usage").textContent +=
       ` Last request size: ${lastRequest.input_characters.toLocaleString()} characters (not tokens).`;
+  if (Number.isInteger(lastRequest?.requested_max_output_tokens))
+    $("model-usage").textContent +=
+      ` Output reservation: ${lastRequest.requested_max_output_tokens} tokens; recovery: ${lastRequest.recovery_path || "initial"}; finish: ${lastRequest.finish_reason || "not reported"}.`;
   const measured = (p.model_calls || []).filter(
     (c) =>
       Number.isInteger(c.prompt_tokens) ||

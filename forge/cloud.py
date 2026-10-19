@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 from .models import request_json, ModelError, PROVIDERS
 from .credentials import atomic_text
+from .capabilities import CapabilityRegistry
 
 ORDER = ('gemini', 'groq', 'openrouter')
 PREFERRED = {'gemini': ['gemini-2.5-flash', 'gemini-3-flash-preview'],
@@ -49,6 +50,7 @@ class CloudSetup:
             data = request_json(url, headers={'x-goog-api-key':key} if provider == 'gemini' else {'Authorization':'Bearer '+key}, timeout=10)
             entries = data.get('models' if provider == 'gemini' else 'data')
             if not isinstance(entries,list): raise ModelError('Invalid model catalogue.', 'format')
+            if provider == "openrouter": CapabilityRegistry(self.path.parent / "model-capabilities-v1.json").discover_openrouter(entries)
             ids = []
             for entry in entries:
                 if not isinstance(entry,dict): continue
@@ -89,7 +91,7 @@ class CloudSetup:
         for provider in ORDER:
             model = self.selected.get(provider)
             if not model: continue
-            configs.append({'provider':provider,'model':model,'options':{'num_ctx':32768,'num_predict':min(4096,self.limits[provider]) if role=='planner' else self.limits[provider],'structured_outputs':True}})
+            configs.append({'provider':provider,'model':model,'options':{'num_ctx':32768,'num_predict':self.limits[provider],'structured_outputs':True}})
         if not configs: raise ValueError('Check providers and select cloud models first.')
         if self.local_model:
             configs.append({'provider':'ollama','model':self.local_model,'options':{'num_ctx':16384,'num_predict':8192,'structured_outputs':True}})

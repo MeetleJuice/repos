@@ -60,7 +60,7 @@ function renderCloudSetup(info) {
     select.disabled = status?.status !== "catalogue_available";
     if (!select.disabled) available++;
     const limitLabel = document.createElement("label");
-    limitLabel.textContent = "Maximum output tokens";
+    limitLabel.textContent = "Builder output cap / planner output floor";
     const limit = document.createElement("select");
     limit.id = "cloud-limit-" + provider;
     for (const n of [1024, 2048, 4096, 8192, 16384]) {

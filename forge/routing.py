@@ -70,3 +70,8 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
 
 def uses_cloud(config: dict[str, Any]) -> bool:
     return config.get('provider', 'ollama') != 'ollama' or bool(config.get('fallback') and uses_cloud(config['fallback'])) or any(uses_cloud(entry) for entry in config.get('fallbacks', []))
+
+
+def truncation_fallback_allowed(current_ceiling: int, candidate_ceiling: int) -> bool:
+    """Output exhaustion must never select a smaller model ceiling."""
+    return current_ceiling > 0 and candidate_ceiling >= current_ceiling

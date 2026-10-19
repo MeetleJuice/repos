@@ -58,3 +58,11 @@ Audit found that `notes-urlopen` pairs a constructed urlopen diagnostic with his
 
 
 The replay envelopes deliberately reuse a constant task-tracker proposal across varied source/error stress inputs. They are serialization fixtures, **not reconstructions of the original Notes/Neon/dashboard model requests** and not a valid application-repair benchmark. The available uploaded dashboard journal does report an accumulated 35 requests /1,695.2 response seconds and 227,557 input /99,108 output tokens from 21 reporting requests; that aggregate is recorded separately, cannot be allocated to individual repair attempts, and does not establish a first-attempt comparator.
+
+## Priority override: planner truncation reliability fix (0.12.0)
+
+The user's later production log provides a specific blocking failure: Gemini length → smaller OpenRouter free length → generic route exhaustion. This takes priority over the proposed six-case repair-quality pilot. The frozen `planner-truncation-v1.json` and append-only `frozen-regressions-v2.json` manifest record the new controller regression without changing the eighteen serialization inputs.
+
+The narrowly authorized fix reserves planner output and supported thinking separately; classifies `truncated_output`; tries one same-model continuation then one schema-complete shortening; and excludes smaller output ceilings after truncation, including across legacy outer planner fallback. Per-attempt requested/observed output, finish reason and recovery path are recorded. A native Gemini loopback HTTP regression exercises the real adapter and independent proposal consistency review. The approval artifact remains complete: an IDs-only skeleton cannot satisfy the existing required instructions/checks and was not substituted.
+
+`research/planner-truncation-results.json` reports controlled before/after paths and reservations. This is a specific reliability fix, not repair-quality evidence, and does not promote the earlier three prompt-policy prototypes. The next live repair trial remains pending secure provider credentials usable in the cloud environment; keys on the user's Windows Desktop are not available here. No live six-case outcome is claimed.

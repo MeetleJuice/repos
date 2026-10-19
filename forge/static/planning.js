@@ -160,7 +160,7 @@ window.addEventListener("DOMContentLoaded", () => {
       controls.innerHTML = `
         <label for="${id}-context">Ollama context (uses RAM/VRAM)</label>
         <select id="${id}-context"><option>4096</option><option>8192</option><option selected>16384</option><option>32768</option></select>
-        <label for="${id}-output">Maximum output tokens</label><select id="${id}-output"></select>
+        <label for="${id}-output">${role === "planner" ? "Planner output floor (automatic minimum 8192)" : "Maximum output tokens"}</label><select id="${id}-output"></select>
         <label class="check-line"><input id="${id}-structured" type="checkbox" checked>Use native Ollama JSON schema</label>
         <p id="${id}-pool-label" class="muted"></p><button type="button" id="${id}-clear-pool" hidden>Use manual model settings</button>
         <label for="${id}-fallback-provider">Fallback provider · optional</label>

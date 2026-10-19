@@ -1,12 +1,15 @@
 """Small provider adapter. No provider SDKs or automatic paid fallbacks."""
 import json
+import hashlib
 import http.client
 import os
 import urllib.error
 import urllib.request
+import urllib.parse
 from typing import Any, cast
 
 from .routing import validate_options
+from .capabilities import PlannerBudget
 from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
 from .prompts import PLAN, CODE
 
@@ -19,7 +22,8 @@ PROVIDERS = {
 
 
 class ModelError(ValueError):
-    def __init__(self, message: str, category: str = "format", retry_after: int = 0) -> None:
+    def __init__(self, message: str, category: str = "format", retry_after: int = 0, partial_content: str = "") -> None:
+        self.partial_content = partial_content
         self.category = category
         self.retry_after = retry_after
         super().__init__(message)
@@ -82,24 +86,69 @@ class ModelClient:
         self.provider, self.model = provider, model.strip()
         self.options = validate_options(options or {})
         self.last_usage: dict[str, int] = {}
+        self.last_metadata: dict[str, Any] = {}
+        self.planner_budget: PlannerBudget | None = None
+        self.recovery_mode = "initial"
+        self.continuation_prefix = ""
 
     def complete(self, system: str, prompt: str) -> dict[str, Any]:
+        try:
+            return self._complete(system, prompt)
+        except ModelError as exc:
+            if self.planner_budget and exc.category == "format":
+                raise ModelError(str(exc), "parse_error") from None
+            raise
+
+    def _complete(self, system: str, prompt: str) -> dict[str, Any]:
         self.last_usage = {}
+        output = self.planner_budget.max_output_tokens if self.planner_budget else self.options['num_predict']
+        self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None}
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
+        if self.recovery_mode == "continuation":
+            messages += [{"role":"assistant","content":self.continuation_prefix},
+                         {"role":"user","content":"Continue exactly where the previous response was cut off, no recap. Return only the missing JSON suffix, without fences or repeating the prefix."}]
+        elif self.recovery_mode == "shortening":
+            messages.append({"role":"user","content":"Emit the minimum viable SCHEMA-COMPLETE proposal. Keep all required fields, full task instructions, acceptance checks, feature indexes and requested behavior. Use short strings and few focused tasks. Omit explanatory prose; do not omit checks, invent a skeleton schema or weaken approval scope. Return a fresh complete JSON object."})
         complete_recovery = system == CODE and json.loads(prompt).get("response_mode") == "complete_files"
         if complete_recovery:
             messages[0]["content"] += "\nRESPONSE RECOVERY: Return a nonempty files object containing COMPLETE changed source files and optional summary. Do not return edits, diffs or ellipses. Read the current source in the request. This recovery requirement overrides the earlier preference for exact edits."
-        if self.provider == "ollama":
+        self.last_metadata.update(input_characters=sum(len(m['content']) for m in messages),
+                                  effective_request_sha256=hashlib.sha256(json.dumps(messages).encode()).hexdigest())
+        if self.provider == "gemini" and self.planner_budget:
+            key = os.getenv('GEMINI_API_KEY')
+            if not key: raise ModelError('Set GEMINI_API_KEY in your local .env file.', 'auth')
+            generation: dict[str, Any] = {'maxOutputTokens':output,'temperature':0.2,'responseMimeType':'application/json'}
+            if self.planner_budget.thinking_budget:
+                generation['thinkingConfig'] = {'thinkingBudget':self.planner_budget.thinking_budget}
+            gemini_base = PROVIDERS['gemini'][0]
+            if not gemini_base: raise ModelError('Invalid Gemini adapter.', 'provider')
+            result = request_json(gemini_base.removesuffix('/openai')+'/models/'+urllib.parse.quote(self.model,safe='')+':generateContent', {
+                'systemInstruction':{'parts':[{'text':messages[0]['content']}]},
+                'contents':[{'role':'model' if m['role']=='assistant' else 'user','parts':[{'text':m['content']}]} for m in messages[1:]],
+                'generationConfig':generation,
+            }, {'x-goog-api-key':key}, timeout=120)
+            usage = result.get('usageMetadata',{})
+            if not isinstance(usage,dict): usage = {}
+            for source,target in [('promptTokenCount','prompt_tokens'),('candidatesTokenCount','visible_output_tokens'),('thoughtsTokenCount','thinking_tokens')]:
+                if type(usage.get(source)) is int and usage[source] >= 0: self.last_usage[target] = usage[source]
+            if 'visible_output_tokens' in self.last_usage or 'thinking_tokens' in self.last_usage:
+                self.last_usage['completion_tokens'] = self.last_usage.get('visible_output_tokens',0)+self.last_usage.get('thinking_tokens',0)
+            candidates = result.get('candidates')
+            if not isinstance(candidates,list) or not candidates or not isinstance(candidates[0],dict): raise ModelError('Gemini did not return a candidate.','format')
+            reason = candidates[0].get('finishReason',candidates[0].get('finish_reason'))
+            parts = candidates[0].get('content',{}).get('parts',[]) if isinstance(candidates[0].get('content'),dict) else []
+            content = ''.join(part['text'] for part in parts if isinstance(part,dict) and isinstance(part.get('text'),str) and not part.get('thought'))
+            self._finish(reason,content)
+        elif self.provider == "ollama":
             schema: dict[str, Any] | str = PLAN_SCHEMA if system == PLAN else CODE_SCHEMA if system == CODE else "json"
             if complete_recovery:
                 schema = COMPLETE_CODE_SCHEMA
             result = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", {
                 "model": self.model, "messages": messages, "stream": False, "format": schema if self.options["structured_outputs"] else "json", "keep_alive": "5m",
-                "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": self.options["num_predict"]},
+                "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": output},
             })
             self.last_usage = {label: result[key] for key, label in [("prompt_eval_count", "prompt_tokens"), ("eval_count", "completion_tokens")] if type(result.get(key)) is int and result[key] >= 0}
-            if result.get("done_reason") == "length":
-                raise ModelError("Ollama reached the output limit. Use smaller tasks or increase the output limit within the context budget.", "truncated")
+            self._finish(result.get("done_reason"), result.get("message", {}).get("content", "") if isinstance(result.get("message"),dict) else "")
             message = result.get("message")
             if not isinstance(message, dict):
                 raise ModelError("Ollama did not return a chat message.")
@@ -113,20 +162,27 @@ class ModelClient:
                 raise ModelError(f"Set {variable} in your local .env file and restart. Never put keys in project prompts.", "auth")
             result = request_json(base + "/chat/completions", {
                 "model": self.model, "messages": messages, "temperature": 0.2,
-                "max_tokens": self.options["num_predict"], "response_format": {"type": "json_object"},
+                "max_tokens": output, "response_format": {"type": "json_object"},
             }, {"Authorization": "Bearer " + key}, timeout=120)
             usage = result.get("usage", {})
             self.last_usage = {key: usage[key] for key in ("prompt_tokens", "completion_tokens") if isinstance(usage, dict) and type(usage.get(key)) is int and usage[key] >= 0}
             choices = result.get("choices")
             if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
                 raise ModelError("Provider did not return a chat completion.")
-            if choices[0].get("finish_reason") == "length":
-                raise ModelError("Provider reached the output limit. Use smaller tasks or increase the output limit.", "truncated")
+            self._finish(choices[0].get("finish_reason", choices[0].get("finishReason")), choices[0].get("message",{}).get("content", "") if isinstance(choices[0].get("message"),dict) else "")
             message = choices[0].get("message")
             if not isinstance(message, dict):
                 raise ModelError("Provider did not return a chat message.")
             content = message.get("content", "")
+        if self.recovery_mode == 'continuation': content = self.continuation_prefix + content
         return extract_json(content)
+
+    def _finish(self, reason: Any, content: Any) -> None:
+        reason = reason[:64] if isinstance(reason,str) else None
+        self.last_metadata.update(finish_reason=reason, observed_output_tokens=self.last_usage.get('completion_tokens'))
+        if reason and reason.upper() in {'LENGTH','MAX_TOKENS'}:
+            partial = content if isinstance(content,str) and len(content) <= 200000 else ''
+            raise ModelError('Response reached its reserved output budget; JSON was not accepted.', 'truncated_output', partial_content=partial)
 
 
 def connection_info() -> dict[str, Any]:

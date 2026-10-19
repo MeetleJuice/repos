@@ -213,7 +213,7 @@ class ModelSettingsTests(unittest.TestCase):
             self.assertEqual(request.call_args.args[1]['format'], 'json')
 
     def test_truncation_and_malformed_responses_have_actionable_categories(self):
-        for response, category in [({'done_reason': 'length'}, 'truncated'), ({'message': None}, 'format'), ({'message': {'content': None}}, 'format')]:
+        for response, category in [({'done_reason': 'length'}, 'truncated_output'), ({'message': None}, 'format'), ({'message': {'content': None}}, 'format')]:
             with patch('forge.models.request_json', return_value=response), self.assertRaises(ModelError) as error:
                 ModelClient('ollama', 'test').complete(PLAN_PROMPT, 'Idea')
             self.assertEqual(error.exception.category, category)

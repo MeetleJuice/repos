@@ -8,6 +8,8 @@ Use the existing checkout; do not create a worktree unless the user requests one
 
 ## Condition → prevention
 
+- A truncated response is an output-budget failure, not a provider outage. Reserve output explicitly; never fall back to a model with a smaller output ceiling.
+
 - If a model supplies changed Python, placeholder-only contents, or escaped HTML markup → validate before any replacement/checkpoint; give at most one focused response correction. This prevents the observed dashboard placeholder-file corruption.
 - If a test imports a real project module such as db.py → inspect that real dependency rather than requiring app.py in every module test. This prevents the observed false-positive static-repair loop; imports alone still do not prove coverage.
 - If changing context serialization → preserve exact JSON-decoded values for every frozen replay, including Unicode/source text; compare normalized size and full regressions. Never silently omit files or relabel character counts as provider tokens.

@@ -153,7 +153,7 @@ class PoolTests(unittest.TestCase):
             validate_config(state['coder'])
             self.assertEqual(bench.call_model(state,'coder','fixture','{}',threading.Event()),PLAN)
             self.assertEqual([c['provider'] for c in state['model_calls']],['gemini','groq','openrouter','ollama'])
-            self.assertEqual(state['model_calls'][0]['error_category'],'truncated')
+            self.assertEqual(state['model_calls'][0]['error_category'],'truncated_output')
             self.assertTrue(state['model_calls'][-1]['success'])
 
     def test_cloud_profile_preserves_local_opt_in_and_large_budget(self):

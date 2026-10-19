@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "fixture_sha256": "7f3cca7529ee88bbd18265881983835819cb84797cbfb146fc7f3b35cbe66aed",
+  "before": {
+    "http_requests": 2,
+    "models": [
+      "gemini-3.8-flash",
+      "openrouter/free"
+    ],
+    "categories": [
+      "truncated",
+      "truncated"
+    ],
+    "terminal_category": "exhausted",
+    "schema_valid_proposal": false
+  },
+  "scope": "Controlled fixture; no live providers, repair-quality or billed-cost claim.",
+  "continuation": {
+    "schema_valid_proposal": true,
+    "attempts": [
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": "truncated_output",
+        "finish_reason": "MAX_TOKENS",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 4128,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "initial",
+        "success": false
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": null,
+        "finish_reason": "STOP",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 1532,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "continuation",
+        "success": true
+      }
+    ],
+    "smaller_fallback_called": false
+  },
+  "shortening": {
+    "schema_valid_proposal": true,
+    "attempts": [
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": "truncated_output",
+        "finish_reason": "MAX_TOKENS",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 4128,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "initial",
+        "success": false
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": "truncated_output",
+        "finish_reason": "MAX_TOKENS",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 4128,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "continuation",
+        "success": false
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": null,
+        "finish_reason": "STOP",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 2532,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "shortening",
+        "success": true
+      }
+    ],
+    "smaller_fallback_called": false
+  },
+  "exhaustion": {
+    "schema_valid_proposal": false,
+    "terminal_category": "truncated_output",
+    "attempts": [
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": "truncated_output",
+        "finish_reason": "MAX_TOKENS",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 4128,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "initial",
+        "success": false
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": "truncated_output",
+        "finish_reason": "MAX_TOKENS",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 4128,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "continuation",
+        "success": false
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "failure_class": "truncated_output",
+        "finish_reason": "MAX_TOKENS",
+        "requested_max_output_tokens": 9216,
+        "observed_output_tokens": 4128,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 1024,
+        "recovery_path": "shortening",
+        "success": false
+      }
+    ],
+    "smaller_fallback_called": false
+  }
+}

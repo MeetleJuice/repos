@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "origin": "Frozen reproduction of user-reported planner length\u2192length chain; controlled responses, not recorded provider bodies.",
+  "route": [
+    {
+      "provider": "gemini",
+      "model": "gemini-3.8-flash",
+      "max_output_tokens": 65536
+    },
+    {
+      "provider": "openrouter",
+      "model": "openrouter/free",
+      "max_output_tokens": 8192,
+      "estimated": true
+    }
+  ],
+  "gemini_initial": {
+    "choices": [
+      {
+        "finish_reason": "length",
+        "message": {
+          "content": "{\"title\": \"Pocket Tasks\", \"summary\": \"A small persistent task tracker.\", \"features\": [\"Create a task\", \"List saved tasks\"], \"out_of_scope\": [\"Accounts\"], \"risks\": [\"Review generated code before running.\"], \"tasks\": [{\"title\": \"Build the task tracker\", \"instructions\": \"Create app.py and behavioral unittest tests.\", \"feature_indexes\""
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1000,
+      "completion_tokens": 4096
+    }
+  },
+  "gemini_continuation": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "message": {
+          "content": ": [0, 1]}], \"checks\": [{\"name\": \"Create task\", \"method\": \"POST\", \"path\": \"/api/tasks\", \"body\": {\"title\": \"Buy milk\"}, \"status\": 201, \"json_contains\": {\"title\": \"Buy milk\"}, \"feature_indexes\": [0]}, {\"name\": \"Retrieve saved task\", \"method\": \"GET\", \"path\": \"/api/tasks\", \"status\": 200, \"contains\": \"Buy milk\", \"feature_indexes\": [1]}]}"
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1600,
+      "completion_tokens": 1500
+    }
+  },
+  "gemini_shortening": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "message": {
+          "content": "{\"title\": \"Pocket Tasks\", \"summary\": \"A small persistent task tracker.\", \"features\": [\"Create a task\", \"List saved tasks\"], \"out_of_scope\": [\"Accounts\"], \"risks\": [\"Review generated code before running.\"], \"tasks\": [{\"title\": \"Build the task tracker\", \"instructions\": \"Create app.py and behavioral unittest tests.\", \"feature_indexes\": [0, 1]}], \"checks\": [{\"name\": \"Create task\", \"method\": \"POST\", \"path\": \"/api/tasks\", \"body\": {\"title\": \"Buy milk\"}, \"status\": 201, \"json_contains\": {\"title\": \"Buy milk\"}, \"feature_indexes\": [0]}, {\"name\": \"Retrieve saved task\", \"method\": \"GET\", \"path\": \"/api/tasks\", \"status\": 200, \"contains\": \"Buy milk\", \"feature_indexes\": [1]}]}"
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1000,
+      "completion_tokens": 2500
+    }
+  },
+  "openrouter_smaller": {
+    "choices": [
+      {
+        "finish_reason": "length",
+        "message": {
+          "content": "{\"title\":\""
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1000,
+      "completion_tokens": 8192
+    }
+  },
+  "expected_plan": {
+    "title": "Pocket Tasks",
+    "summary": "A small persistent task tracker.",
+    "features": [
+      "Create a task",
+      "List saved tasks"
+    ],
+    "out_of_scope": [
+      "Accounts"
+    ],
+    "risks": [
+      "Review generated code before running."
+    ],
+    "tasks": [
+      {
+        "title": "Build the task tracker",
+        "instructions": "Create app.py and behavioral unittest tests.",
+        "feature_indexes": [
+          0,
+          1
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "name": "Create task",
+        "method": "POST",
+        "path": "/api/tasks",
+        "body": {
+          "title": "Buy milk"
+        },
+        "status": 201,
+        "json_contains": {
+          "title": "Buy milk"
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Retrieve saved task",
+        "method": "GET",
+        "path": "/api/tasks",
+        "status": 200,
+        "contains": "Buy milk",
+        "feature_indexes": [
+          1
+        ]
+      }
+    ]
+  }
+}
