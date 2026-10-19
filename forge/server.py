@@ -37,6 +37,7 @@ def make_server(port=8765, workbench=None, credentials=None):
     if os.getenv("FOUNDRY_LAUNCH_ROOT"): roots.append(Path(os.environ["FOUNDRY_LAUNCH_ROOT"]))
     credentials = credentials or CredentialStore(bench.root.parent, roots)
     cloud = CloudSetup(bench.root.parent)
+    local_info = {}
     token = secrets.token_urlsafe(32)
     updater = UpdateManager(bench.root.parent, ROOT, bench)
 
@@ -124,6 +125,8 @@ def make_server(port=8765, workbench=None, credentials=None):
                 self.json({"error": "Internal error. Check the workbench terminal and local project data."}, 500)
 
         def api(self, path, post, body):
+            if path == "/api/model-status" and not post:
+                self.json(bench.model_status.snapshot(cloud.checked,local_info)); return
             if path == "/api/updates" and not post:
                 self.json(updater.status())
                 return
@@ -157,16 +160,17 @@ def make_server(port=8765, workbench=None, credentials=None):
                     raise ValueError("Finish or stop running jobs before changing cloud setup.")
                 if path.endswith('/import'):
                     result = credentials.import_text(body.get('text'))
-                    cloud.checked = {}; bench.provider_cooldowns.clear()
+                    cloud.checked = {}; bench.provider_cooldowns.clear(); bench.model_status.reset()
                     self.json(result); return
                 if path.endswith('/reload'):
                     result = credentials.reload()
-                    cloud.checked = {}; bench.provider_cooldowns.clear()
+                    cloud.checked = {}; bench.provider_cooldowns.clear(); bench.model_status.reset()
                     self.json(result); return
                 if path.endswith('/check'):
                     self.json(cloud.check()); return
                 if path.endswith('/automatic'):
-                    self.json(cloud.automatic(connection_info()['ollama'].get('models',[]))); return
+                    local_info.update(connection_info()['ollama'])
+                    self.json(cloud.automatic(local_info.get('models',[]),bench.model_status.avoid)); return
                 local_model = body.get('local_model', '')
                 if local_model:
                     local = connection_info()['ollama']
@@ -176,7 +180,9 @@ def make_server(port=8765, workbench=None, credentials=None):
             if path == "/api/connections" and not post:
                 from .browser_runner import diagnostics
                 runtime = runtime_diagnostics()
-                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
+                provider_info = connection_info()
+                local_info.update(provider_info.get("ollama",{}))
+                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:

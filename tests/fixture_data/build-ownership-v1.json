@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "provenance": "Synthetic reproduction of the supplied Josh build log: five tasks saved, final documentation task conflicts with controller-owned files; raw rejected responses unavailable.",
+  "completed_tasks": 5,
+  "failed_task": 6,
+  "protected": [
+    "README.md",
+    "MANUAL-CHECKS.md",
+    "CHECKS.json"
+  ],
+  "expected": "Keep protected files unchanged; convey ownership before generation; one focused correction advances from the rejected model."
+}

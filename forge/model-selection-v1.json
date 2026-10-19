@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "2026-10-19",
+  "source": "Heuristic preferences applied only to model IDs returned by provider catalogues; not a live quality benchmark.",
+  "prefer_families": [
+    "qwen3-coder",
+    "qwen3.5",
+    "qwen3.8",
+    "devstral",
+    "gemini-3",
+    "gpt-4.1",
+    "gpt-oss-120b"
+  ],
+  "deprioritize_families": [
+    "qwen-2.5-coder",
+    "qwen2.5-coder",
+    "deepseek-coder",
+    "granite-34b-code"
+  ]
+}

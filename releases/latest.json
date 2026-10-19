@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.16.0",
+  "version": "0.17.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.16.0.zip",
-  "sha256": "3a1c86dbfb0d620190d4149f44e4d3b8d0b6e9cdeb3d7e35d87a8a8e2a2baba0",
-  "notes": "Automatic model discovery and role-specific bounded routes with alternate models and optional Ollama. Proposal validation now participates in pool failover: one correction then advance without restarting failed models. Explicit output contracts, JSON-parameter compatibility retry and per-job planner attempt limits. Advanced choices retained; cloud and execution consent remain separate."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.17.0.zip",
+  "sha256": "b7d55e2db55b24bdf6ccc31eb06ee7dfc364d75683cbf178a954db6f262f7532",
+  "notes": "Build ownership contracts prevent documentation-task conflicts while preserving frozen checks. Rejected code gets one correction through another pooled model. Observed model health avoids recent hard failures; versioned role-selection preferences favour newer coding families. New top-right provider and installed-model status panel animates only active inference. Existing projects resume from saved tasks."
 }

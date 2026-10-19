@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "version": "0.17.0",
+  "date": "2026-10-19",
+  "baseline": "df4430c / v0.16.0",
+  "replay_provenance": "Synthetic Josh final-task ownership conflict; raw rejected model responses and actual generated app files were unavailable.",
+  "before": {
+    "version": "0.16.0",
+    "status": "error",
+    "next_task": 5,
+    "providers": [
+      "gemini",
+      "gemini"
+    ],
+    "checks_unchanged": true,
+    "execution_performed": false
+  },
+  "after": {
+    "version": "0.17.0",
+    "status": "generated",
+    "next_task": 6,
+    "providers": [
+      "gemini",
+      "groq"
+    ],
+    "checks_unchanged": true,
+    "execution_performed": false
+  },
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/googleapis/python-genai/main/README.md",
+      "bytes": 56828,
+      "sha256": "66952d47594d7a9c588782f57cb02d04fa4fd27b108112fd06b036234cdebc34"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/huggingface/hub-docs/main/docs/inference-providers/index.md",
+      "bytes": 40900,
+      "sha256": "e23cb6bae92af209fabab5294bdcb33eade11a1586a9f290087a48e53de89cb1"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/langchain-ai/langchain-nvidia/main/libs/ai-endpoints/langchain_nvidia_ai_endpoints/_common.py",
+      "bytes": 40331,
+      "sha256": "0131e5730005f97d306bf94f5633a50f7a75a9d104afaf73712bb05bedcae596"
+    }
+  ],
+  "validation": {
+    "focused_operation_tests": 37,
+    "focused_contract_tests": 16,
+    "strict_type_modules": 17,
+    "extracted_distribution": {
+      "tests": 299,
+      "seconds": 110.128,
+      "passed": true,
+      "browser_workflows": 5,
+      "browser_workflows_passed": true
+    }
+  },
+  "live_api_generation": null,
+  "native_windows": null,
+  "model_quality_improvement": null,
+  "billed_cost_improvement": null
+}

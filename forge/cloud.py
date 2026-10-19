@@ -4,7 +4,7 @@ import re
 import threading
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any
+from typing import Any, Callable
 from .models import request_json, ModelError, PROVIDERS
 from .providers import CLOUD_ORDER, endpoint, key_for
 from .credentials import atomic_text
@@ -18,6 +18,7 @@ PREFERRED = {'gemini':['gemini-2.5-flash','gemini-3-flash-preview'],
              'cloudflare':['@cf/meta/llama-3.3-70b-instruct-fp8-fast','@cf/meta/llama-3.1-8b-instruct'],
              'nvidia':['qwen/qwen2.5-coder-32b-instruct','meta/llama-3.3-70b-instruct'],
              'requesty':[], 'huggingface':['Qwen/Qwen3-Coder-480B-A35B-Instruct','openai/gpt-oss-120b']}
+SELECTION_POLICY = json.loads(Path(__file__).with_name('model-selection-v1.json').read_text(encoding='utf-8'))
 MODEL_ID = r'[A-Za-z0-9_./:@+-]{1,200}'
 
 
@@ -156,10 +157,12 @@ class CloudSetup:
         if ':free' in name: score += 12
         if name == 'openrouter/free': score -= 40
         if any(word in name for word in ('preview', 'experimental', 'thinking', 'reasoning')): score -= 8
-        if any(word in name for word in ('1b', '3b', '7b', '8b', 'nano')): score -= 15
+        if re.search(r'(?:^|[-/:])(?:[1-8](?:\.[0-9]+)?)b(?:$|[-/:])',name) or 'nano' in name: score -= 20
+        if any(word in name for word in SELECTION_POLICY['prefer_families']): score += 30
+        if any(word in name for word in SELECTION_POLICY['deprioritize_families']): score -= 25
         return (-score, name)
 
-    def automatic(self, installed: list[str] | None = None) -> dict[str, Any]:
+    def automatic(self, installed: list[str] | None = None, avoid: Callable[[str, str], bool] | None = None) -> dict[str, Any]:
         """Read catalogues, choose bounded explicit routes, persist no credentials.
 
         Does not send prompts or prove generation access; execution/cloud consent stays separate.
@@ -176,7 +179,7 @@ class CloudSetup:
                 check = self.checked.get(provider,{})
                 if check.get('status') != 'catalogue_available': continue
                 candidates = sorted(check.get('models',[]), key=lambda m:self.rank(m,role))
-                candidates = [m for m in candidates if registry.get(provider,m).max_output_tokens >= 8192][:2]
+                candidates = [m for m in candidates if registry.get(provider,m).max_output_tokens >= 8192 and not (avoid and avoid(provider,m))][:2]
                 configs = [{'provider':provider,'model':m,'options':{'num_ctx':32768,'num_predict':8192,
                     'structured_outputs':True,'timeout_seconds':60}} for m in candidates]
                 if configs:

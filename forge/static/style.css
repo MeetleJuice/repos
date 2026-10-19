@@ -1728,3 +1728,16 @@ a:focus-visible {
   gap: 8px;
   margin: 8px 0;
 }
+
+/* Observed provider/model activity; no colour-only or motion-only status. */
+#model-status-panel { margin-left:auto; max-width:310px; font-size:10px; }
+#model-status-icons { display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
+.model-state { width:27px; height:26px; min-height:26px; padding:0; border:1px solid #536077; border-radius:8px; background:#182331; color:#aebbd0; font-size:10px; cursor:pointer; }
+.model-state[data-state="responded"],.model-state[data-state="catalogue_available"],.model-state[data-state="installed"] {border-color:#37a88c;color:#72dec3;}
+.model-state[data-state="working"] {border-color:#49cfff;color:#e6fbff;animation:model-working 1s ease-in-out infinite alternate;}
+.model-state[data-state="quota"],.model-state[data-state="auth"],.model-state[data-state="model"],.model-state[data-state="response_rejected"],.model-state[data-state="schema_error"],.model-state[data-state="transport"] {border-color:#e5a755;color:#ffc880;}
+@keyframes model-working {from {box-shadow:0 0 0 0 #28c9ff22;}to {box-shadow:0 0 8px 3px #28c9ff66;}}
+@media (prefers-reduced-motion:reduce) {.model-state[data-state="working"] {animation:none;box-shadow:0 0 0 2px #49cfff;}}
+@media(max-width:800px) {.topbar {flex-wrap:wrap;gap:8px;}#model-status-panel {max-width:100%;}.topbar-actions {flex-wrap:wrap;}}
+
+.topbar .model-state {padding:0;font-size:10px;}

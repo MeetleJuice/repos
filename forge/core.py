@@ -16,6 +16,8 @@ import uuid
 import zipfile
 from typing import Any, Callable
 
+from .model_status import ModelStatus
+from .build_contract import generation_contract
 from .models import output_contract, ModelClient, ModelError
 from . import history, __version__
 from .reporting import OWNED, evidence_status, file_manifest
@@ -64,6 +66,7 @@ class Workbench:
         self.lock = threading.RLock()
         self.inference_lock = threading.Lock()
         self.provider_cooldowns = {}
+        self.model_status = ModelStatus()
         self.jobs = {}
         self.warnings = []
         self.maintenance = False
@@ -247,6 +250,10 @@ class Workbench:
                     continue
                 recovery_mode, prefix = recoveries.get(index, ('initial', ''))
                 effective_prompt = correction_prompts.get(index, prompt)
+                if pool and recovery_mode == 'initial' and self.model_status.avoid(selected['provider'],selected['model']):
+                    failures.append(selected['provider']+': recent_failure')
+                    self.event(state,'Skipping recently failed model for up to five minutes: '+selected['provider']+'/'+selected['model']+'.')
+                    continue
                 identity = (selected["provider"], selected["model"])
                 if pool and self.provider_cooldowns.get(identity, 0) > time.monotonic():
                     failures.append(selected["provider"] + ": cooldown")
@@ -291,6 +298,7 @@ class Workbench:
                                           input_estimate_tokens=budget.input_estimate_tokens)
                             self.event(state, role.title()+' output reservation: '+str(budget.text_output_tokens)+' text + '+str(budget.thinking_budget)+' thinking tokens; recovery '+record['recovery_path']+'.')
                     state["job_inference_attempts"] = state.get("job_inference_attempts", 0) + 1
+                    self.model_status.start(selected["provider"], selected["model"], role)
                     result = client.complete(system, effective_prompt)
                     if cancel.is_set(): raise InterruptedError("Stopped. Model output discarded.")
                     if review_candidate is not None:
@@ -373,6 +381,7 @@ class Workbench:
                     if client is not None:
                         record.update(**getattr(client, "last_usage", {}))
                         record.update(**getattr(client, "last_metadata", {}))
+                    self.model_status.finish(selected["provider"], selected["model"], "responded" if record["success"] else record.get("error_category", "cancelled" if cancel.is_set() else "failed"))
                     record["seconds"] = round(time.monotonic() - started, 2)
                     record["run_id"] = state.get("active_run_id")
                     history.add_attempt(state, record)
@@ -692,7 +701,7 @@ class Workbench:
         plan = state["plan"]
         guide = "# " + plan["title"] + "\n\n" + plan["summary"]
         guide += "\n\n## Approved features\n\n" + "\n".join("- " + feature for feature in plan["features"])
-        guide += "\n\n## Architecture and execution contract\n\nPython 3.11+, standard library only. app.py exposes create_server(host, port), /health and a browser interface. SQLite/JSON data stays local. No external services or package installation.\n"
+        guide += "\n\n## Architecture and execution contract\n\nPython 3.11+, standard library only. app.py exposes create_server(host, port), /health and a browser interface. Persistence follows the approved plan: browser localStorage belongs to its browser/origin; server SQLite/JSON stays in the app data directory. Network features are limited to the approved scope. No package installation.\n"
         guide += "\n## Build order\n\n" + "\n".join(f'{i+1}. {task["title"]} — {task["instructions"]}' for i, task in enumerate(plan["tasks"]))
         guide += "\n\nTasks run sequentially. Later tasks build on saved files; checkpoints preserve previous versions.\n"
         guide += "\n## Acceptance criteria\n\n" + "\n".join(f'- {check["name"]}: {check["method"]} {check["path"]} → HTTP {check["status"]}' for check in plan["checks"])
@@ -792,7 +801,7 @@ class Workbench:
                 raise ValueError("Case-colliding filenames are not portable to Windows.")
             normalized.add(lower)
             if lower in OWNED:
-                raise ValueError("Model attempted to modify frozen documentation or acceptance checks.")
+                raise ValueError("Model attempted to modify frozen documentation or acceptance checks: " + name + ". These are controller-owned. Put app-specific documentation in APP-GUIDE.md.")
             if not isinstance(content, str) or len(content) > 40000:
                 raise ValueError("Generated file is too large or not text.")
             if name in state.get("frozen_tests", {}) and hashlib.sha256(content.encode()).hexdigest() != state["frozen_tests"][name]:
@@ -838,6 +847,7 @@ class Workbench:
 
     def generate_and_apply(self, state, payload, cancel, repair=False):
         """One bounded correction for malformed code responses; rejected files never land."""
+        payload = generation_contract(payload)
         for attempt in range(2):
             try:
                 response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel)
@@ -854,6 +864,13 @@ class Workbench:
                     self.apply(state, response, repair=repair)
                     return
                 except ValueError as exc:
+                    if state.get("model_calls"):
+                        record=state["model_calls"][-1]
+                        provider,model=record["provider"],record["model"]
+                        self.model_status.reject(provider,model)
+                        self.trace(state,"code_response_rejected",{"provider":provider,"model":model,"reason":str(exc),"files_replaced":False})
+                        if state["coder"].get("fallbacks"):
+                            state.setdefault("job_model_rejections",{})[provider+"/"+model]="response_rejected"
                     if attempt:
                         raise
                     error = str(exc)
@@ -981,6 +998,7 @@ class Workbench:
                            "verification_capabilities": {"http": True, "manual": True, "browser": "optional local Chromium; request browser_checks only when explicitly asked", "browser_starter": state.get("starter") == "arcade"},
                            "required_plan_fields": {"app_kind": "browser", "behavior_evidence": "nonempty manual_checks or browser_checks"} if state.get("starter") == "arcade" else {},
                            "starter_example_plan": json.loads((Path(__file__).with_name("starters") / "arcade" / "proposal.json").read_text(encoding="utf-8")) if state.get("starter") == "arcade" else None,
+                           "file_ownership": generation_contract({})["file_ownership"],
                            "scope_priority": "The latest revision overrides conflicting original details. Preserve requested storage: localStorage must not become SQLite. Preserve UI/game requirements; HTTP delivery never proves gameplay.",
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
                 def evaluate(candidate: dict[str, Any]) -> tuple[dict[str, Any], Review]:

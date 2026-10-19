@@ -49,7 +49,7 @@ class HandoffTests(unittest.TestCase):
             self.assertGreater(record['input_characters'],0)
             self.assertNotIn('prompt',record)
 
-    def test_production_generation_keeps_legacy_prompt_until_promotion(self):
+    def test_production_generation_keeps_legacy_serialization_and_adds_ownership(self):
         class RecordingModels(ScriptedModels):
             def complete(self, system, prompt):
                 self.raw = prompt
@@ -60,7 +60,9 @@ class HandoffTests(unittest.TestCase):
             state.update(next_task=0,snapshots=[])
             payload={'files':{},'note':'项目'}
             bench.generate_and_apply(state,payload,threading.Event())
-            self.assertEqual(models.raw,json.dumps(payload))
+            from forge.build_contract import generation_contract
+            self.assertEqual(models.raw,json.dumps(generation_contract(payload)))
+            self.assertEqual({k:json.loads(models.raw)[k] for k in payload},payload)
             self.assertIn('\\u9879',models.raw)
             self.assertEqual(state['model_calls'][0]['handoff_version'],1)
 

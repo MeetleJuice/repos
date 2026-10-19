@@ -1,6 +1,6 @@
 PLAN = '''You are a pragmatic software architect. Return JSON only. Plan a SMALL working local
 Python web app, using Python standard library ONLY (http.server, sqlite3, json, etc.).
-No pip dependencies, authentication, external services, or deployments in this first version.
+No pip dependencies, authentication, server-side external-service integration, or deployments in this first version. Explicitly requested optional browser image URLs may be planned with user opt-in and offline placeholders.
 Choose app_kind: "server" for server-side CRUD/tools, "browser" for client-side games/calculators.
 Browser games use Canvas/JavaScript served locally; never invent a database/API to satisfy tests.
 Respect the requested persistence: browser localStorage is valid. Do not replace it with SQLite.
@@ -55,6 +55,7 @@ through the highest listed index, on fresh data; list only prefixes that the tas
 Do not claim future features are ready. Use milestone checks for runnable early increments.
 Include concrete HTTP acceptance checks for server behavior and delivery. Browser-only behavior belongs in browser_checks or manual_checks.
 Checks run in order on a fresh server and may create and retrieve data. Avoid dynamic IDs unless deterministic.
+Foundry creates README.md, PROJECT.md, TASKS.md, MANUAL-CHECKS.md, checks and launch scripts. Never assign the builder tasks to edit these controller-owned files. Additional app-specific documentation belongs in APP-GUIDE.md.
 JSON schema by example:
 {"title":"Task tracker","app_kind":"server","summary":"...","features":["..."],"out_of_scope":["..."],
 "risks":["..."],"tasks":[{"title":"...","instructions":"...","feature_indexes":[0]}],
@@ -89,7 +90,7 @@ For small changes prefer exact edits: {"summary":"...","edits":[{"file":"game.js
 Edits apply sequentially to existing files; search must match exactly once. At most 12 edits.
 Use files for new files or larger rewrites. Never combine edits and files for the same filename.
 Only return files that change; never use unified diff syntax or ellipses. No deletes, shell commands,
-pip dependencies, external services, or binary files. Use Python STANDARD LIBRARY only.
+pip dependencies, server-side external-service integrations, or binary files. Use Python STANDARD LIBRARY only. Explicitly approved optional browser image URLs require user opt-in and offline placeholders; never put credentials in browser code.
 Contract: app.py defines create_server(host, port) returning an HTTPServer. GET /health returns
 JSON {"status":"ok"}. GET / returns a usable HTML interface. Main block accepts --host and --port.
 Use sqlite3 or JSON for server persistence; localStorage for browser-only state when requested. Browser games do not need fake APIs or a database. Implement explicit pause/resume, restart and touch controls when approved. Prefer a few small files; keep the entire project under 36000 characters.

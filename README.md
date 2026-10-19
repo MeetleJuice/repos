@@ -1,10 +1,24 @@
-# Idea Foundry 0.16.0
+# Idea Foundry 0.17.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.17.0 build operation and model activity
+
+The top-right panel shows all seven cloud providers and installed local models. Hover or focus an icon
+for its last observed state, model and time; click it to open Models. Working animation follows the active
+inference call, clears on completion/error/cancellation, and respects reduced-motion preferences.
+Configured keys and catalogue access are distinct from successful responses or verified app behavior.
+
+New coding requests explicitly separate controller-owned README/check/launch artifacts from editable
+app files. App-specific usage notes belong in APP-GUIDE.md. A rejected pooled coding response gets its
+single correction from another eligible model; saved tasks and frozen checks remain untouched.
+Automatic model selection has versioned family preferences and skips recent hard failures for five minutes.
+Use **Models → Set up models automatically** to rebuild an existing route with those preferences.
+[Setup, model recommendations and verification](docs/RELEASE-0.17.0.md).
 
 ## 0.16.0 automatic model routes
 
