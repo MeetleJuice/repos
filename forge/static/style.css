@@ -1697,3 +1697,10 @@ a:focus-visible {
   max-width: 100%;
   min-width: 0;
 }
+
+.phase-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted, #a7b5c4);
+  line-height: 1.5;
+}

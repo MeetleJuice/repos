@@ -1,10 +1,20 @@
-# Idea Foundry 0.12.0
+# Idea Foundry 0.13.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.13.0 completion reliability
+
+Verification workspaces now belong to a supervisor process. App and test workers exit before
+cleanup, releasing SQLite handles on Windows. Transient cleanup failures get bounded retries;
+persistent failures keep the real behavioral evidence and never trigger application repair.
+Builders now reserve supported thinking separately and try bounded same-model continuation
+and compact recovery after truncation. Smaller-output fallback models remain excluded.
+Phase cards show executed check/test counts and cleanup status. Nested tests must be importable
+by unittest discovery. [Update and test guide](docs/RELEASE-0.13.0.md).
 
 ## 0.12.0 cloud-first studio
 

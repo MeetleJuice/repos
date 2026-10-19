@@ -293,7 +293,9 @@ function render() {
   $("test-badge").textContent = p.checks
     ? p.checks.passed
       ? "Checks passed"
-      : "Checks failed"
+      : p.checks.failure_kind === "environment"
+        ? "Verification blocked"
+        : "Checks failed"
     : "Not verified";
   $("test-badge").className =
     "badge " + (p.checks?.passed ? "verified" : p.checks ? "error" : "");
@@ -323,9 +325,13 @@ function render() {
     title.textContent = label;
     const status = document.createElement("span");
     status.textContent = phase
-      ? phase.passed
-        ? "Passed"
-        : "Failed"
+      ? phase.behavior_passed && phase.workspace_cleanup === "failed"
+        ? "Checks passed · cleanup failed"
+        : phase.passed
+          ? "Passed"
+          : phase.failure_kind === "environment"
+            ? "Environment blocked"
+            : "Failed"
       : "Not run";
     status.className = phase
       ? phase.passed
@@ -333,6 +339,20 @@ function render() {
         : "phase-fail"
       : "muted";
     card.append(title, status);
+    if (phase) {
+      const details = document.createElement("small");
+      const counts = [];
+      if (Number.isInteger(phase.http_checks))
+        counts.push(`${phase.http_checks} HTTP checks`);
+      if (Number.isInteger(phase.tests_run))
+        counts.push(`${phase.tests_run} tests`);
+      if (Number.isInteger(phase.asset_checks))
+        counts.push(`${phase.asset_checks} assets`);
+      if (phase.workspace_cleanup)
+        counts.push(`Workspace cleanup: ${phase.workspace_cleanup}`);
+      details.textContent = counts.join(" · ");
+      card.append(details);
+    }
     $("phase-list").append(card);
   }
   $("events").replaceChildren(

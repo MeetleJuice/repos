@@ -222,10 +222,10 @@ def phase(name, source):
                 raise PhaseInfrastructureError("Verifier workspace cleanup failed after testing: " + str(exc)) from exc
 
 
-def run_phase(name, source, timeout):
+def _run_prepared_phase(name: str, source: Path, timeout: float) -> dict[str, Any]:
     print("PHASE:", name, flush=True)
     with tempfile.TemporaryFile() as output:
-        proc = subprocess.Popen([sys.executable, "-B", str(Path(__file__).resolve()), str(source), "--phase", name], stdout=output, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen([sys.executable, "-B", str(Path(__file__).resolve()), str(source), "--phase", name, "--prepared"], stdout=output, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + timeout
         reason = None
         while proc.poll() is None:
@@ -254,6 +254,43 @@ def run_phase(name, source, timeout):
     except (ValueError, IndexError, AttributeError):
         pass
     return {"phase": name, "passed": False, "error": log[-16000:] or "Phase produced no completion report; a zero exit code alone is insufficient."}
+
+
+def prepared_phase(name: str, root: Path) -> dict[str, Any]:
+    """Execute app objects only in a worker; its supervisor owns the workspace."""
+    os.chdir(root)
+    sys.path.insert(0, str(root))
+    return {"phase": name, "passed": True, **{"acceptance": acceptance, "tests": generated_tests, "launch": launch}[name](root)}
+
+
+def run_phase(name: str, source: Path, timeout: float) -> dict[str, Any]:
+    workspace = None
+    report = {"phase": name, "passed": False}
+    try:
+        workspace = tempfile.TemporaryDirectory(prefix="foundry-" + name + "-")
+        root = Path(workspace.name).resolve()
+        shutil.copytree(source, root, dirs_exist_ok=True, ignore=shutil.ignore_patterns("__pycache__", "*.db", "*.sqlite*"))
+        # _run_prepared_phase waits for worker exit before returning. SQLite,
+        # imported module globals and generated tests cannot retain parent handles.
+        report = _run_prepared_phase(name, root, timeout)
+    except OSError as exc:
+        report = {"phase": name, "passed": False, "failure_kind": "environment",
+                  "error": "Verifier workspace could not be prepared: " + str(exc)}
+    finally:
+        if workspace is not None:
+            for attempt in range(3):
+                try:
+                    workspace.cleanup()
+                    report["workspace_cleanup"] = "passed"
+                    break
+                except OSError as exc:
+                    if attempt < 2:
+                        time.sleep(0.05 * (attempt + 1))
+                    else:
+                        report.update(behavior_passed=report.get("passed") is True,
+                                      passed=False, failure_kind="environment", workspace_cleanup="failed",
+                                      error="Verifier workspace cleanup failed after worker exit: " + str(exc))
+    return report
 
 
 def diagnose(report):
@@ -286,12 +323,13 @@ def main():
     parser.add_argument("source", type=Path)
     parser.add_argument("--phase", choices=["acceptance", "tests", "launch"])
     parser.add_argument("--milestone", action="store_true")
+    parser.add_argument("--prepared", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--test-timeout", type=float, default=30)
     args = parser.parse_args()
     source = args.source.resolve()
     if args.phase:
         try:
-            report = phase(args.phase, source)
+            report = prepared_phase(args.phase, source) if args.prepared else phase(args.phase, source)
         except PhaseInfrastructureError as exc:
             traceback.print_exc()
             print(MARKER + json.dumps({"phase": args.phase, "passed": False, "failure_kind": "environment", "error": str(exc)}), flush=True)

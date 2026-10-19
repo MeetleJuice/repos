@@ -98,3 +98,13 @@ class CapabilityRegistry:
         text = max(self.builtin['planner_output_floor'], options.get('num_predict',4096), estimate)
         if text+thinking > room: raise ValueError('Planner output reservation exceeds the model output/context budget. Use a larger-capacity configured model or narrow the proposal; no request was sent.')
         return PlannerBudget(text+thinking, text, thinking, input_estimate, estimate)
+
+    def reserve_builder(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str) -> PlannerBudget:
+        """Keep the configured visible-code cap; reserve reasoning separately."""
+        cap = self.get(provider, model, options)
+        text = options.get('num_predict', 8192)
+        thinking = cap.thinking_budget_default if cap.supports_thinking_budget else 0
+        input_estimate = (len((system+prompt).encode('utf-8', errors='surrogatepass'))+1)//2 + 512
+        if text+thinking > min(cap.max_output_tokens, cap.max_context_tokens-input_estimate):
+            raise ValueError('Builder output reservation exceeds the model output/context budget. Choose a larger-capacity model or reduce the configured output cap; no request was sent.')
+        return PlannerBudget(text+thinking, text, thinking, input_estimate, text)

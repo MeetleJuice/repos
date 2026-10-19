@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "version": 3,
+  "sets": [
+    {
+      "file": "handoff-regressions-v1.json",
+      "sha256": "bbd15c652c4c919a51987a25a6a309320204e2e1f4ce62e27b904560744491f7"
+    },
+    {
+      "file": "planner-truncation-v1.json",
+      "sha256": "7f3cca7529ee88bbd18265881983835819cb84797cbfb146fc7f3b35cbe66aed"
+    },
+    {
+      "file": "completion-process-v1.json",
+      "sha256": "211c250505291c37288837021c0712b261ed5eb63bce34a05b3a1597d95a1312"
+    }
+  ],
+  "note": "Append-only completion reliability set; prior handoff/planner fixtures unchanged. Controlled builder responses and observed Windows failure have separate provenance."
+}

@@ -147,12 +147,12 @@ class PoolTests(unittest.TestCase):
 
     def test_truncated_cloud_output_can_reach_explicit_local_fallback(self):
         with tempfile.TemporaryDirectory() as temp:
-            models=ScriptedModels([ModelError('Limit','truncated'), ModelError('Offline','transport'), ModelError('Quota','quota'), PLAN])
+            models=ScriptedModels([ModelError('Limit','truncated'), ModelError('Still cut off','truncated'), ModelError('Offline','transport'), ModelError('Quota','quota'), PLAN])
             bench=Workbench(Path(temp),models);state=state_for(bench)
             state['coder']['fallbacks'].append({'provider':'ollama','model':'qwen2.5-coder:7b'})
             validate_config(state['coder'])
             self.assertEqual(bench.call_model(state,'coder','fixture','{}',threading.Event()),PLAN)
-            self.assertEqual([c['provider'] for c in state['model_calls']],['gemini','groq','openrouter','ollama'])
+            self.assertEqual([c['provider'] for c in state['model_calls']],['gemini','gemini','groq','openrouter','ollama'])
             self.assertEqual(state['model_calls'][0]['error_category'],'truncated_output')
             self.assertTrue(state['model_calls'][-1]['success'])
 

@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "version": "0.13.0",
+  "baseline": "0.12.0 e6b0726",
+  "date": "2026-10-19",
+  "scope": "Controlled reliability regressions, not live provider quality",
+  "builder_fixture": {
+    "before": {
+      "outcome": "truncated_output",
+      "requests": 1,
+      "recovery": [
+        "initial"
+      ]
+    },
+    "after": {
+      "outcome": "complete_json",
+      "requests": 2,
+      "recovery": [
+        "initial",
+        "continuation"
+      ],
+      "reservation": {
+        "visible": 8192,
+        "thinking": 1024,
+        "total": 9216
+      }
+    },
+    "source_writes_before_complete_json": 0
+  },
+  "verification": {
+    "before_observed": "All approved HTTP checks including restart passed; WinError32 cleanup prevented generated tests and launch.",
+    "after_controlled": "Acceptance, generated tests and CLI launch pass; supervisor cleanup follows worker exit.",
+    "persistent_cleanup_failure": "Keeps behavior/count evidence; blocked environment result; no application repair.",
+    "native_windows_run": null
+  },
+  "validation": {
+    "targeted_cloud_updates_completion": "43 tests passed",
+    "browser": "Chromium: full generation/consent/local verification/export/search/update desktop/mobile flow; explicit cleanup-failure rendering passed",
+    "strict_types": "11 modules passed",
+    "fresh_distribution_suite": {
+      "python": "3.13",
+      "tests": 236,
+      "passed": true,
+      "seconds": 103.448
+    },
+    "development_suite": {
+      "python": "3.12",
+      "tests": 236,
+      "passed": true,
+      "seconds": 105.941
+    },
+    "final_dedicated_regressions": {
+      "tests": 24,
+      "passed": true,
+      "seconds": 4.839
+    },
+    "cloud_browser": "Chromium: private UTF-16 key import, catalogues, route persistence, consent, ordered fallback, cooldown and real app verification passed with fixture providers.",
+    "distribution_privacy_allowlist": "Passed: no private data, .env keys or caches."
+  },
+  "live_provider_quality": null,
+  "live_provider_cost": null
+}

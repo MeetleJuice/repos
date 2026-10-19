@@ -4,6 +4,7 @@ import shutil
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import json
+import copy
 import tempfile
 import threading
 import zipfile
@@ -40,7 +41,7 @@ def main():
                 page.screenshot(path=str(artifacts / 'foundry-05-home.png'), full_page=True)
                 page.locator('#update-button').click()
                 page.locator('#check-update').click()
-                expect(page.locator('#update-status')).to_have_text('Version 0.13.0 is available.')
+                expect(page.locator('#update-status')).to_have_text('Version 0.14.0 is available.')
                 expect(page.locator('#install-update')).to_be_disabled()  # test server bypasses stable launcher
                 expect(page.locator('#update-history')).to_contain_text('Start-Foundry.bat')
                 page.screenshot(path=str(artifacts / 'foundry-05-update.png'), full_page=True)
@@ -65,6 +66,23 @@ def main():
                 page.locator('#verify').click()
                 expect(page.locator('#project-status')).to_have_text('verified', timeout=15000)
                 expect(page.locator('#phase-list')).to_contain_text('Passed')
+                expect(page.locator('#phase-list')).to_contain_text('HTTP checks')
+                expect(page.locator('#phase-list')).to_contain_text('Workspace cleanup: passed')
+                original = bench.list_projects()[0]
+                altered = copy.deepcopy(original)
+                altered['status'] = 'needs_attention'
+                altered['checks']['passed'] = False
+                altered['checks']['failure_kind'] = 'environment'
+                altered['checks']['phases'][0].update(passed=False, behavior_passed=True, workspace_cleanup='failed', failure_kind='environment')
+                bench.save(altered)
+                page.reload()
+                page.locator('#projects button').first.click()
+                expect(page.locator('#phase-list')).to_contain_text('Checks passed · cleanup failed', timeout=10000)
+                expect(page.locator('#test-badge')).to_have_text('Verification blocked')
+                bench.save(original)
+                page.reload()
+                page.locator('#projects button').first.click()
+                expect(page.locator('#project-status')).to_have_text('verified', timeout=10000)
                 page.screenshot(path=str(artifacts / 'foundry-05-verification.png'), full_page=True)
                 page.get_by_role('tab', name='Project files').click()
                 with page.expect_download() as info:

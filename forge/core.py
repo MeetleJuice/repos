@@ -179,9 +179,10 @@ class Workbench:
                     client = self.client_factory(selected["provider"], selected["model"])
                     if isinstance(client, ModelClient):
                         client.options = validate_options(selected.get("options", {}))
-                        if role == 'planner':
+                        if role in {'planner', 'coder'}:
                             try:
-                                budget = registry.reserve(selected['provider'],selected['model'],client.options,system+prefix,prompt)
+                                reserve = registry.reserve if role == 'planner' else registry.reserve_builder
+                                budget = reserve(selected['provider'],selected['model'],client.options,system+prefix,prompt)
                             except ValueError as exc:
                                 raise ModelError(str(exc),'output_budget') from None
                             client.planner_budget = budget
@@ -191,7 +192,7 @@ class Workbench:
                                           thinking_budget=budget.thinking_budget,
                                           estimated_required_output_tokens=budget.estimated_required_tokens,
                                           input_estimate_tokens=budget.input_estimate_tokens)
-                            self.event(state, 'Planner output reservation: '+str(budget.text_output_tokens)+' text + '+str(budget.thinking_budget)+' thinking tokens; recovery '+record['recovery_path']+'.')
+                            self.event(state, role.title()+' output reservation: '+str(budget.text_output_tokens)+' text + '+str(budget.thinking_budget)+' thinking tokens; recovery '+record['recovery_path']+'.')
                     result = client.complete(system, prompt)
                     record.update(success=True, **getattr(client, "last_usage", {}))
                     if pool and is_fallback:
@@ -201,15 +202,15 @@ class Workbench:
                     category = 'truncated_output' if exc.category in {'truncated','truncated_output'} else exc.category
                     record['error_category'] = category
                     record['failure_class'] = category if category in {'truncated_output','parse_error','schema_error','output_budget'} else 'parse_error' if category == 'format' else 'provider_unavailable' if category in {'auth','rate_limit','provider','transport','quota','request','model'} else category
-                    if category == 'truncated_output' or (role == 'planner' and recovery_mode == 'continuation' and category in {'format','parse_error','output_budget'}):
+                    if category == 'truncated_output' or (role in {'planner', 'coder'} and recovery_mode == 'continuation' and category in {'format','parse_error','output_budget'}):
                         minimum_ceiling = max(minimum_ceiling, capability.max_output_tokens)
                         if role == "planner": state["planner_truncation_ceiling"] = minimum_ceiling
-                        if role == 'planner' and recovery_mode != 'shortening':
+                        if role in {'planner', 'coder'} and recovery_mode != 'shortening':
                             partial = getattr(exc,'partial_content','')
                             mode = 'continuation' if recovery_mode == 'initial' and partial else 'shortening'
                             choices.insert(index+1,(selected,is_fallback))
                             recoveries[index+1] = (mode,partial if mode == 'continuation' else '')
-                            self.event(state,'Planner truncated_output recovery: '+mode+' on '+selected['provider']+'/'+selected['model']+'.')
+                            self.event(state,role.title()+' truncated_output recovery: '+mode+' on '+selected['provider']+'/'+selected['model']+'.')
                             continue
                         failures.append(selected['provider']+': truncated_output')
                         # Legacy planner fallback orchestration must obey the same ceiling gate.
@@ -688,7 +689,7 @@ class Workbench:
             try:
                 response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel)
             except ModelError as exc:
-                if exc.category != "format" or attempt:
+                if exc.category not in {"format", "parse_error"} or attempt:
                     raise
                 error = str(exc)
             else:

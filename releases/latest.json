@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.12.0",
+  "version": "0.13.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.12.0.zip",
-  "sha256": "438ab3f898f56a362b432d6092a018927080df52cd46b158862bf5921f208739",
-  "notes": "Planner output reservation and truncation recovery: versioned model ceilings, bounded Gemini thinking, same-model continuation then schema-complete shortening, and fallback only to equal/larger output ceilings after truncation. Finish reasons, requested caps and observed tokens recorded separately from provider outages. Approval and acceptance checks remain unchanged."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.13.0.zip",
+  "sha256": "0bdb356dcb0a117f310d6070629bc1d966f8ef5226c8c1cc0c01bc6e61363e6c",
+  "notes": "Completion reliability: supervisor-owned verification workspaces release SQLite handles before cleanup; bounded cleanup retries retain behavioral evidence. Builder output reserves bounded thinking and recovers truncation on the same model before capacity-safe fallback. Discoverable-test preflight and phase evidence counters preserve existing approvals, checks, backups and exports."
 }

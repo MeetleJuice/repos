@@ -192,8 +192,8 @@
           </div>
         </div>
         <p class="footnote">
-          VERSION 0.6 · Builds small Python web apps using the standard library.
-          Larger ideas start with a useful first slice.
+          Builds small Python web apps using the standard library. Larger ideas
+          start with a useful first slice.
         </p>
       </section>
       <section id="project-view" hidden>
@@ -610,13 +610,15 @@ Generated files will appear here after approval.</pre
         </p>
         <p>
           Route order: Gemini → Groq → OpenRouter → optional Ollama. Skipped
-          providers receive no requests. Planner truncation tries one same-model
-          continuation and one shortening before an equal/larger-capacity
-          fallback. Service failures can use the next configured provider.
-          Planner output reserves schema-derived room with a minimum 8192 text
-          tokens plus bounded thinking where supported; the selected planner
-          value is a floor, not a hard spending cap. Invalid JSON gets a bounded
-          correction. Cloud requests have a 120-second socket timeout.
+          providers receive no requests. Planner and builder truncation try one
+          same-model continuation and one shortening before an
+          equal/larger-capacity fallback. Service failures can use the next
+          configured provider. Planner output reserves schema-derived room with
+          a minimum 8192 text tokens plus bounded thinking where supported; the
+          selected planner value is a floor, not a hard spending cap. Invalid
+          JSON gets a bounded correction. Builder caps reserve visible output
+          plus bounded thinking where supported. Cloud requests have a
+          120-second socket timeout.
         </p>
         <div id="cloud-providers"></div>
         <label for="cloud-local-model"

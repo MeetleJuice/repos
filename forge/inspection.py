@@ -36,6 +36,10 @@ def inspect_files(files, complete=True):
     application_modules = {Path(name).stem for name in files if name.endswith(".py") and not Path(name).name.startswith("test_")}
     methods = 0
     for name in tests:
+        parents = Path(name).parents
+        missing_packages = [parent.as_posix() for parent in parents if parent != Path('.') and (parent / "__init__.py").as_posix() not in files]
+        if missing_packages:
+            issues.append(f"{name}: unittest discovery cannot reliably import this nested test. Add __init__.py in each test directory or move the test file to the project root.")
         tree = trees.get(name)
         if tree is None:
             continue

@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.12.0"
+__version__ = "0.13.0"
 
-__release_notes__ = "Planner output reservation and truncation recovery: versioned model ceilings, bounded Gemini thinking, same-model continuation then schema-complete shortening, and fallback only to equal/larger output ceilings after truncation. Finish reasons, requested caps and observed tokens recorded separately from provider outages. Approval and acceptance checks remain unchanged."
+__release_notes__ = "Completion reliability: supervisor-owned verification workspaces release SQLite handles before cleanup; bounded cleanup retries retain behavioral evidence. Builder output reserves bounded thinking and recovers truncation on the same model before capacity-safe fallback. Discoverable-test preflight and phase evidence counters preserve existing approvals, checks, backups and exports."

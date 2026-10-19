@@ -108,13 +108,16 @@ class ModelClient:
             messages += [{"role":"assistant","content":self.continuation_prefix},
                          {"role":"user","content":"Continue exactly where the previous response was cut off, no recap. Return only the missing JSON suffix, without fences or repeating the prefix."}]
         elif self.recovery_mode == "shortening":
-            messages.append({"role":"user","content":"Emit the minimum viable SCHEMA-COMPLETE proposal. Keep all required fields, full task instructions, acceptance checks, feature indexes and requested behavior. Use short strings and few focused tasks. Omit explanatory prose; do not omit checks, invent a skeleton schema or weaken approval scope. Return a fresh complete JSON object."})
+            if system == CODE:
+                messages.append({"role":"user","content":"Return a fresh complete JSON object with only necessary changed files or exact edits. Keep the approved behavior and tests. Prefer small exact edits over rewriting unchanged files. Omit explanatory prose and never use placeholders or truncated file contents."})
+            else:
+                messages.append({"role":"user","content":"Emit the minimum viable SCHEMA-COMPLETE proposal. Keep all required fields, full task instructions, acceptance checks, feature indexes and requested behavior. Use short strings and few focused tasks. Omit explanatory prose; do not omit checks, invent a skeleton schema or weaken approval scope. Return a fresh complete JSON object."})
         complete_recovery = system == CODE and json.loads(prompt).get("response_mode") == "complete_files"
         if complete_recovery:
             messages[0]["content"] += "\nRESPONSE RECOVERY: Return a nonempty files object containing COMPLETE changed source files and optional summary. Do not return edits, diffs or ellipses. Read the current source in the request. This recovery requirement overrides the earlier preference for exact edits."
         self.last_metadata.update(input_characters=sum(len(m['content']) for m in messages),
                                   effective_request_sha256=hashlib.sha256(json.dumps(messages).encode()).hexdigest())
-        if self.provider == "gemini" and self.planner_budget:
+        if self.provider == "gemini" and self.planner_budget and (system == PLAN or self.planner_budget.thinking_budget > 0):
             key = os.getenv('GEMINI_API_KEY')
             if not key: raise ModelError('Set GEMINI_API_KEY in your local .env file.', 'auth')
             generation: dict[str, Any] = {'maxOutputTokens':output,'temperature':0.2,'responseMimeType':'application/json'}
