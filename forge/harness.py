@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 from html.parser import HTMLParser
 import importlib.util
 import json
@@ -136,6 +137,23 @@ def generated_tests(root):
         if event == "call" and frame.f_code.co_filename == app_path and frame.f_code.co_flags & 0x02:
             calls[0] += 1
     suite = unittest.defaultTestLoader.discover(str(root), pattern="test_*.py")
+    collected_modules = set()
+    def inventory(item):
+        if isinstance(item, unittest.TestSuite):
+            for child in item:
+                inventory(child)
+        else:
+            function = getattr(item, "_testFunc", None)
+            collected_modules.add(function.__module__ if function else type(item).__module__)
+    inventory(suite)
+    for path in root.rglob("test_*.py"):
+        if "__pycache__" in path.parts:
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        intended = any(isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith("test_") for node in ast.walk(tree))
+        module = ".".join(path.relative_to(root).with_suffix("").parts)
+        assert not intended or module in collected_modules, (str(path.relative_to(root)) +
+            ": test definitions were not collected by unittest. Use discoverable unittest.TestCase methods or load_tests; a passing foundation test does not cover this module.")
     sys.setprofile(profile)
     threading.setprofile(profile)
     try:

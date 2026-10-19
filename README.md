@@ -1,10 +1,22 @@
-# Idea Foundry 0.13.0
+# Idea Foundry 0.14.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Groq, OpenRouter, and Gemini are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.14.0 workflow history and evidence integrity
+
+Open **Build & results → Project history** to inspect attributed runs, model attempts,
+file hashes and verification outcomes. Download history separately or find it in the app ZIP
+as `RUN-HISTORY.json`. Legacy gaps and the 16 MB history limit are disclosed.
+Cumulative counts survive the recent-detail windows; transport attempts and unknown usage
+are distinguished from controller attempts. Exports include a file manifest and check whether
+verification still matches current source, approved checks, protected tests and, for newly
+verified runs, documents/launchers. Stale passes are labeled historical. Test discovery rejects
+uncollected test-bearing modules even when another test passes.
+[Update and testing guide](docs/RELEASE-0.14.0.md).
 
 ## 0.13.0 completion reliability
 

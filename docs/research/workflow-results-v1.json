@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "baseline": {
+    "version": "0.13.0",
+    "scope": "Controlled deterministic fixtures; no live model quality claims",
+    "count_case": {
+      "attempts_executed": 105,
+      "retained_details": 100,
+      "cumulative_count": null,
+      "legacy_ui_count": 100
+    },
+    "export_case": {
+      "status": "verified",
+      "checks_passed": true,
+      "contains_history": false,
+      "contains_file_manifest": false
+    },
+    "discovery_case": {
+      "passed": true,
+      "rejected_uncollected_module": false
+    }
+  },
+  "candidate": {
+    "version": "0.14.0",
+    "scope": "Controlled deterministic fixtures; no live model quality claims",
+    "count_case": {
+      "attempts_executed": 105,
+      "retained_details": 100,
+      "cumulative_count": 105,
+      "legacy_ui_count": 100
+    },
+    "export_case": {
+      "status": "needs_attention",
+      "checks_passed": false,
+      "contains_history": true,
+      "contains_file_manifest": true
+    },
+    "discovery_case": {
+      "passed": false,
+      "rejected_uncollected_module": true
+    }
+  },
+  "date": "2026-10-19",
+  "scope": "Deterministic controller reliability and evidence integrity, not live provider quality",
+  "validation": {
+    "focused_history_regressions": {
+      "tests": 22,
+      "passed": true,
+      "seconds": 3.748
+    },
+    "extracted_distribution": {
+      "python": "3.13",
+      "tests": 258,
+      "passed": true,
+      "seconds": 105.79
+    },
+    "browser_workflows": [
+      "Chromium generation/consent/local verification/history JSON/ZIP manifests/source-tamper stale export/update/search/desktop-mobile/no JS errors passed",
+      "Chromium UTF-16 key import/catalogues/cloud route/consent/fallback/cooldown/real app verification/privacy/desktop-mobile passed with fixture providers"
+    ],
+    "strict_types": "14 modules passed",
+    "focused_history_evidence_handoffs": {
+      "tests": 50,
+      "passed": true,
+      "seconds": 6.291
+    },
+    "frozen_fixture_digests": "All four sets match",
+    "package_allowlist": "No local data, private .env files or caches"
+  },
+  "live_provider_keys_present": false,
+  "live_provider_quality": null,
+  "native_windows_run": null,
+  "limits": {
+    "history_bytes_per_project": 16000000,
+    "recent_journal_messages": 300,
+    "recent_model_attempt_details": 100,
+    "visible_history_rows": 200,
+    "source_characters": 36000,
+    "total_project_characters": 70000
+  }
+}

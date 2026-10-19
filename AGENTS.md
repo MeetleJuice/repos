@@ -19,6 +19,10 @@ Use the existing checkout; do not create a worktree unless the user requests one
 - If a proposed change adds cost without measured benefit → retain its proposal/report for review and leave it out of production. Never let generated apps promote their own scaffold edits.
 - If HTTP tests pass for interactive behavior → require actual browser or user evidence before declaring gameplay/UI working. Keep generated files, automated pass, and manual acceptance distinct.
 
+- If exporting verification evidence → compare the actual exported snapshot with its verified source, approved contracts and available bundle manifest. Preserve historical results but never label changed files currently verified.
+- If displaying attempt totals → separate retained details, cumulative attempts and actual transport attempts; absent token usage remains unknown. Disclose legacy/history retention gaps.
+- If a foundation test passes → also verify intended test-bearing modules were collected. A nonzero total does not establish collection of every module.
+
 ## Research and promotion
 
 Read docs/status.md and the frozen dataset contract before changing the measured handoff path. All eighteen cases are replay scenarios with labeled provenance, not independent historical model builds. No vector database, unbounded retry/tree search, hidden evaluator weakening, or autonomous source promotion. The next proposal lives in docs/research/harness-audit.json and requires a new reviewed measurement cycle.

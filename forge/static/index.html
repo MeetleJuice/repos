@@ -398,8 +398,31 @@
           </div>
           <div id="build-activity" class="build-activity" role="status"></div>
           <details id="journal-details">
-            <summary>Full build journal</summary>
+            <summary>Recent journal · up to 300 messages</summary>
             <div id="events" class="events"></div>
+          </details>
+          <details id="history-details">
+            <summary>
+              Project history · runs, models, files &amp; evidence
+            </summary>
+            <p class="muted">
+              Controller records, model reports, and your observations are
+              labeled separately. History does not contain model transcripts.
+            </p>
+            <div class="button-row">
+              <button id="refresh-history" class="secondary">
+                Refresh history
+              </button>
+              <button id="download-history" class="secondary">
+                Download history JSON
+              </button>
+            </div>
+            <p id="history-summary" class="muted">
+              Open or refresh to inspect saved history. The app ZIP also
+              includes RUN-HISTORY.json.
+            </p>
+            <p id="history-warning" class="diagnosis" hidden></p>
+            <div id="history-events" class="events"></div>
           </details>
           <details id="test-details">
             <summary>Verification output</summary>

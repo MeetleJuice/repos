@@ -17,6 +17,8 @@ import zipfile
 from typing import Any
 
 from .models import ModelClient, ModelError
+from . import history, __version__
+from .reporting import OWNED, evidence_status, file_manifest
 from .handoffs import handoff_metrics
 from .capabilities import CapabilityRegistry
 from .contracts import validate_structure as validate_plan, require_consistent, review_plan, Review, Finding, starter_contracts
@@ -30,7 +32,6 @@ from .scaffolds import CATALOG, starter_files
 from .evidence import manual_document
 from .context import SOURCE_LIMIT, source_map, failure_feedback, fingerprint, planning_context, same_tasks
 
-OWNED = {"readme.md", "project.md", "tasks.md", "checks.json", "run.bat", "run.sh", "launch.py", "browser-checks.json", "manual-checks.md"}
 ACTIVE = {"planning", "building", "checking", "repairing", "queued"}
 
 
@@ -79,9 +80,25 @@ class Workbench:
                     os.replace(recoverable[0], path.parent / "source")
                     self.warnings.append(f"Recovered project {state['title']} after an interrupted file update. Original source was restored.")
             if state.get("status") in ACTIVE:
+                # A durable attempt record can precede the atomic state-file swap.
+                # Recover available counters without inventing lost legacy history.
+                if (path.parent / "workflow-history.jsonl").exists():
+                    try:
+                        journal = history.document(path.parent, state)
+                        records = [r["data"] for r in journal["records"] if r.get("kind") == "model_attempt"]
+                        if len(records) > history.totals_for(state)["requests"]:
+                            rebuilt = {"model_totals":history.totals_for({})}
+                            for record in records:
+                                history.add_attempt(rebuilt, record)
+                            rebuilt["model_totals"]["legacy_incomplete"] = bool(history.totals_for(state).get("legacy_incomplete") or journal["coverage"].get("legacy_history_incomplete") or not journal["coverage"].get("complete_since_tracking_started"))
+                            state["model_totals"] = rebuilt["model_totals"]
+                            self.trace(state, "attempt_totals_recovered", {"available_attempts":len(records)})
+                    except (OSError, ValueError, KeyError, TypeError):
+                        state["history_warning"] = "Interrupted-run counters could not be reconciled with history; retained counts may be incomplete."
                 state["status"] = "interrupted"
-                state["events"].append({"time": self.now(), "message": "Workbench restarted. Resume to continue from the last saved task."})
-                self.save(state)
+                self.trace(state, "job_interrupted", {"reason":"Workbench restarted before job completion."})
+                state.pop("active_run_id", None)
+                self.event(state, "Workbench restarted. Resume to continue from the last saved task.")
 
     @staticmethod
     def now():
@@ -114,8 +131,67 @@ class Workbench:
             temporary.write_text(json.dumps(state, indent=2), encoding="utf-8")
             os.replace(temporary, path / "state.json")
 
-    def event(self, state, message):
-        state["events"].append({"time": self.now(), "message": message})
+    def trace(self, state, kind, data, origin="controller"):
+        with self.lock:
+            try:
+                history.append(self.directory(state["id"]), state, kind, data, origin)
+            except (OSError, ValueError) as exc:
+                state["history_warning"] = "History incomplete: " + str(exc)[:500]
+
+    def history(self, ident):
+        with self.lock:
+            state = self.load(ident)
+            try:
+                return history.document(self.directory(ident), state)
+            except (OSError, ValueError) as exc:
+                return {"schema":1, "project_id":ident, "records":[], "coverage":{"warning":str(exc), "complete_since_tracking_started":False}, "meaning":"History unavailable; app files preserved."}
+
+    def evidence(self, ident):
+        with self.lock:
+            return evidence_status(self.load(ident), self.files(ident))
+
+    def present(self, ident):
+        state = self.load(ident)
+        if (state.get("checks") or {}).get("passed") or state.get("verification_fingerprint"):
+            freshness = evidence_status(state, self.files(ident))
+            state["evidence_status"] = freshness
+            state["status"] = freshness["effective_status"]
+            if (state.get("checks") or {}).get("passed") and not freshness["automated_evidence_current"]:
+                state["checks"] = {**state["checks"], "passed":False, "historical_passed":True,
+                                   "diagnosis":"Verification evidence is stale. Run checks again after resolving protected-file changes."}
+                state["error"] = "Verification evidence is stale. " + " ".join(freshness["issues"])
+        return state
+
+    def export_snapshot(self, ident):
+        with self.lock:
+            state = self.load(ident)
+            if state["status"] in ACTIVE:
+                raise ValueError("Wait for the running job to stop before exporting.")
+            files = {n:t for n,t in self.files(ident).items() if n.lower() not in {"build-report.json","run-history.json"}}
+            freshness = evidence_status(state, files)
+            self.trace(state, "export_prepared", {"source_sha256":freshness["current_source_sha256"],
+                       "effective_status":freshness["effective_status"], "file_count":len(files)}, "user")
+            self.save(state)
+            journal = self.history(ident)
+            plan = state.get("plan") or {}
+            report = {k:state.get(k) for k in ("starter","starter_version","milestones","checks","preflight","plan_review","planning_stats","proposal_source","generation_stats","manual_results","repair_history","verification_fingerprint","verification_manifest")}
+            report.update(report_schema=2, generator_version=__version__, project_id=ident, exported_at=self.now(),
+                          status=freshness["effective_status"], recorded_status=state["status"], evidence_status=freshness,
+                          original_idea=state.get("idea"), approved_plan=state.get("plan") if state.get("approved") else None,
+                          parent_id=state.get("parent_id"),
+                          manual_checks=plan.get("manual_checks", []), models={"planner":state["planner"],"coder":state["coder"]},
+                          model_totals=history.totals_for(state), model_calls=state.get("model_calls", []),
+                          model_totals_definition="requests is the legacy field name for recorded model attempts, not confirmed provider requests or billed usage.",
+                          journal=state.get("events", []), file_manifest=file_manifest(files),
+                          manifest_scope="UTF-8 project entries only; BUILD-REPORT.json and RUN-HISTORY.json are metadata, excluded from this file manifest.",
+                          history_coverage=journal["coverage"])
+            if (report.get("checks") or {}).get("passed") and not freshness["automated_evidence_current"]:
+                report["checks"] = {**report["checks"], "passed":False, "historical_passed":True, "evidence_current":False}
+            return files, history.redact(report), journal
+
+    def event(self, state, message, origin="controller"):
+        self.trace(state, "journal", {"message":message}, origin)
+        state["events"].append({"time": self.now(), "message": message, "origin":origin})
         state["events"] = state["events"][-300:]
         self.save(state)
 
@@ -124,7 +200,7 @@ class Workbench:
             states = []
             for path in self.root.glob("*/state.json"):
                 try:
-                    states.append(self.load(path.parent.name))
+                    states.append(self.present(path.parent.name))
                 except (ValueError, OSError):
                     continue
         return sorted(states, key=lambda p: p["created"], reverse=True)
@@ -169,7 +245,7 @@ class Workbench:
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
                           "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, prompt),
                           "recovery_path": recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
-                          "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated}
+                          "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated, "transport_attempted":None}
                 started = time.monotonic()
                 client = None
                 try:
@@ -178,6 +254,8 @@ class Workbench:
                     self.event(state, "Requesting " + selected["provider"] + "/" + selected["model"] + " (route step " + str(index + 1) + "/" + str(len(choices)) + ").")
                     client = self.client_factory(selected["provider"], selected["model"])
                     if isinstance(client, ModelClient):
+                        client.last_usage = {}
+                        client.last_metadata = {"transport_attempted":False}
                         client.options = validate_options(selected.get("options", {}))
                         if role in {'planner', 'coder'}:
                             try:
@@ -242,6 +320,9 @@ class Workbench:
                         record.update(**getattr(client, "last_usage", {}))
                         record.update(**getattr(client, "last_metadata", {}))
                     record["seconds"] = round(time.monotonic() - started, 2)
+                    record["run_id"] = state.get("active_run_id")
+                    history.add_attempt(state, record)
+                    self.trace(state, "model_attempt", record)
                     state.setdefault("model_calls", []).append(record)
                     state["model_calls"] = state["model_calls"][-100:]
                     self.save(state)
@@ -261,6 +342,7 @@ class Workbench:
                 raise ValueError("Wait for or stop the running job before changing models.")
             planner, coder = validate_config(planner), validate_config(coder)
             state.update(planner=planner, coder=coder)
+            self.trace(state, "models_configured", {"planner":planner, "coder":coder}, "user")
             self.event(state, "Model choices updated. Project files and approved requirements were kept.")
             return state
 
@@ -276,7 +358,10 @@ class Workbench:
                          change_request=request.strip(), baseline_plan=copy.deepcopy(parent["plan"]),
                          frozen_tests={name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(ident).items() if Path(name).name.startswith("test_") and name.endswith(".py")},
                          title=parent["title"] + " · change", created=self.now(), status="draft", approved=False,
-                         plan=None, plan_review=None, planning_stats=None, failed_candidate=None, plan_is_previous=False, generation_stats={}, manual_results={}, repair_history=[], verification_fingerprint=None, next_task=0, events=[], snapshots=[], checks=None, preflight=None, model_calls=[], milestones=[], repair_count=0)
+                         plan=None, plan_review=None, planning_stats=None, failed_candidate=None, plan_is_previous=False, generation_stats={}, manual_results={}, repair_history=[], verification_fingerprint=None, next_task=0, events=[], snapshots=[], checks=None, preflight=None, model_calls=[], model_totals=history.totals_for({}), milestones=[], repair_count=0)
+            state.pop("active_run_id", None)
+            state.pop("history_warning", None)
+            state.pop("verification_manifest", None)
             target = self.directory(state["id"]) / "source"
             target.mkdir(parents=True)
             for name, content in self.files(ident).items():
@@ -364,9 +449,10 @@ class Workbench:
         state = {"id": ident, "idea": idea.strip(), "title": "New project", "created": self.now(),
                  "status": "draft", "planner": planner, "coder": coder, "plan": None,
                  "approved": False, "next_task": 0, "events": [], "checks": None,
-                 "snapshots": [], "repair_count": 0, "starter": starter}
+                 "snapshots": [], "repair_count": 0, "starter": starter, "model_totals": history.totals_for({})}
         (self.directory(ident) / "source").mkdir(parents=True)
         self.save(state)
+        self.trace(state, "project_created", {"starter":starter, "idea_characters":len(state["idea"]), "planner":planner, "coder":coder}, "user")
         if use_reviewed_plan:
             return self.load_starter_plan(ident)
         self.start(ident, "plan", {"cloud_consent": cloud_consent})
@@ -439,6 +525,9 @@ class Workbench:
                     "kind": "User observations; not independently reproduced or automated proof."}
             state["status"] = "planning" if action == "plan" else "building"
             state["error"] = None
+            state["active_run_id"] = uuid.uuid4().hex
+            self.trace(state, "job_started", {"action":action, "execute":execute, "runtime":mode,
+                       "repair_budget":attempts, "cloud_consent":state["job_cloud_consent"], "next_task":state.get("next_task", 0)})
             self.save(state)
             cancel = threading.Event()
             thread = threading.Thread(target=self._job, args=(state, action, options, cancel), daemon=True)
@@ -450,7 +539,8 @@ class Workbench:
             job = self.jobs.get(ident)
             if job:
                 job[1].set()
-        return {"message": "Stop requested. An in-flight model request can take up to five minutes to finish; its output will be discarded."}
+                self.trace(self.load(ident), "stop_requested", {"in_flight_output_will_be_discarded":True}, "user")
+        return {"message": "Stop requested. An in-flight model request must return or time out before the job stops; its output will be discarded."}
 
     def approve(self, ident, plan):
         with self.lock:
@@ -473,6 +563,8 @@ class Workbench:
                 # Protect the minimal contract; feature-specific starter tests can be adapted
                 # until the actual approved app passes verification.
                 state.setdefault("frozen_tests", {})["test_foundation.py"] = hashlib.sha256(files["test_foundation.py"].encode()).hexdigest()
+            self.trace(state, "proposal_approved", {"tasks":len(plan["tasks"]), "http_checks":len(plan["checks"]),
+                       "manual_checks":len(plan.get("manual_checks", [])), "browser_checks":len(plan.get("browser_checks", []))}, "user")
             self.event(state, "Proposal approved. Requirements and acceptance checks frozen.")
             return state
 
@@ -522,13 +614,14 @@ class Workbench:
                 raise ValueError("Complete automated verification before recording manual results.")
             if not checks or not isinstance(results, list) or len(results) != len(checks) or any(type(v) is not bool for v in results):
                 raise ValueError("Record an explicit pass/fail result for every approved manual check.")
-            if state.get("verification_fingerprint") != fingerprint(self.context_files(ident)):
-                raise ValueError("Source changed since verification. Run automated checks again before recording acceptance.")
+            if not evidence_status(state, self.files(ident))["automated_evidence_current"]:
+                raise ValueError("Source changed or approved checks changed since verification. Run automated checks again before recording acceptance.")
             notes = [""] * len(checks) if notes is None else notes
             if not isinstance(notes, list) or len(notes) != len(checks) or any(not isinstance(note, str) or len(note) > 2000 for note in notes):
                 raise ValueError("Provide a note of at most 2000 characters for each manual check.")
             state["manual_results"] = {"notes": notes, "results": results, "time": self.now(), "source_sha256": state["verification_fingerprint"], "evidence": "User-reported observations, not automated tests."}
             state["status"] = "verified" if all(results) else "needs_attention"
+            self.trace(state, "manual_observations", {"results":results, "source_sha256":state["verification_fingerprint"], "notes":notes}, "user")
             self.event(state, "User reported all manual checks passed." if all(results) else "User reported a manual check failed. Add concrete failure notes, save the results, then use Repair files only or Repair & retest. Automated checks alone did not prove it worked.")
             return state
 
@@ -596,6 +689,7 @@ class Workbench:
         target = self.directory(state["id"]) / "snapshots" / number
         shutil.copytree(self.directory(state["id"]) / "source", target)
         state["snapshots"].append({"id": number, "label": label, "next_task": state["next_task"], "frozen_tests": copy.deepcopy(state.get("frozen_tests", {}))})
+        self.trace(state, "checkpoint_saved", {"checkpoint_id":number, "label":label, "next_task":state["next_task"]})
         self.save(state)
 
     def _swap_source(self, ident, prepared):
@@ -627,6 +721,8 @@ class Workbench:
                 if staging.exists():
                     shutil.rmtree(staging)
             state.update(next_task=match["next_task"], status="approved", checks=None, manual_results={}, verification_fingerprint=None, preflight=None, frozen_tests=copy.deepcopy(match.get("frozen_tests", state.get("baseline_frozen_tests", state.get("frozen_tests", {}) if state.get("baseline_plan") else {}))))
+            state.pop("verification_manifest", None)
+            self.trace(state, "checkpoint_restored", {"checkpoint_id":snapshot, "next_task":match["next_task"]}, "user")
             self.event(state, "Restored checkpoint: " + match["label"])
             return state
 
@@ -658,9 +754,9 @@ class Workbench:
                 raise ValueError(name + ': HTML contains double-escaped markup. Return real text, not an encoded string.')
             targets.append((target, content))
         if sum(len(v) for v in (current | files).values()) > 70000:
-            raise ValueError("Project exceeded the small-model context budget. Narrow the scope.")
+            raise ValueError("Project exceeds the 70,000-character total file limit. Return smaller changed files or exact edits; reduce repetition without dropping approved features.")
         if sum(len(v) for k, v in (current | files).items() if k.lower() not in OWNED) > SOURCE_LIMIT:
-            raise ValueError("Source exceeded the local-model context budget. Narrow the scope or split the app.")
+            raise ValueError("Implementation exceeds the 36,000-character source limit (applies to cloud and local builds). Use smaller changed files or exact edits and remove repetition without dropping approved features.")
         # All names and contents are validated before any file is written.
         if any(path.is_symlink() for path in root.rglob("*")):
             raise ValueError("Remove symbolic links from this project before model file updates.")
@@ -676,12 +772,15 @@ class Workbench:
         finally:
             if staging.exists():
                 shutil.rmtree(staging)
+        self.trace(state, "files_committed", {"changed_files":file_manifest(files),
+                   "before_source_sha256":fingerprint({n:t for n,t in current.items() if n.lower() not in OWNED}),
+                   "after_source_sha256":fingerprint(self.context_files(state["id"])), "repair":repair})
         state["manual_results"] = {}
         state["verification_fingerprint"] = None
         if response.get("edits"):
             stats = state.setdefault("generation_stats", {})
             stats["exact_edits_applied"] = stats.get("exact_edits_applied", 0) + len(response["edits"])
-        self.event(state, str(response.get("summary", "Source files updated."))[:2000])
+        self.event(state, str(response.get("summary", "Source files updated."))[:2000], origin="model_report")
 
     def generate_and_apply(self, state, payload, cancel, repair=False):
         """One bounded correction for malformed code responses; rejected files never land."""
@@ -739,6 +838,8 @@ class Workbench:
                     trusted_issues.append("Trusted regression test was changed or removed: " + name + ". Restore its checkpoint before continuing.")
             state["preflight"]["issues"].extend(trusted_issues)
             state["preflight"]["passed"] = not state["preflight"]["issues"]
+            self.trace(state, "static_inspection", {"complete":complete, "passed":state["preflight"]["passed"],
+                       "issues":state["preflight"]["issues"], "repair_budget_remaining":remaining})
             self.save(state)
             if trusted_issues:
                 state["status"] = "needs_attention"
@@ -765,6 +866,8 @@ class Workbench:
             state["next_task"] = task_index
             raise InterruptedError("Milestone verification stopped. Resume will retry this task.")
         state["milestones"][-1].update(behavior_verified=result["passed"], checks=limit, result=result)
+        self.trace(state, "milestone_verified", {"task":task_index+1, "passed":result["passed"], "checks":limit,
+                   "source_sha256":fingerprint(self.context_files(state["id"])), "failure_kind":result.get("failure_kind")})
         self.save(state)
         seen = set()
         while not result["passed"]:
@@ -791,6 +894,8 @@ class Workbench:
                 state["next_task"] = task_index
                 raise InterruptedError("Milestone verification stopped. Resume will retry this task.")
             state["milestones"][-1].update(behavior_verified=result["passed"], result=result)
+            self.trace(state, "milestone_verified", {"task":task_index+1, "passed":result["passed"], "checks":limit,
+                       "source_sha256":fingerprint(self.context_files(state["id"])), "failure_kind":result.get("failure_kind")})
             self.save(state)
         state["checks"] = None
         return remaining_repairs
@@ -798,7 +903,10 @@ class Workbench:
     def _job(self, state, action, options, cancel):
         # A rejected/no-op repair must not erase observations about unchanged source.
         retain_failures = action == "repair" or (action == "build" and any(value is False for value in (state.get("manual_results") or {}).get("results", [])))
-        previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint")} if retain_failures else None
+        previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint", "verification_manifest")} if retain_failures else None
+        job_started = time.monotonic()
+        initial_requests = history.totals_for(state)["requests"]
+        initial_repairs = state.get("repair_count", 0)
         try:
             if action == "plan":
                 state.pop("planner_truncation_ceiling", None)
@@ -841,6 +949,7 @@ class Workbench:
                         state["plan_is_previous"] = False
                         state.pop("proposal_source", None)
                         state["plan"] = candidate
+                    self.trace(state, "proposal_review", {"passed":result.passed, "findings":result.to_dict()["findings"]})
                     self.save(state)
 
                 result = PlanningEngine().run(
@@ -863,6 +972,7 @@ class Workbench:
             state["checks"] = None
             state["manual_results"] = {}
             state["verification_fingerprint"] = None
+            state.pop("verification_manifest", None)
             state["preflight"] = None
             remaining_repairs = options.get("repairs", 2)
             if action == "repair":
@@ -888,6 +998,7 @@ class Workbench:
                 if cancel.is_set():
                     raise InterruptedError("Build stopped. You can resume from the next unfinished task.")
                 task = state["plan"]["tasks"][index]
+                self.trace(state, "task_started", {"task":index+1, "title":task["title"]})
                 self.event(state, f'Task {index+1}: {task["title"]}')
                 self.generate_and_apply(state, {"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "frozen_tests": list(state.get("frozen_tests", {}))}, cancel)
                 remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
@@ -896,6 +1007,7 @@ class Workbench:
                 state["status"] = "building"
                 state.setdefault("milestones", []).append({"task": index + 1, "title": task["title"], "syntax_passed": True, "behavior_verified": False, "time": self.now()})
                 state["next_task"] = index + 1
+                self.trace(state, "task_saved", {"task":index+1, "syntax_passed":True, "behavior_verified":False})
                 self.save(state)
                 if options.get("execute") and options.get("milestones", True) and task.get("check_indexes") and index + 1 < len(state["plan"]["tasks"]):
                     remaining_repairs = self._verify_milestone(state, task, index, options, cancel, remaining_repairs)
@@ -922,14 +1034,19 @@ class Workbench:
                     self.event(state, "The repair returned unchanged source. Stopped rather than repeating the same failed verification. Try another model or restore a checkpoint.")
                     return
                 checked_sources.add(checked_fingerprint)
+                self.trace(state, "verification_started", {"source_sha256":checked_fingerprint, "runtime":options.get("runtime", "docker")})
                 result = self.verifier(self.directory(state["id"]) / "source", options.get("runtime", "docker"), cancel)
                 state["checks"] = result
+                self.trace(state, "verification_finished", {"passed":result.get("passed"), "runtime":result.get("runtime"),
+                           "failure_kind":result.get("failure_kind"), "source_sha256":checked_fingerprint,
+                           "phases":[{k:v for k,v in phase.items() if k in {"phase","passed","behavior_passed","workspace_cleanup","tests_run","http_checks","asset_checks","app_calls","failure_kind","timed_out"}} for phase in result.get("phases", [])]})
                 self.save(state)
                 if cancel.is_set():
                     raise InterruptedError("Verification stopped.")
                 if result["passed"]:
                     state["frozen_tests"] = {name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(state["id"]).items() if Path(name).name.startswith("test_") and name.endswith(".py")}
                     state["verification_fingerprint"] = fingerprint(self.context_files(state["id"]))
+                    state["verification_manifest"] = file_manifest({n:t for n,t in self.files(state["id"]).items() if n.lower() not in {"build-report.json","run-history.json"}})
                     if previous_evidence and previous_evidence.get("verification_fingerprint") == state["verification_fingerprint"] and any(value is False for value in (previous_evidence.get("manual_results") or {}).get("results", [])):
                         state["manual_results"] = previous_evidence["manual_results"]
                         state["status"] = "needs_attention"
@@ -961,6 +1078,12 @@ class Workbench:
             state["status"], state["error"] = "error", str(exc)[:2000]
             self.event(state, "Stopped with error: " + state["error"])
         finally:
+            self.trace(state, "job_finished", {"action":action, "status":state["status"],
+                       "seconds":round(time.monotonic()-job_started,3), "next_task":state.get("next_task"),
+                       "model_attempts":history.totals_for(state)["requests"]-initial_requests,
+                       "repairs_used":state.get("repair_count",0)-initial_repairs, "repair_count_total":state.get("repair_count",0)})
+            state.pop("active_run_id", None)
+            self.save(state)
             if action == "repair" and previous_evidence and previous_evidence.get("verification_fingerprint") and state.get("status") not in {"verified", "review_required"}:
                 try:
                     unchanged = fingerprint(self.context_files(state["id"])) == previous_evidence["verification_fingerprint"]

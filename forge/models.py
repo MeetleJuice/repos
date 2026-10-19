@@ -102,7 +102,7 @@ class ModelClient:
     def _complete(self, system: str, prompt: str) -> dict[str, Any]:
         self.last_usage = {}
         output = self.planner_budget.max_output_tokens if self.planner_budget else self.options['num_predict']
-        self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None}
+        self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None,'transport_attempted':False}
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
         if self.recovery_mode == "continuation":
             messages += [{"role":"assistant","content":self.continuation_prefix},
@@ -125,6 +125,7 @@ class ModelClient:
                 generation['thinkingConfig'] = {'thinkingBudget':self.planner_budget.thinking_budget}
             gemini_base = PROVIDERS['gemini'][0]
             if not gemini_base: raise ModelError('Invalid Gemini adapter.', 'provider')
+            self.last_metadata['transport_attempted'] = True
             result = request_json(gemini_base.removesuffix('/openai')+'/models/'+urllib.parse.quote(self.model,safe='')+':generateContent', {
                 'systemInstruction':{'parts':[{'text':messages[0]['content']}]},
                 'contents':[{'role':'model' if m['role']=='assistant' else 'user','parts':[{'text':m['content']}]} for m in messages[1:]],
@@ -146,6 +147,7 @@ class ModelClient:
             schema: dict[str, Any] | str = PLAN_SCHEMA if system == PLAN else CODE_SCHEMA if system == CODE else "json"
             if complete_recovery:
                 schema = COMPLETE_CODE_SCHEMA
+            self.last_metadata['transport_attempted'] = True
             result = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", {
                 "model": self.model, "messages": messages, "stream": False, "format": schema if self.options["structured_outputs"] else "json", "keep_alive": "5m",
                 "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": output},
@@ -163,6 +165,7 @@ class ModelClient:
             key = os.getenv(variable) or (os.getenv("OPENROUTER_KEY") if self.provider == "openrouter" else None)
             if not key:
                 raise ModelError(f"Set {variable} in your local .env file and restart. Never put keys in project prompts.", "auth")
+            self.last_metadata['transport_attempted'] = True
             result = request_json(base + "/chat/completions", {
                 "model": self.model, "messages": messages, "temperature": 0.2,
                 "max_tokens": output, "response_format": {"type": "json_object"},

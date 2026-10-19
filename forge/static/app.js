@@ -96,10 +96,21 @@ async function listProjects() {
     projects.length + " saved projects";
   const calls = projects.flatMap((p) => p.model_calls || []);
   $("workspace-call-count").textContent =
-    calls.length +
-    " model requests · " +
-    calls.reduce((n, c) => n + c.seconds, 0).toFixed(1) +
-    "s";
+    projects.reduce(
+      (n, p) => n + (p.model_totals?.requests ?? p.model_calls?.length ?? 0),
+      0,
+    ) +
+    " recorded model attempts · " +
+    projects
+      .reduce(
+        (n, p) =>
+          n +
+          (p.model_totals?.seconds ??
+            (p.model_calls || []).reduce((a, c) => a + c.seconds, 0)),
+        0,
+      )
+      .toFixed(1) +
+    "s (legacy history may be incomplete)";
   if (!projects.length) {
     const p = document.createElement("p");
     p.className = "muted";
@@ -128,6 +139,11 @@ async function listProjects() {
 async function openProject(id) {
   current = await api("/api/projects/" + id);
   lastPlan = "";
+  $("history-events").replaceChildren();
+  $("history-summary").textContent =
+    "Refresh to inspect this project's saved history.";
+  $("history-warning").hidden = true;
+  $("history-details").open = false;
   $("revision").value = "";
   $("project-cloud-consent").checked = false;
   $("change-cloud-consent").checked = false;
@@ -258,8 +274,17 @@ function render() {
       button("Open original", () => openProject(p.parent_id)),
     );
   }
+  const totals = p.model_totals;
   $("model-usage").textContent =
-    `${(p.model_calls || []).length} model requests · ${(p.model_calls || []).reduce((n, c) => n + c.seconds, 0).toFixed(1)} seconds of model response time. One request runs at a time.`;
+    `${totals?.requests ?? (p.model_calls || []).length} recorded model attempts · ${(totals?.seconds ?? (p.model_calls || []).reduce((n, c) => n + c.seconds, 0)).toFixed(1)} seconds across recorded attempts. One request runs at a time. Recent attempt details: ${(p.model_calls || []).length} (up to 100).`;
+  if (!totals || totals.legacy_incomplete)
+    $("model-usage").textContent +=
+      " Earlier legacy history may be unavailable; totals are a lower bound.";
+  if (totals)
+    $("model-usage").textContent +=
+      ` Transport attempts: ${totals.transport_attempts || 0}; transport status unknown: ${totals.transport_unknown || 0}. A transport attempt does not prove provider receipt or billing.`;
+  if (p.history_warning)
+    $("model-usage").textContent += " " + p.history_warning;
   if (p.generation_stats?.exact_edits_applied)
     $("model-usage").textContent +=
       ` ${p.generation_stats.exact_edits_applied} exact edits applied.`;
@@ -279,9 +304,12 @@ function render() {
       Number.isInteger(c.prompt_tokens) ||
       Number.isInteger(c.completion_tokens),
   );
-  if (measured.length)
+  if (totals?.usage_requests)
     $("model-usage").textContent +=
-      ` Reported tokens: ${measured.reduce((n, c) => n + (c.prompt_tokens || 0), 0)} input / ${measured.reduce((n, c) => n + (c.completion_tokens || 0), 0)} output from ${measured.length} requests.`;
+      ` Reported tokens: ${totals.prompt_tokens} input / ${totals.completion_tokens} output from ${totals.usage_requests} requests. Unreported usage is unknown.`;
+  else if (measured.length)
+    $("model-usage").textContent +=
+      ` Recent reported tokens: ${measured.reduce((n, c) => n + (c.prompt_tokens || 0), 0)} input / ${measured.reduce((n, c) => n + (c.completion_tokens || 0), 0)} output from ${measured.length} retained requests.`;
   document.querySelector(".change-cloud").hidden = ![p.planner, p.coder].some(
     cloudModel,
   );
@@ -290,17 +318,19 @@ function render() {
   document.querySelector(".project-cloud").hidden = ![p.planner, p.coder].some(
     cloudModel,
   );
-  $("test-badge").textContent = p.checks
-    ? p.checks.passed
-      ? "Checks passed"
-      : p.checks.failure_kind === "environment"
-        ? "Verification blocked"
-        : "Checks failed"
-    : "Not verified";
+  $("test-badge").textContent = p.checks?.historical_passed
+    ? "Evidence stale"
+    : p.checks
+      ? p.checks.passed
+        ? "Checks passed"
+        : p.checks.failure_kind === "environment"
+          ? "Verification blocked"
+          : "Checks failed"
+      : "Not verified";
   $("test-badge").className =
     "badge " + (p.checks?.passed ? "verified" : p.checks ? "error" : "");
   $("test-output").textContent = p.checks
-    ? `Runtime: ${p.checks.runtime} · Exit: ${p.checks.exit_code}\n\n${p.checks.log}`
+    ? `${p.checks.historical_passed ? "Historical output: current files need verification.\n\n" : ""}Runtime: ${p.checks.runtime} · Exit: ${p.checks.exit_code}\n\n${p.checks.log}`
     : p.preflight
       ? p.preflight.passed
         ? "Static syntax/structure checks passed. No generated code has run. Behavioral verification still requires execution approval."
@@ -361,7 +391,12 @@ function render() {
       d.className = "event";
       const time = document.createElement("time");
       time.textContent = new Date(e.time).toLocaleTimeString();
-      d.append(time, document.createTextNode(e.message));
+      d.append(
+        time,
+        document.createTextNode(
+          (e.origin === "model_report" ? "Model report: " : "") + e.message,
+        ),
+      );
       return d;
     }),
   );
@@ -746,7 +781,7 @@ function renderManual(p) {
       notes.maxLength = 2000;
       notes.rows = 2;
       notes.placeholder =
-        "Example: I collected the shield, hit one obstacle, and the game ended a frame later.";
+        "Describe the action, what you expected, and what actually happened.";
       notes.value = p.manual_results?.notes?.[i] || "";
       notesLabel.append(notes);
       card.append(title, steps, expected, label, notesLabel);
@@ -840,9 +875,9 @@ function renderGuidance(p) {
       "Your planner can retry or take a new direction. You can also change the selected models.";
     action = "Retry proposal";
   } else if (p.status === "review_required") {
-    title = "Automated checks passed. Now play-test it.";
+    title = "Automated checks passed. Now try the app.";
     description =
-      "Download and run the app. Record the approved manual checks below; automated server tests do not prove gameplay works.";
+      "Download and run the app. Record each approved manual check below; automated server tests do not prove every interaction works.";
     action = "Open project files";
     target = "files";
   } else if (p.status === "verified") {
@@ -936,7 +971,7 @@ async function workspaceInfo() {
   $("workspace-version").textContent = "IDEA FOUNDRY " + info.version;
   $("workspace-project-count").textContent = info.projects + " saved projects";
   $("workspace-call-count").textContent =
-    info.model_calls + " model requests · " + info.model_seconds + "s";
+    info.model_calls + " model attempts · " + info.model_seconds + "s";
   $("workspace-details").textContent =
     "Version " +
     info.version +
@@ -1080,4 +1115,96 @@ $("proposal-import").onchange = handle(async () => {
     );
   await saveReviewedProposal(plan);
   $("proposal-import").value = "";
+});
+
+async function loadHistory() {
+  if (!current) return;
+  const id = current.id;
+  const journal = await api(`/api/projects/${id}/history`);
+  if (current?.id !== id) return;
+  const records = journal.records || [];
+  const runs = records.filter((r) => r.kind === "job_started").length;
+  $("history-summary").textContent =
+    `${records.length} saved records · ${runs} recorded runs. Showing the most recent 200 records; download includes all available records.`;
+  const coverage = journal.coverage || {};
+  const warnings = [];
+  if (coverage.tracking_origin_unknown)
+    warnings.push(
+      "The tracking-start record is missing; history completeness is unknown.",
+    );
+  if (coverage.legacy_history_incomplete)
+    warnings.push(
+      "Older history was imported from retained records; earlier details cannot be reconstructed.",
+    );
+  if (coverage.malformed_records)
+    warnings.push(
+      `${coverage.malformed_records} unreadable record(s); history is incomplete.`,
+    );
+  if (coverage.trailing_partial_record)
+    warnings.push(
+      "The final record is incomplete, possibly after an interrupted write.",
+    );
+  if (coverage.warning) warnings.push(coverage.warning);
+  $("history-warning").textContent = warnings.join(" ");
+  $("history-warning").hidden = !warnings.length;
+  $("history-events").replaceChildren(
+    ...records.slice(-200).map((record) => {
+      const row = document.createElement("div");
+      row.className = "history-event";
+      const title = document.createElement("strong");
+      const label = record.kind.replaceAll("_", " ");
+      const origin =
+        {
+          controller: "Controller",
+          model_report: "Model report",
+          user: "Your action / observation",
+          legacy_import: "Legacy import",
+        }[record.origin] || "Unknown origin";
+      title.textContent = `${label.charAt(0).toUpperCase() + label.slice(1)} · ${origin}`;
+      const meta = document.createElement("small");
+      meta.textContent = `${record.time || "Time unavailable"} · Run ${record.run_id || "not recorded / outside a job"}`;
+      const data = record.data || {};
+      const description = document.createElement("p");
+      description.className = "history-description";
+      if (data.message) description.textContent = data.message;
+      else if (record.kind === "model_attempt")
+        description.textContent = `${data.role || "Model"}: ${data.provider}/${data.model} · ${data.success ? "Response accepted as JSON" : data.failure_class || "Failed"} · ${data.seconds ?? "?"}s · ${data.recovery_path || "initial"}`;
+      else if (record.kind === "files_committed")
+        description.textContent = `Saved ${(data.changed_files || []).map((f) => f.file).join(", ")}. Previous source is checkpointed.`;
+      else if (record.kind === "job_started")
+        description.textContent = `${data.action} · ${data.execute ? "Execution approved: " + data.runtime : "No app execution requested"} · repair allowance ${data.repair_budget}.`;
+      else if (record.kind === "job_finished")
+        description.textContent = `${data.action}: ${data.status} · ${data.seconds}s · ${data.model_attempts ?? "?"} model attempts · ${data.repairs_used ?? 0} repairs used.`;
+      else if (record.kind === "verification_finished")
+        description.textContent = `${data.passed ? "Checks passed" : "Checks did not pass"} · ${(data.phases || []).map((p) => `${p.phase}: ${p.passed ? "passed" : "failed"}`).join("; ")}`;
+      else if (record.kind === "static_inspection")
+        description.textContent = data.passed
+          ? "Static inspection passed; this does not execute the app."
+          : (data.issues || []).join(" ");
+      else if (data.title) description.textContent = data.title;
+      else if (data.label) description.textContent = data.label;
+      else
+        description.textContent =
+          "Saved controller metadata. Expand details for the exact record.";
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "Technical details";
+      const detail = document.createElement("pre");
+      detail.textContent = JSON.stringify(data, null, 2);
+      details.append(summary, detail);
+      row.append(title, meta, description, details);
+      return row;
+    }),
+  );
+}
+$("refresh-history").onclick = handle(loadHistory);
+$("history-details").addEventListener("toggle", () => {
+  if ($("history-details").open) handle(loadHistory)();
+});
+$("download-history").onclick = handle(async () => {
+  if (current)
+    await saveDownload(
+      `/api/projects/${current.id}/history`,
+      "Idea-Foundry-project-history.json",
+    );
 });

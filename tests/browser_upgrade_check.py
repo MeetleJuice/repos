@@ -41,7 +41,7 @@ def main():
                 page.screenshot(path=str(artifacts / 'foundry-05-home.png'), full_page=True)
                 page.locator('#update-button').click()
                 page.locator('#check-update').click()
-                expect(page.locator('#update-status')).to_have_text('Version 0.14.0 is available.')
+                expect(page.locator('#update-status')).to_have_text('Version 0.15.0 is available.')
                 expect(page.locator('#install-update')).to_be_disabled()  # test server bypasses stable launcher
                 expect(page.locator('#update-history')).to_contain_text('Start-Foundry.bat')
                 page.screenshot(path=str(artifacts / 'foundry-05-update.png'), full_page=True)
@@ -83,6 +83,19 @@ def main():
                 page.reload()
                 page.locator('#projects button').first.click()
                 expect(page.locator('#project-status')).to_have_text('verified', timeout=10000)
+                page.locator('#history-details summary').click()
+                expect(page.locator('#history-summary')).to_contain_text('saved records')
+                expect(page.locator('#history-events')).to_contain_text('Job started')
+                expect(page.locator('#history-events')).to_contain_text('Model report')
+                expect(page.locator('#model-usage')).to_contain_text('recorded model attempts')
+                with page.expect_download() as history_info:
+                    page.locator('#download-history').click()
+                history_file = Path(temp) / 'history.json'
+                history_info.value.save_as(history_file)
+                assert json.loads(history_file.read_text())['records']
+                page.set_viewport_size({'width':390,'height':844})
+                assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'History mobile overflow'
+                page.set_viewport_size({'width':1440,'height':1080})
                 page.screenshot(path=str(artifacts / 'foundry-05-verification.png'), full_page=True)
                 page.get_by_role('tab', name='Project files').click()
                 with page.expect_download() as info:
@@ -94,6 +107,32 @@ def main():
                     report = json.loads(archive.read('generated-app/BUILD-REPORT.json'))
                     assert report['checks']['passed']
                     assert report['checks']['phases'][1]['tests_run'] == 2
+                    assert report['evidence_status']['automated_evidence_current']
+                    assert report['evidence_status']['bundle_manifest_available']
+                    assert json.loads(archive.read('generated-app/RUN-HISTORY.json'))['records']
+                    for item in report['file_manifest']:
+                        import hashlib
+                        assert hashlib.sha256(archive.read('generated-app/'+item['file'])).hexdigest() == item['sha256']
+                source_path = bench.directory(original['id']) / 'source/app.py'
+                original_source = source_path.read_text()
+                source_path.write_text(original_source + '\n# external edit for evidence freshness test\n')
+                page.reload()
+                page.locator('#projects button').first.click()
+                expect(page.locator('#test-badge')).to_have_text('Evidence stale')
+                page.get_by_role('tab', name='Project files').click()
+                with page.expect_download() as stale_info:
+                    page.locator('#download').click()
+                stale_zip = Path(temp) / 'stale-app.zip'
+                stale_info.value.save_as(stale_zip)
+                with zipfile.ZipFile(stale_zip) as archive:
+                    stale_report = json.loads(archive.read('generated-app/BUILD-REPORT.json'))
+                    assert stale_report['status'] == 'needs_attention'
+                    assert not stale_report['checks']['passed']
+                    assert stale_report['checks']['historical_passed']
+                source_path.write_text(original_source)
+                page.reload()
+                page.locator('#projects button').first.click()
+                expect(page.locator('#project-status')).to_have_text('verified')
                 page.locator('#project-search').fill('no matches')
                 expect(page.locator('#projects button')).to_have_count(0)
                 page.locator('#project-search').fill('Pocket')

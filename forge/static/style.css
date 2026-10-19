@@ -1704,3 +1704,20 @@ a:focus-visible {
   color: var(--muted, #a7b5c4);
   line-height: 1.5;
 }
+
+.history-event {
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+.history-event strong,
+.history-event small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.history-event pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 220px;
+  overflow: auto;
+  font-size: 12px;
+}

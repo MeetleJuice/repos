@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "baseline": "0.13.0 eeba116",
+  "cases": [
+    {"id":"retained-count","requests":105,"retained":100,"before":"UI reports 100 as total","source":"core ledger retention and UI aggregation"},
+    {"id":"stale-export","before":"changed implementation or CHECKS.json can retain saved verified status","source":"server download handler"},
+    {"id":"missing-history","before":"ZIP omits event/model history and run identity","source":"server build report fields"},
+    {"id":"uncollected-module","before":"passing foundation masks a free-function test module","source":"unittest discovery semantics and harness total-count gate"}
+  ],
+  "live_model_calls": null,
+  "live_model_quality": null
+}

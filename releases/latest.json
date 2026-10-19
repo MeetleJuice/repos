@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.13.0",
+  "version": "0.14.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.13.0.zip",
-  "sha256": "0bdb356dcb0a117f310d6070629bc1d966f8ef5226c8c1cc0c01bc6e61363e6c",
-  "notes": "Completion reliability: supervisor-owned verification workspaces release SQLite handles before cleanup; bounded cleanup retries retain behavioral evidence. Builder output reserves bounded thinking and recovers truncation on the same model before capacity-safe fallback. Discoverable-test preflight and phase evidence counters preserve existing approvals, checks, backups and exports."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.14.0.zip",
+  "sha256": "3185cfe44082d2ea021df695d8b112e252a779cec7a522e6cfdad18e56d2f5c4",
+  "notes": "Workflow transparency and evidence integrity: durable attributed run history, cumulative model-attempt/transport counters, downloadable history and file manifests, source/contract/launcher freshness checks, and detection of uncollected test modules. Existing approvals, repair limits, projects and exports remain supported."
 }

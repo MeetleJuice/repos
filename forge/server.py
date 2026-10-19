@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 import zipfile
 
 from .core import Workbench, ACTIVE
+from .history import totals_for
 from .models import connection_info
 from .credentials import CredentialStore, parse_dotenv, read_dotenv
 from .cloud import CloudSetup
@@ -137,9 +138,8 @@ def make_server(port=8765, workbench=None, credentials=None):
                 return
             if path == "/api/info" and not post:
                 states = bench.list_projects()
-                calls = [c for state in states for c in state.get("model_calls", [])]
                 self.json({"version": __version__, "data_folder": str(bench.root.parent), "projects": len(states),
-                           "model_calls": len(calls), "model_seconds": round(sum(c["seconds"] for c in calls), 1),
+                           "model_calls": sum(totals_for(state)["requests"] for state in states), "model_seconds": round(sum(totals_for(state)["seconds"] for state in states), 1),
                            "warnings": bench.warnings, "inference_policy": "One model request at a time; fallback requires explicit configuration and cloud consent."})
                 return
             if path == "/api/backup" and not post:
@@ -183,20 +183,25 @@ def make_server(port=8765, workbench=None, credentials=None):
             ident = pieces[2]
             state = bench.load(ident)
             if len(pieces) == 3 and not post:
-                self.json(state)
+                self.json(bench.present(ident))
                 return
             action = pieces[-1]
+            if action == "history" and not post:
+                self.json(bench.history(ident))
+                return
             if action in {"files", "download"} and not post:
                 if state["status"] in ACTIVE:
                     raise ValueError("Wait for the running job to stop before inspecting or exporting a stable project.")
                 if action == "files":
                     self.json(bench.files(ident))
                 else:
+                    files, report, journal = bench.export_snapshot(ident)
                     stream = io.BytesIO()
                     with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
-                        for name, content in bench.files(ident).items():
+                        for name, content in files.items():
                             archive.writestr("generated-app/" + name, content)
-                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps({"generator_version": __version__, "starter": state.get("starter"), "starter_version": state.get("starter_version"), "milestones": state.get("milestones", []), "status": state["status"], "checks": state["checks"], "preflight": state.get("preflight"), "plan_review": state.get("plan_review"), "planning_stats": state.get("planning_stats"), "proposal_source": state.get("proposal_source"), "generation_stats": state.get("generation_stats"), "manual_checks": state["plan"].get("manual_checks", []), "manual_results": state.get("manual_results"), "repair_history": state.get("repair_history", []), "verification_fingerprint": state.get("verification_fingerprint"), "models": {"planner": state["planner"], "coder": state["coder"]}}, indent=2))
+                        archive.writestr("generated-app/BUILD-REPORT.json", json.dumps(report, indent=2))
+                        archive.writestr("generated-app/RUN-HISTORY.json", json.dumps(journal, indent=2))
                     self.send_bytes(200, stream.getvalue(), "application/zip", "generated-app.zip")
             elif post and action == "manual":
                 self.json(bench.record_manual(ident, body["results"], body.get("notes")))
