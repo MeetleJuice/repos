@@ -27,7 +27,7 @@ from forge.updates import UpdateManager, validate_manifest, extract_release, REP
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def manifest_for(content, version='0.11.0'):
+def manifest_for(content, version='0.12.0'):
     return {'schema': 1, 'version': version, 'data_schema': 2, 'python': [3, 11],
             'url': f'https://raw.githubusercontent.com/{REPOSITORY}/main/releases/Idea-Foundry-{version}.zip',
             'sha256': hashlib.sha256(content).hexdigest(), 'notes': 'Test release'}
@@ -35,7 +35,7 @@ def manifest_for(content, version='0.11.0'):
 
 def archive_for(extra=None):
     stream = io.BytesIO()
-    files = {'run.py': '# launcher', 'bootstrap.py': '# supervisor', 'forge/server.py': '# server', 'forge/__init__.py': '__version__ = "0.11.0"\n'}
+    files = {'run.py': '# launcher', 'bootstrap.py': '# supervisor', 'forge/server.py': '# server', 'forge/__init__.py': '__version__ = "0.12.0"\n'}
     files.update(extra or {})
     with zipfile.ZipFile(stream, 'w') as archive:
         for name, content in files.items():
@@ -57,8 +57,8 @@ class UpdateTests(unittest.TestCase):
 
     def test_check_distinguishes_new_current_and_older(self):
         self.assertEqual(self.manager.check('0.5.0')['status'], 'available')
-        self.assertEqual(self.manager.check('0.11.0')['status'], 'current')
         self.assertEqual(self.manager.check('0.12.0')['status'], 'current')
+        self.assertEqual(self.manager.check('0.13.0')['status'], 'current')
 
     def test_failed_check_clears_previously_available_release(self):
         self.manager.check('0.5.0')
@@ -125,9 +125,9 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(backup.read_bytes(), b'backup fixture')
         self.assertEqual(project.read_text(), 'user work')
         self.assertEqual(key.read_text(), 'GROQ_API_KEY=test-only-placeholder')
-        self.assertEqual(json.loads((self.home / 'updates/current.json').read_text()), {'version': '0.11.0'})
-        self.assertTrue((self.home / 'updates/versions/0.11.0/run.py').is_file())
-        self.assertEqual(selected_program(ROOT, self.home), self.home / 'updates/versions/0.11.0')
+        self.assertEqual(json.loads((self.home / 'updates/current.json').read_text()), {'version': '0.12.0'})
+        self.assertTrue((self.home / 'updates/versions/0.12.0/run.py').is_file())
+        self.assertEqual(selected_program(ROOT, self.home), self.home / 'updates/versions/0.12.0')
         self.assertTrue(rollback(self.home, 'failed startup'))
         self.assertEqual(selected_program(ROOT, self.home), ROOT)
         self.assertEqual(project.read_text(), 'user work')
@@ -196,16 +196,16 @@ class SupervisorTests(unittest.TestCase):
         self.temp.cleanup()
 
     def prepare_version(self, broken=False):
-        target = self.home / 'updates/versions/0.11.0'
+        target = self.home / 'updates/versions/0.12.0'
         target.mkdir(parents=True)
         shutil.copytree(ROOT / 'forge', target / 'forge', ignore=shutil.ignore_patterns('__pycache__'))
         shutil.copyfile(ROOT / 'run.py', target / 'run.py')
         shutil.copyfile(ROOT / 'bootstrap.py', target / 'bootstrap.py')
-        (target / 'forge/__init__.py').write_text('__version__ = "0.11.0"\n')
+        (target / 'forge/__init__.py').write_text('__version__ = "0.12.0"\n')
         if broken:
             (target / 'run.py').write_text('raise SystemExit(2)\n')
-        atomic_json(self.home / 'updates/current.json', {'version': '0.11.0'})
-        atomic_json(self.home / 'updates/pending.json', {'version': '0.11.0', 'previous': None, 'backup': 'preserved-backup.zip'})
+        atomic_json(self.home / 'updates/current.json', {'version': '0.12.0'})
+        atomic_json(self.home / 'updates/pending.json', {'version': '0.12.0', 'previous': None, 'backup': 'preserved-backup.zip'})
 
     def start_and_wait(self, version):
         flags = {'start_new_session': True} if os.name != 'nt' else {'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP}
@@ -228,7 +228,7 @@ class SupervisorTests(unittest.TestCase):
         (self.home / '.env').write_text('GROQ_API_KEY=test-local-placeholder')
         (self.home / 'projects').mkdir()
         (self.home / 'projects/user-file.txt').write_text('preserve this')
-        self.start_and_wait('0.11.0')
+        self.start_and_wait('0.12.0')
         report = json.loads((self.home / 'updates/last-result.json').read_text())
         self.assertEqual(report['status'], 'updated')
         self.assertFalse((self.home / 'updates/pending.json').exists())
@@ -298,5 +298,5 @@ class UpdateTransactionTests(unittest.TestCase):
                 manager.prepare(b'backup')
             self.assertFalse((home / 'updates/current.json').exists())
             self.assertFalse((home / 'updates/pending.json').exists())
-            self.assertFalse((home / 'updates/versions/0.11.0').exists())
+            self.assertFalse((home / 'updates/versions/0.12.0').exists())
             self.assertEqual(next((home / 'updates/backups').glob('*.zip')).read_bytes(), b'backup')

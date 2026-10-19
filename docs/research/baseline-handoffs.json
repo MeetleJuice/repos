@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "dataset_sha256": "bbd15c652c4c919a51987a25a6a309320204e2e1f4ce62e27b904560744491f7",
+  "baseline_commit": "a2a76074db8c5b59c55c0e2b0de9b8fbb02a8db0",
+  "cases": 18,
+  "live_model_requests": 0,
+  "historical_repair_success_rate": null,
+  "provider_cost_tokens": null,
+  "normalized_prompt_tokens_cl100k": 55841,
+  "scope": "Measured serialized input size with tiktoken 0.12.0 cl100k_base. Excludes chat framing/provider schemas; not billed tokens or model success. Each replay contains the same current baseline CODE prompt.",
+  "tokenizer_asset_sha256": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+  "prechange_tests": {
+    "passed": 206,
+    "seconds": 99.355,
+    "python": "3.12",
+    "log": "Baseline suite executed before application edits; no live providers."
+  },
+  "provenance_errata": [
+    {
+      "case": "notes-urlopen",
+      "effective_origin": "synthetic_diagnostic",
+      "reason": "Constructed diagnostic paired with historical Notes context; not a demonstrated historical failure of that fixture."
+    }
+  ],
+  "available_historical_aggregate": {
+    "project": "Personal Project Dashboard",
+    "source": "User uploaded v0.10.0 build journal",
+    "source_sha256": "6f364f9998f7bfecb957373325373baa82dc5d56201adf6cf50a8177f167340c",
+    "model_requests": 35,
+    "model_response_seconds": 1695.2,
+    "reported_input_tokens": 227557,
+    "reported_output_tokens": 99108,
+    "requests_with_reported_tokens": 21,
+    "outcome": "Four tasks saved; static repair failed; app unverified.",
+    "limits": "Whole-project accumulated journal, not first-attempt/per-repair costs. Cannot allocate this aggregate across the replay cases."
+  }
+}

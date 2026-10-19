@@ -17,6 +17,7 @@ import zipfile
 from typing import Any
 
 from .models import ModelClient, ModelError
+from .handoffs import handoff_metrics
 from .contracts import validate_structure as validate_plan, require_consistent, review_plan, Review, Finding, starter_contracts
 from .planning import PlanningEngine
 from .routing import validate_config, uses_cloud, validate_options
@@ -156,7 +157,7 @@ class Workbench:
                     self.event(state, "Skipping " + selected["provider"] + " during its temporary rate-limit cooldown.")
                     continue
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
-                          "fallback": is_fallback, "time": self.now(), "success": False}
+                          "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, prompt)}
                 started = time.monotonic()
                 client = None
                 try:

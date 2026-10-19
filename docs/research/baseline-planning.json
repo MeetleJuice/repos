@@ -1,0 +1,12 @@
+{
+  "version": "0.10.1",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "cases": 2,
+  "baseline_bad_cases_accepted": 2,
+  "new_bad_cases_accepted": 0,
+  "batch_samples": 1000,
+  "review_ms_median": 0.1631,
+  "review_ms_p95": 0.2894,
+  "scope": "Per-proposal time averaged over each two-case batch. No live model or GPU benchmark."
+}

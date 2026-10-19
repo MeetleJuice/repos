@@ -1,0 +1,236 @@
+{
+  "schema": 1,
+  "dataset_sha256": "bbd15c652c4c919a51987a25a6a309320204e2e1f4ce62e27b904560744491f7",
+  "cases": 18,
+  "metric": "cl100k_normalized_input_tokens",
+  "tokenizer": "tiktoken 0.12.0 cl100k_base (framing excluded)",
+  "totals": {
+    "baseline": 55841,
+    "compact": 54165,
+    "unicode": 54089,
+    "brief": 55205
+  },
+  "semantic_roundtrips": 18,
+  "live_model_requests": 0,
+  "first_attempt_repair_success": null,
+  "billed_token_delta": null,
+  "rows": [
+    {
+      "id": "notes-cgi",
+      "origin": "historical_fixture",
+      "counts": {
+        "baseline": 4327,
+        "compact": 4214,
+        "unicode": 4214,
+        "brief": 4276
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "notes-urlopen",
+      "origin": "historical_fixture",
+      "counts": {
+        "baseline": 4319,
+        "compact": 4206,
+        "unicode": 4206,
+        "brief": 4268
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "notes-ui",
+      "origin": "historical_fixture",
+      "counts": {
+        "baseline": 4315,
+        "compact": 4202,
+        "unicode": 4202,
+        "brief": 4264
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "neon-shield-collision",
+      "origin": "historical_fixture",
+      "counts": {
+        "baseline": 3626,
+        "compact": 3555,
+        "unicode": 3555,
+        "brief": 3617
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "neon-invisible-pickup",
+      "origin": "historical_fixture",
+      "counts": {
+        "baseline": 3608,
+        "compact": 3537,
+        "unicode": 3537,
+        "brief": 3599
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "neon-pickup-clear",
+      "origin": "historical_fixture",
+      "counts": {
+        "baseline": 3635,
+        "compact": 3564,
+        "unicode": 3564,
+        "brief": 3626
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "dashboard-placeholder-api",
+      "origin": "uploaded_failure",
+      "counts": {
+        "baseline": 5556,
+        "compact": 5425,
+        "unicode": 5425,
+        "brief": 5487
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "dashboard-placeholder-db",
+      "origin": "uploaded_failure",
+      "counts": {
+        "baseline": 5556,
+        "compact": 5425,
+        "unicode": 5425,
+        "brief": 5487
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "dashboard-budget",
+      "origin": "uploaded_failure",
+      "counts": {
+        "baseline": 5528,
+        "compact": 5398,
+        "unicode": 5398,
+        "brief": 5460
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "ambiguous-edit",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 1149,
+        "compact": 1078,
+        "unicode": 1078,
+        "brief": 1140
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "missing-edit",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 1143,
+        "compact": 1072,
+        "unicode": 1072,
+        "brief": 1134
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "unchanged-repair",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 2051,
+        "compact": 1963,
+        "unicode": 1963,
+        "brief": 2025
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "missing-test-import",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 1912,
+        "compact": 1823,
+        "unicode": 1823,
+        "brief": 1885
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "syntax-response",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 1161,
+        "compact": 1088,
+        "unicode": 1088,
+        "brief": 1150
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "persistence",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 2062,
+        "compact": 1973,
+        "unicode": 1973,
+        "brief": 2035
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "environment-cleanup",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 1853,
+        "compact": 1775,
+        "unicode": 1775,
+        "brief": 1837
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "unicode-input",
+      "origin": "synthetic_boundary",
+      "counts": {
+        "baseline": 1980,
+        "compact": 1895,
+        "unicode": 1819,
+        "brief": 1881
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    },
+    {
+      "id": "frozen-test",
+      "origin": "derived_regression",
+      "counts": {
+        "baseline": 2060,
+        "compact": 1972,
+        "unicode": 1972,
+        "brief": 2034
+      },
+      "information_roundtrip": true,
+      "first_attempt_repair_success": null
+    }
+  ],
+  "limitations": "Transport-only paired replay. Exact decoded values retained; no repair candidates were generated or evaluated. No provider quality, latency or billed-cost claim."
+}

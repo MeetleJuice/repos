@@ -1,0 +1,90 @@
+{
+  "schema": 1,
+  "role": "harness-auditor",
+  "review_date": "2026-10-19",
+  "decision": "human_review_required",
+  "scope": "Read-only end-of-cycle audit of status, frozen baseline, experiment artifact, handoff module, tests and current diff. No acceptance, publication or source edits performed.",
+  "evidence": {
+    "cases": 18,
+    "dataset_sha256": "bbd15c652c4c919a51987a25a6a309320204e2e1f4ce62e27b904560744491f7",
+    "live_model_requests": 0,
+    "actual_first_attempt_repair_success": null,
+    "baseline_normalized_tokens": 55841,
+    "compact_json_normalized_tokens": 54165,
+    "compact_literal_unicode_normalized_tokens": 54089,
+    "structured_brief_normalized_tokens": 55205,
+    "structured_brief_delta_vs_compact_unicode": 1116,
+    "roundtrip_cases": 18
+  },
+  "prototypes": [
+    {
+      "name": "compact_json",
+      "classification": "lossless transport cost proxy",
+      "observed": "1676 fewer normalized cl100k input tokens than baseline; payload equality across 18 replays. No observed repair-quality effect.",
+      "production_status": "not_promoted"
+    },
+    {
+      "name": "literal_unicode",
+      "classification": "lossless transport cost proxy",
+      "observed": "76 fewer normalized tokens than compact JSON, attributable to one synthetic Unicode boundary case. Do not extrapolate this distribution to user workloads.",
+      "production_status": "not_promoted"
+    },
+    {
+      "name": "structured_brief",
+      "classification": "evaluation-only hypothesis",
+      "observed": "Not wired to runtime; +1116 normalized tokens versus compact Unicode and no observed quality benefit, so not promoted.",
+      "production_status": "not_promoted"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "material_evidence_limit",
+      "message": "No actual first-attempt repair success evidence exists. Historical outcomes and provider costs remain null. Eighteen cases mix historical fixtures, uploaded failures, derived regressions and one synthetic boundary; they are not independent historical failed builds."
+    },
+    {
+      "severity": "material_evidence_limit",
+      "message": "Normalized cl100k prompt counts exclude provider schemas/chat framing and do not measure provider billed tokens, response quality, latency, end-to-end completion or savings in money."
+    },
+    {
+      "severity": "preserved_contract",
+      "message": "Final runtime diff adds ledger identity/character metrics only. Production serialization, accepted fields, repair budgets, frozen checks, provider ordering and runtime permissions remain unchanged."
+    },
+    {
+      "severity": "review",
+      "message": "During the prototype planning serialization changed too, beyond the CODE-only replay coverage. Resolved by rolling back all production serialization changes; a regression test asserts the legacy prompt bytes."
+    },
+    {
+      "severity": "review",
+      "message": "Prompt digest is an identifier, not anonymity or a proof of correctness. Keep it out of privacy/security claims; low-entropy content can in principle be guessed."
+    },
+    {
+      "severity": "review",
+      "message": "Unicode token effect is tokenizer/model/distribution dependent. Existing outer provider JSON encoding remains ASCII-escaped on the wire; benchmark savings refer to the model-visible inner prompt, not network bytes."
+    },
+    {
+      "severity": "review",
+      "message": "Reports do not prove live cloud/local adapter behavior or native Windows compatibility for this change. A scripted response test is an integration contract check, not independent app-repair evidence."
+    }
+  ],
+  "next_single_bounded_falsifiable_proposal": {
+    "name": "paired fixed-provider first-attempt repair pilot",
+    "scope": "Before expanding runtime prompts or retrieval, preregister six independently executable failing fixtures from existing Notes/dashboard repairs, one pinned provider/model/settings, baseline and compact-Unicode handoff, one repair attempt each; at most 12 inference calls with a fixed token and spend ceiling and explicit cloud consent. Apply candidates only in disposable copies.",
+    "oracle": "Require independently authored original-defect fail-before/pass-after evidence plus immutable regression tests, source identity and valid patch application; record transport failures separately without silent retries.",
+    "falsifiable_gate": "Reject a repair-quality improvement claim unless candidate first-attempt independently verified repairs exceed paired baseline with no regression losses. Small pilot results remain descriptive and cannot establish general improvement."
+  },
+  "rollback_criterion": "Revert serialization intervention if any decoded field/source changes, applicable planning/generation/repair/browser regression fails, provider adapter rejects supported Unicode payloads, or source/frozen-evidence protections change. Do not promote structured brief without measured repair benefit.",
+  "human_review_required": true,
+  "publication_authorized_by_this_audit": false,
+  "production_promotion": "No prompt/scaffold policy prototype promoted. Legacy inference serialization retained; new size/digest instrumentation is observational only.",
+  "review_concerns_resolved": [
+    "Production planner and coder retain exact legacy JSON serialization; regression test asserts it.",
+    "All three prompt prototypes remain evaluation-only because actual repair-rate/cost equivalence is unmeasured."
+  ],
+  "provenance_errata": [
+    {
+      "case": "notes-urlopen",
+      "effective_origin": "synthetic_diagnostic",
+      "reason": "Constructed diagnostic paired with historical Notes source. That source imports cgi and copies its server; the urlopen diagnostic is not proven to have occurred in this Notes fixture. Do not count this as a historical Notes failure."
+    }
+  ]
+}

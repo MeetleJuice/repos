@@ -1,0 +1,1939 @@
+{
+  "schema": 1,
+  "baseline_commit": "a2a76074db8c5b59c55c0e2b0de9b8fbb02a8db0",
+  "baseline_version": "0.10.1",
+  "scope": "18 frozen handoff replays, NOT 18 independent historical builds; no live model repair-rate evidence",
+  "cases": [
+    {
+      "id": "notes-cgi",
+      "origin": "historical_fixture",
+      "reference": "tests/fixture_data/notes-original-app.txt",
+      "failure_class": "static",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "from http.server import HTTPServer, BaseHTTPRequestHandler\nimport sqlite3\nimport json\nimport cgi\n\nDATABASE_PATH = 'notes.db'\n\n\n\ndef create_server(host, port):\n    return HTTPServer((host, port), NotesHandler)\n\nclass NotesHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({'status': 'ok'}).encode())\n        elif self.path == '/':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/html')\n            self.end_headers()\n            with open('static/index.html', 'r') as f:\n                self.wfile.write(f.read().encode())\n        elif self.path == '/api/notes':\n            self.handle_get_notes()\n        elif self.path.startswith('/api/notes/search'): \n            self.handle_search_notes()\n        else:\n            self.send_error(404)\n\n    def do_POST(self):\n        if self.path == '/api/notes':\n            ctype, pdict = cgi.parse_header(self.headers['content-type'])\n            if ctype == 'application/json':\n                length = int(self.headers['content-length'])\n                data = json.loads(self.rfile.read(length))\n                self.handle_create_note(data)\n            else:\n                self.send_error(400)\n        else:\n            self.send_error(404)\n\n    def do_DELETE(self):\n        if self.path.startswith('/api/notes/'): \n            note_id = self.path.split('/')[-1]\n            self.handle_delete_note(note_id)\n        else:\n            self.send_error(404)\n\n    def handle_get_notes(self):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes')\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_search_notes(self):\n        query = self.path.split('=')[1]\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes WHERE title LIKE ?', ('%' + query + '%',))\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_create_note(self, data):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        title = data['title'].strip()\n        body = data['body']\n        if not title:\n            self.send_error(400, 'Title cannot be empty')\n            return\n        cursor.execute('INSERT INTO notes (title, body) VALUES (?, ?)', (title, body))\n        conn.commit()\n        note_id = cursor.lastrowid\n        conn.close()\n        self.send_response(201)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'id': note_id, 'title': title, 'body': body}).encode())\n\n    def handle_delete_note(self, note_id):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))\n        if cursor.rowcount == 0:\n            conn.close()\n            self.send_error(404)\n            return\n        conn.commit()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'deleted': True, 'id': note_id}).encode())\n\nif __name__ == '__main__':\n    import argparse\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--host', default='127.0.0.1', help='Server host')\n    parser.add_argument('--port', type=int, default=8000, help='Server port')\n    args = parser.parse_args()\n    server = create_server(args.host, args.port)\n    print(f'Starting server on {args.host}:{args.port}')\n    server.serve_forever()",
+          "test_app.py": "import unittest\nfrom http.server import HTTPServer, BaseHTTPRequestHandler\nimport sqlite3\nimport json\nimport cgi\nimport tempfile\nimport os\nimport threading\n\nDATABASE_PATH = 'notes.db'\n\n\ndef create_server(host, port):\n    return HTTPServer((host, port), NotesHandler)\n\nclass NotesHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({'status': 'ok'}).encode())\n        elif self.path == '/':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/html')\n            self.end_headers()\n            with open('static/index.html', 'r') as f:\n                self.wfile.write(f.read().encode())\n        elif self.path == '/api/notes':\n            self.handle_get_notes()\n        elif self.path.startswith('/api/notes/search'): \n            self.handle_search_notes()\n        else:\n            self.send_error(404)\n\n    def do_POST(self):\n        if self.path == '/api/notes':\n            ctype, pdict = cgi.parse_header(self.headers['content-type'])\n            if ctype == 'application/json':\n                length = int(self.headers['content-length'])\n                data = json.loads(self.rfile.read(length))\n                self.handle_create_note(data)\n            else:\n                self.send_error(400)\n        else:\n            self.send_error(404)\n\n    def do_DELETE(self):\n        if self.path.startswith('/api/notes/'): \n            note_id = self.path.split('/')[-1]\n            self.handle_delete_note(note_id)\n        else:\n            self.send_error(404)\n\n    def handle_get_notes(self):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes')\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_search_notes(self):\n        query = self.path.split('=')[1]\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes WHERE title LIKE ?', ('%' + query + '%',))\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_create_note(self, data):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        title = data['title'].strip()\n        body = data['body']\n        if not title:\n            self.send_error(400, 'Title cannot be empty')\n            return\n        cursor.execute('INSERT INTO notes (title, body) VALUES (?, ?)', (title, body))\n        conn.commit()\n        note_id = cursor.lastrowid\n        conn.close()\n        self.send_response(201)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'id': note_id, 'title': title, 'body': body}).encode())\n\n    def handle_delete_note(self, note_id):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))\n        if cursor.rowcount == 0:\n            conn.close()\n            self.send_error(404)\n            return\n        conn.commit()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'deleted': True, 'id': note_id}).encode())\n\nclass TestNotesApp(unittest.TestCase):\n    def setUp(self):\n        self.db_fd, DATABASE_PATH = tempfile.mkstemp()\n        self.server = create_server('127.0.0.1', 8000)\n        self.server_thread = threading.Thread(target=self.server.serve_forever)\n        self.server_thread.start()\n\n    def tearDown(self):\n        os.close(self.db_fd)\n        os.unlink(DATABASE_PATH)\n        self.server.shutdown()\n        self.server.server_close()\n        self.server_thread.join()\n\n    def test_health_check(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'status\":\"ok\"', response.wfile.getvalue())\n\n    def test_create_note(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 201)\n        self.assertIn(b'\"id\":1', response.wfile.getvalue())\n\n    def test_list_notes(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"title\":\"Buy milk\"', response.wfile.getvalue())\n\n    def test_search_notes(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"title\":\"Buy milk\"', response.wfile.getvalue())\n\n    def test_delete_note(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"deleted\":true', response.wfile.getvalue())\n\nif __name__ == '__main__':\n    unittest.main()",
+          "index.html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Notes App</title>\n    <link rel=\"stylesheet\" href=\"/static/style.css\">\n</head>\n<body>\n    <h1>Notes App</h1>\n    <form id=\"noteForm\">\n        <input type=\"text\" id=\"title\" placeholder=\"Title\" required>\n        <textarea id=\"body\" placeholder=\"Body\"></textarea>\n        <button type=\"submit\">Add Note</button>\n    </form>\n    <ul id=\"notesList\"></ul>\n    <input type=\"text\" id=\"search\" placeholder=\"Search by title\">\n    <ul id=\"searchResults\"></ul>\n    <script>\n        document.getElementById('noteForm').addEventListener('submit', function(event) {\n            event.preventDefault();\n            const title = document.getElementById('title').value;\n            const body = document.getElementById('body').value;\n            fetch('/api/notes', {\n                method: 'POST',\n                headers: {\n                    'Content-Type': 'application/json'\n                },\n                body: JSON.stringify({ title, body })\n            })\n            .then(response => response.json())\n            .then(data => {\n                document.getElementById('notesList').innerHTML += `<li>${data.title}</li>`;\n                document.getElementById('title').value = '';\n                document.getElementById('body').value = '';\n            });\n        });\n\n        function fetchNotes() {\n            fetch('/api/notes')\n            .then(response => response.json())\n            .then(data => {\n                const notesList = document.getElementById('notesList');\n                notesList.innerHTML = '';\n                data.forEach(note => {\n                    notesList.innerHTML += `<li>${note.title} <button onclick=\"deleteNote(${note.id})\">Delete</button></li>`;\n                });\n            });\n        }\n\n        function deleteNote(id) {\n            fetch(`/api/notes/${id}`, {\n                method: 'DELETE'\n            })\n            .then(response => response.json())\n            .then(data => {\n                if (data.deleted) {\n                    fetchNotes();\n                }\n            });\n        }\n\n        document.getElementById('search').addEventListener('input', function() {\n            const query = this.value;\n            fetch(`/api/notes/search?q=${query}`)\n            .then(response => response.json())\n            .then(data => {\n                const searchResults = document.getElementById('searchResults');\n                searchResults.innerHTML = '';\n                data.forEach(note => {\n                    searchResults.innerHTML += `<li>${note.title}</li>`;\n                });\n            });\n        });\n\n        fetchNotes();\n    </script>\n</body>\n</html>"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 4141,
+            "sha256": "597dea698440",
+            "symbols": [
+              "create_server",
+              "NotesHandler",
+              "do_GET",
+              "do_POST",
+              "do_DELETE",
+              "handle_get_notes",
+              "handle_search_notes",
+              "handle_create_note",
+              "handle_delete_note"
+            ]
+          },
+          {
+            "file": "index.html",
+            "characters": 2782,
+            "sha256": "fe3c7e4082f7"
+          },
+          {
+            "file": "test_app.py",
+            "characters": 5295,
+            "sha256": "af19afa707cd",
+            "symbols": [
+              "create_server",
+              "NotesHandler",
+              "TestNotesApp",
+              "do_GET",
+              "do_POST",
+              "do_DELETE",
+              "handle_get_notes",
+              "handle_search_notes",
+              "handle_create_note",
+              "handle_delete_note",
+              "setUp",
+              "tearDown",
+              "test_health_check",
+              "test_create_note",
+              "test_list_notes",
+              "test_search_notes",
+              "test_delete_note"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "static",
+          "diagnosis": "app.py: Replace cgi imports; unavailable on Python 3.13.",
+          "evidence": [],
+          "traceback_tail": "app.py: Replace cgi imports; unavailable on Python 3.13.",
+          "referenced_files": [
+            "app.py"
+          ],
+          "browser_failure": null
+        },
+        "failure": "app.py: Replace cgi imports; unavailable on Python 3.13.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 4327,
+      "baseline_serialized_characters": 14397
+    },
+    {
+      "id": "notes-urlopen",
+      "origin": "historical_fixture",
+      "reference": "tests/fixture_data/notes-original-tests.txt",
+      "failure_class": "static",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "from http.server import HTTPServer, BaseHTTPRequestHandler\nimport sqlite3\nimport json\nimport cgi\n\nDATABASE_PATH = 'notes.db'\n\n\n\ndef create_server(host, port):\n    return HTTPServer((host, port), NotesHandler)\n\nclass NotesHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({'status': 'ok'}).encode())\n        elif self.path == '/':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/html')\n            self.end_headers()\n            with open('static/index.html', 'r') as f:\n                self.wfile.write(f.read().encode())\n        elif self.path == '/api/notes':\n            self.handle_get_notes()\n        elif self.path.startswith('/api/notes/search'): \n            self.handle_search_notes()\n        else:\n            self.send_error(404)\n\n    def do_POST(self):\n        if self.path == '/api/notes':\n            ctype, pdict = cgi.parse_header(self.headers['content-type'])\n            if ctype == 'application/json':\n                length = int(self.headers['content-length'])\n                data = json.loads(self.rfile.read(length))\n                self.handle_create_note(data)\n            else:\n                self.send_error(400)\n        else:\n            self.send_error(404)\n\n    def do_DELETE(self):\n        if self.path.startswith('/api/notes/'): \n            note_id = self.path.split('/')[-1]\n            self.handle_delete_note(note_id)\n        else:\n            self.send_error(404)\n\n    def handle_get_notes(self):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes')\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_search_notes(self):\n        query = self.path.split('=')[1]\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes WHERE title LIKE ?', ('%' + query + '%',))\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_create_note(self, data):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        title = data['title'].strip()\n        body = data['body']\n        if not title:\n            self.send_error(400, 'Title cannot be empty')\n            return\n        cursor.execute('INSERT INTO notes (title, body) VALUES (?, ?)', (title, body))\n        conn.commit()\n        note_id = cursor.lastrowid\n        conn.close()\n        self.send_response(201)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'id': note_id, 'title': title, 'body': body}).encode())\n\n    def handle_delete_note(self, note_id):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))\n        if cursor.rowcount == 0:\n            conn.close()\n            self.send_error(404)\n            return\n        conn.commit()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'deleted': True, 'id': note_id}).encode())\n\nif __name__ == '__main__':\n    import argparse\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--host', default='127.0.0.1', help='Server host')\n    parser.add_argument('--port', type=int, default=8000, help='Server port')\n    args = parser.parse_args()\n    server = create_server(args.host, args.port)\n    print(f'Starting server on {args.host}:{args.port}')\n    server.serve_forever()",
+          "test_app.py": "import unittest\nfrom http.server import HTTPServer, BaseHTTPRequestHandler\nimport sqlite3\nimport json\nimport cgi\nimport tempfile\nimport os\nimport threading\n\nDATABASE_PATH = 'notes.db'\n\n\ndef create_server(host, port):\n    return HTTPServer((host, port), NotesHandler)\n\nclass NotesHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({'status': 'ok'}).encode())\n        elif self.path == '/':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/html')\n            self.end_headers()\n            with open('static/index.html', 'r') as f:\n                self.wfile.write(f.read().encode())\n        elif self.path == '/api/notes':\n            self.handle_get_notes()\n        elif self.path.startswith('/api/notes/search'): \n            self.handle_search_notes()\n        else:\n            self.send_error(404)\n\n    def do_POST(self):\n        if self.path == '/api/notes':\n            ctype, pdict = cgi.parse_header(self.headers['content-type'])\n            if ctype == 'application/json':\n                length = int(self.headers['content-length'])\n                data = json.loads(self.rfile.read(length))\n                self.handle_create_note(data)\n            else:\n                self.send_error(400)\n        else:\n            self.send_error(404)\n\n    def do_DELETE(self):\n        if self.path.startswith('/api/notes/'): \n            note_id = self.path.split('/')[-1]\n            self.handle_delete_note(note_id)\n        else:\n            self.send_error(404)\n\n    def handle_get_notes(self):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes')\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_search_notes(self):\n        query = self.path.split('=')[1]\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes WHERE title LIKE ?', ('%' + query + '%',))\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_create_note(self, data):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        title = data['title'].strip()\n        body = data['body']\n        if not title:\n            self.send_error(400, 'Title cannot be empty')\n            return\n        cursor.execute('INSERT INTO notes (title, body) VALUES (?, ?)', (title, body))\n        conn.commit()\n        note_id = cursor.lastrowid\n        conn.close()\n        self.send_response(201)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'id': note_id, 'title': title, 'body': body}).encode())\n\n    def handle_delete_note(self, note_id):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))\n        if cursor.rowcount == 0:\n            conn.close()\n            self.send_error(404)\n            return\n        conn.commit()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'deleted': True, 'id': note_id}).encode())\n\nclass TestNotesApp(unittest.TestCase):\n    def setUp(self):\n        self.db_fd, DATABASE_PATH = tempfile.mkstemp()\n        self.server = create_server('127.0.0.1', 8000)\n        self.server_thread = threading.Thread(target=self.server.serve_forever)\n        self.server_thread.start()\n\n    def tearDown(self):\n        os.close(self.db_fd)\n        os.unlink(DATABASE_PATH)\n        self.server.shutdown()\n        self.server.server_close()\n        self.server_thread.join()\n\n    def test_health_check(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'status\":\"ok\"', response.wfile.getvalue())\n\n    def test_create_note(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 201)\n        self.assertIn(b'\"id\":1', response.wfile.getvalue())\n\n    def test_list_notes(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"title\":\"Buy milk\"', response.wfile.getvalue())\n\n    def test_search_notes(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"title\":\"Buy milk\"', response.wfile.getvalue())\n\n    def test_delete_note(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"deleted\":true', response.wfile.getvalue())\n\nif __name__ == '__main__':\n    unittest.main()",
+          "index.html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Notes App</title>\n    <link rel=\"stylesheet\" href=\"/static/style.css\">\n</head>\n<body>\n    <h1>Notes App</h1>\n    <form id=\"noteForm\">\n        <input type=\"text\" id=\"title\" placeholder=\"Title\" required>\n        <textarea id=\"body\" placeholder=\"Body\"></textarea>\n        <button type=\"submit\">Add Note</button>\n    </form>\n    <ul id=\"notesList\"></ul>\n    <input type=\"text\" id=\"search\" placeholder=\"Search by title\">\n    <ul id=\"searchResults\"></ul>\n    <script>\n        document.getElementById('noteForm').addEventListener('submit', function(event) {\n            event.preventDefault();\n            const title = document.getElementById('title').value;\n            const body = document.getElementById('body').value;\n            fetch('/api/notes', {\n                method: 'POST',\n                headers: {\n                    'Content-Type': 'application/json'\n                },\n                body: JSON.stringify({ title, body })\n            })\n            .then(response => response.json())\n            .then(data => {\n                document.getElementById('notesList').innerHTML += `<li>${data.title}</li>`;\n                document.getElementById('title').value = '';\n                document.getElementById('body').value = '';\n            });\n        });\n\n        function fetchNotes() {\n            fetch('/api/notes')\n            .then(response => response.json())\n            .then(data => {\n                const notesList = document.getElementById('notesList');\n                notesList.innerHTML = '';\n                data.forEach(note => {\n                    notesList.innerHTML += `<li>${note.title} <button onclick=\"deleteNote(${note.id})\">Delete</button></li>`;\n                });\n            });\n        }\n\n        function deleteNote(id) {\n            fetch(`/api/notes/${id}`, {\n                method: 'DELETE'\n            })\n            .then(response => response.json())\n            .then(data => {\n                if (data.deleted) {\n                    fetchNotes();\n                }\n            });\n        }\n\n        document.getElementById('search').addEventListener('input', function() {\n            const query = this.value;\n            fetch(`/api/notes/search?q=${query}`)\n            .then(response => response.json())\n            .then(data => {\n                const searchResults = document.getElementById('searchResults');\n                searchResults.innerHTML = '';\n                data.forEach(note => {\n                    searchResults.innerHTML += `<li>${note.title}</li>`;\n                });\n            });\n        });\n\n        fetchNotes();\n    </script>\n</body>\n</html>"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 4141,
+            "sha256": "597dea698440",
+            "symbols": [
+              "create_server",
+              "NotesHandler",
+              "do_GET",
+              "do_POST",
+              "do_DELETE",
+              "handle_get_notes",
+              "handle_search_notes",
+              "handle_create_note",
+              "handle_delete_note"
+            ]
+          },
+          {
+            "file": "index.html",
+            "characters": 2782,
+            "sha256": "fe3c7e4082f7"
+          },
+          {
+            "file": "test_app.py",
+            "characters": 5295,
+            "sha256": "af19afa707cd",
+            "symbols": [
+              "create_server",
+              "NotesHandler",
+              "TestNotesApp",
+              "do_GET",
+              "do_POST",
+              "do_DELETE",
+              "handle_get_notes",
+              "handle_search_notes",
+              "handle_create_note",
+              "handle_delete_note",
+              "setUp",
+              "tearDown",
+              "test_health_check",
+              "test_create_note",
+              "test_list_notes",
+              "test_search_notes",
+              "test_delete_note"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "static",
+          "diagnosis": "test_app.py: urlopen does not accept headers=.",
+          "evidence": [],
+          "traceback_tail": "test_app.py: urlopen does not accept headers=.",
+          "referenced_files": [
+            "test_app.py"
+          ],
+          "browser_failure": null
+        },
+        "failure": "test_app.py: urlopen does not accept headers=.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 4319,
+      "baseline_serialized_characters": 14372
+    },
+    {
+      "id": "notes-ui",
+      "origin": "historical_fixture",
+      "reference": "tests/fixture_data/notes-original-index.txt",
+      "failure_class": "browser",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "from http.server import HTTPServer, BaseHTTPRequestHandler\nimport sqlite3\nimport json\nimport cgi\n\nDATABASE_PATH = 'notes.db'\n\n\n\ndef create_server(host, port):\n    return HTTPServer((host, port), NotesHandler)\n\nclass NotesHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({'status': 'ok'}).encode())\n        elif self.path == '/':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/html')\n            self.end_headers()\n            with open('static/index.html', 'r') as f:\n                self.wfile.write(f.read().encode())\n        elif self.path == '/api/notes':\n            self.handle_get_notes()\n        elif self.path.startswith('/api/notes/search'): \n            self.handle_search_notes()\n        else:\n            self.send_error(404)\n\n    def do_POST(self):\n        if self.path == '/api/notes':\n            ctype, pdict = cgi.parse_header(self.headers['content-type'])\n            if ctype == 'application/json':\n                length = int(self.headers['content-length'])\n                data = json.loads(self.rfile.read(length))\n                self.handle_create_note(data)\n            else:\n                self.send_error(400)\n        else:\n            self.send_error(404)\n\n    def do_DELETE(self):\n        if self.path.startswith('/api/notes/'): \n            note_id = self.path.split('/')[-1]\n            self.handle_delete_note(note_id)\n        else:\n            self.send_error(404)\n\n    def handle_get_notes(self):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes')\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_search_notes(self):\n        query = self.path.split('=')[1]\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes WHERE title LIKE ?', ('%' + query + '%',))\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_create_note(self, data):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        title = data['title'].strip()\n        body = data['body']\n        if not title:\n            self.send_error(400, 'Title cannot be empty')\n            return\n        cursor.execute('INSERT INTO notes (title, body) VALUES (?, ?)', (title, body))\n        conn.commit()\n        note_id = cursor.lastrowid\n        conn.close()\n        self.send_response(201)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'id': note_id, 'title': title, 'body': body}).encode())\n\n    def handle_delete_note(self, note_id):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))\n        if cursor.rowcount == 0:\n            conn.close()\n            self.send_error(404)\n            return\n        conn.commit()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'deleted': True, 'id': note_id}).encode())\n\nif __name__ == '__main__':\n    import argparse\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--host', default='127.0.0.1', help='Server host')\n    parser.add_argument('--port', type=int, default=8000, help='Server port')\n    args = parser.parse_args()\n    server = create_server(args.host, args.port)\n    print(f'Starting server on {args.host}:{args.port}')\n    server.serve_forever()",
+          "test_app.py": "import unittest\nfrom http.server import HTTPServer, BaseHTTPRequestHandler\nimport sqlite3\nimport json\nimport cgi\nimport tempfile\nimport os\nimport threading\n\nDATABASE_PATH = 'notes.db'\n\n\ndef create_server(host, port):\n    return HTTPServer((host, port), NotesHandler)\n\nclass NotesHandler(BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.path == '/health':\n            self.send_response(200)\n            self.send_header('Content-type', 'application/json')\n            self.end_headers()\n            self.wfile.write(json.dumps({'status': 'ok'}).encode())\n        elif self.path == '/':\n            self.send_response(200)\n            self.send_header('Content-type', 'text/html')\n            self.end_headers()\n            with open('static/index.html', 'r') as f:\n                self.wfile.write(f.read().encode())\n        elif self.path == '/api/notes':\n            self.handle_get_notes()\n        elif self.path.startswith('/api/notes/search'): \n            self.handle_search_notes()\n        else:\n            self.send_error(404)\n\n    def do_POST(self):\n        if self.path == '/api/notes':\n            ctype, pdict = cgi.parse_header(self.headers['content-type'])\n            if ctype == 'application/json':\n                length = int(self.headers['content-length'])\n                data = json.loads(self.rfile.read(length))\n                self.handle_create_note(data)\n            else:\n                self.send_error(400)\n        else:\n            self.send_error(404)\n\n    def do_DELETE(self):\n        if self.path.startswith('/api/notes/'): \n            note_id = self.path.split('/')[-1]\n            self.handle_delete_note(note_id)\n        else:\n            self.send_error(404)\n\n    def handle_get_notes(self):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes')\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_search_notes(self):\n        query = self.path.split('=')[1]\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('SELECT id, title, body FROM notes WHERE title LIKE ?', ('%' + query + '%',))\n        notes = cursor.fetchall()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps(notes).encode())\n\n    def handle_create_note(self, data):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        title = data['title'].strip()\n        body = data['body']\n        if not title:\n            self.send_error(400, 'Title cannot be empty')\n            return\n        cursor.execute('INSERT INTO notes (title, body) VALUES (?, ?)', (title, body))\n        conn.commit()\n        note_id = cursor.lastrowid\n        conn.close()\n        self.send_response(201)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'id': note_id, 'title': title, 'body': body}).encode())\n\n    def handle_delete_note(self, note_id):\n        conn = sqlite3.connect(DATABASE_PATH)\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM notes WHERE id = ?', (note_id,))\n        if cursor.rowcount == 0:\n            conn.close()\n            self.send_error(404)\n            return\n        conn.commit()\n        conn.close()\n        self.send_response(200)\n        self.send_header('Content-type', 'application/json')\n        self.end_headers()\n        self.wfile.write(json.dumps({'deleted': True, 'id': note_id}).encode())\n\nclass TestNotesApp(unittest.TestCase):\n    def setUp(self):\n        self.db_fd, DATABASE_PATH = tempfile.mkstemp()\n        self.server = create_server('127.0.0.1', 8000)\n        self.server_thread = threading.Thread(target=self.server.serve_forever)\n        self.server_thread.start()\n\n    def tearDown(self):\n        os.close(self.db_fd)\n        os.unlink(DATABASE_PATH)\n        self.server.shutdown()\n        self.server.server_close()\n        self.server_thread.join()\n\n    def test_health_check(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'status\":\"ok\"', response.wfile.getvalue())\n\n    def test_create_note(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 201)\n        self.assertIn(b'\"id\":1', response.wfile.getvalue())\n\n    def test_list_notes(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"title\":\"Buy milk\"', response.wfile.getvalue())\n\n    def test_search_notes(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"title\":\"Buy milk\"', response.wfile.getvalue())\n\n    def test_delete_note(self):\n        response = self.server.handle_request()\n        self.assertEqual(response.status, 200)\n        self.assertIn(b'\"deleted\":true', response.wfile.getvalue())\n\nif __name__ == '__main__':\n    unittest.main()",
+          "index.html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Notes App</title>\n    <link rel=\"stylesheet\" href=\"/static/style.css\">\n</head>\n<body>\n    <h1>Notes App</h1>\n    <form id=\"noteForm\">\n        <input type=\"text\" id=\"title\" placeholder=\"Title\" required>\n        <textarea id=\"body\" placeholder=\"Body\"></textarea>\n        <button type=\"submit\">Add Note</button>\n    </form>\n    <ul id=\"notesList\"></ul>\n    <input type=\"text\" id=\"search\" placeholder=\"Search by title\">\n    <ul id=\"searchResults\"></ul>\n    <script>\n        document.getElementById('noteForm').addEventListener('submit', function(event) {\n            event.preventDefault();\n            const title = document.getElementById('title').value;\n            const body = document.getElementById('body').value;\n            fetch('/api/notes', {\n                method: 'POST',\n                headers: {\n                    'Content-Type': 'application/json'\n                },\n                body: JSON.stringify({ title, body })\n            })\n            .then(response => response.json())\n            .then(data => {\n                document.getElementById('notesList').innerHTML += `<li>${data.title}</li>`;\n                document.getElementById('title').value = '';\n                document.getElementById('body').value = '';\n            });\n        });\n\n        function fetchNotes() {\n            fetch('/api/notes')\n            .then(response => response.json())\n            .then(data => {\n                const notesList = document.getElementById('notesList');\n                notesList.innerHTML = '';\n                data.forEach(note => {\n                    notesList.innerHTML += `<li>${note.title} <button onclick=\"deleteNote(${note.id})\">Delete</button></li>`;\n                });\n            });\n        }\n\n        function deleteNote(id) {\n            fetch(`/api/notes/${id}`, {\n                method: 'DELETE'\n            })\n            .then(response => response.json())\n            .then(data => {\n                if (data.deleted) {\n                    fetchNotes();\n                }\n            });\n        }\n\n        document.getElementById('search').addEventListener('input', function() {\n            const query = this.value;\n            fetch(`/api/notes/search?q=${query}`)\n            .then(response => response.json())\n            .then(data => {\n                const searchResults = document.getElementById('searchResults');\n                searchResults.innerHTML = '';\n                data.forEach(note => {\n                    searchResults.innerHTML += `<li>${note.title}</li>`;\n                });\n            });\n        });\n\n        fetchNotes();\n    </script>\n</body>\n</html>"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 4141,
+            "sha256": "597dea698440",
+            "symbols": [
+              "create_server",
+              "NotesHandler",
+              "do_GET",
+              "do_POST",
+              "do_DELETE",
+              "handle_get_notes",
+              "handle_search_notes",
+              "handle_create_note",
+              "handle_delete_note"
+            ]
+          },
+          {
+            "file": "index.html",
+            "characters": 2782,
+            "sha256": "fe3c7e4082f7"
+          },
+          {
+            "file": "test_app.py",
+            "characters": 5295,
+            "sha256": "af19afa707cd",
+            "symbols": [
+              "create_server",
+              "NotesHandler",
+              "TestNotesApp",
+              "do_GET",
+              "do_POST",
+              "do_DELETE",
+              "handle_get_notes",
+              "handle_search_notes",
+              "handle_create_note",
+              "handle_delete_note",
+              "setUp",
+              "tearDown",
+              "test_health_check",
+              "test_create_note",
+              "test_list_notes",
+              "test_search_notes",
+              "test_delete_note"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "browser",
+          "diagnosis": "index.html: browser creation failed; frontend contract mismatch.",
+          "evidence": [],
+          "traceback_tail": "index.html: browser creation failed; frontend contract mismatch.",
+          "referenced_files": [
+            "index.html"
+          ],
+          "browser_failure": null
+        },
+        "failure": "index.html: browser creation failed; frontend contract mismatch.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 4315,
+      "baseline_serialized_characters": 14426
+    },
+    {
+      "id": "neon-shield-collision",
+      "origin": "historical_fixture",
+      "reference": "tests/fixture_data/neon-shield-broken.js",
+      "failure_class": "manual",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "game.js": "(() => {\n  const canvas = document.getElementById(\"game\"),\n    ctx = canvas.getContext(\"2d\");\n  const $ = (id) => document.getElementById(id);\n  const W = canvas.width,\n    H = canvas.height,\n    keys = new Set();\n  let state = \"ready\",\n    x = W / 2,\n    elapsed = 0,\n    spawn = 0,\n    last = 0,\n    score = 0,\n    best = 0;\n  let obstacles = [],\n    particles = [],\n    shield = null,\n    pickups = [],\n    shieldActive = false;\n  const storageKey = \"neon-dodge-best\";\n  try {\n    const saved = Number(localStorage.getItem(storageKey));\n    best = Number.isFinite(saved) ? Math.max(0, Math.floor(saved)) : 0;\n  } catch (_) {\n    $(\"storage-notice\").textContent =\n      \"Storage is unavailable. High scores last only for this session.\";\n  }\n  $(\"best\").textContent = best;\n  function persist() {\n    if (score > best) {\n      best = score;\n      $(\"best\").textContent = best;\n      try {\n        localStorage.setItem(storageKey, String(best));\n      } catch (_) {\n        $(\"storage-notice\").textContent =\n          \"Your browser could not save the high score.\";\n      }\n    }\n  }\n  function showState(value) {\n    $(\"state\").textContent = value;\n  }\n  function start() {\n    state = \"playing\";\n    x = W / 2;\n    elapsed = spawn = score = 0;\n    obstacles = [];\n    particles = [];\n    pickups = [];\n    shieldActive = false;\n    keys.clear();\n    $(\"score\").textContent = \"0\";\n    $(\"overlay\").hidden = true;\n    $(\"pause\").disabled = false;\n    $(\"pause\").textContent = \"Pause\";\n    showState(\"Playing\");\n    canvas.focus();\n  }\n  function pause() {\n    if (state === \"playing\") {\n      state = \"paused\";\n      keys.clear();\n      showState(\"Paused\");\n      $(\"pause\").textContent = \"Resume\";\n    } else if (state === \"paused\") {\n      state = \"playing\";\n      showState(\"Playing\");\n      $(\"pause\").textContent = \"Pause\";\n    }\n  }\n  function gameOver() {\n    state = \"over\";\n    persist();\n    keys.clear();\n    showState(\"Game over\");\n    $(\"pause\").disabled = true;\n    $(\"overlay-title\").textContent = \"Nice flight.\";\n    $(\"overlay-message\").textContent =\n      `Final score: ${score}. Ready for another run?`;\n    $(\"start\").textContent = \"Play again\";\n    $(\"overlay\").hidden = false;\n  }\n  function update(dt) {\n    if (state !== \"playing\") return;\n    elapsed += dt;\n    score = Math.floor(elapsed * 10);\n    $(\"score\").textContent = score;\n    // Save earned progress even if the user refreshes before a collision.\n    persist();\n    const direction = (keys.has(\"right\") ? 1 : 0) - (keys.has(\"left\") ? 1 : 0);\n    x = Math.max(18, Math.min(W - 18, x + direction * 370 * dt));\n    spawn += dt;\n    const interval = Math.max(0.24, 0.9 - elapsed * 0.009);\n    while (spawn >= interval) {\n      spawn -= interval;\n      const size = 18 + Math.random() * 22;\n      obstacles.push({\n        x: size + Math.random() * (W - size * 2),\n        y: -size,\n        size,\n        speed: Math.min(420, 140 + elapsed * 4) + Math.random() * 50,\n      });\n      if (Math.random() < 0.15) {\n        pickups.push({\n          x: size + Math.random() * (W - size * 2),\n          y: -size,\n          size,\n          speed: Math.min(420, 140 + elapsed * 4) + Math.random() * 50,\n        });\n      }\n    }\n    for (const o of obstacles) {\n      o.y += o.speed * dt;\n      if (\n        Math.abs(o.x - x) < o.size * 0.65 + 12 &&\n        Math.abs(o.y - (H - 65)) < o.size * 0.65 + 16\n      ) {\n        if (shieldActive) {\n          shieldActive = false;\n        } else {\n          gameOver();\n          break;\n        }\n      }\n    }\n    for (const p of pickups) {\n      p.y += p.speed * dt;\n      if (\n        Math.abs(p.x - x) < p.size * 0.65 + 12 &&\n        Math.abs(p.y - (H - 65)) < p.size * 0.65 + 16\n      ) {\n        shieldActive = true;\n        pickups = pickups.filter((p) => p !== p);\n        break;\n      }\n    }\n    obstacles = obstacles.filter((o) => o.y < H + 50);\n    pickups = pickups.filter((p) => p.y < H + 50);\n    if (direction) particles.push({ x, y: H - 44, life: 0.3 });\n    for (const p of particles) {\n      p.y += 70 * dt;\n      p.life -= dt;\n    }\n    particles = particles.filter((p) => p.life > 0).slice(-100);\n  }\n  function draw(now) {\n    ctx.fillStyle = \"#09111f\";\n    ctx.fillRect(0, 0, W, H);\n    for (let i = 0; i < 65; i++) {\n      const sx = (i * 127.3) % W,\n        sy = (i * 83.7 + elapsed * (12 + (i % 9))) % H;\n      ctx.fillStyle = i % 3 ? \"#40546e\" : \"#86bbda\";\n      ctx.fillRect(sx, sy, 1.5, 1.5);\n    }\n    ctx.strokeStyle = \"#10243a\";\n    ctx.lineWidth = 1;\n    for (let i = 1; i < 6; i++) {\n      ctx.beginPath();\n      ctx.moveTo(i * 100, 0);\n      ctx.lineTo(i * 100, H);\n      ctx.stroke();\n    }\n    for (const p of particles) {\n      ctx.fillStyle = `rgba(77,218,255,${p.life})`;\n      ctx.fillRect(p.x - 2, p.y, 4, 8);\n    }\n    ctx.shadowBlur = 16;\n    ctx.shadowColor = \"#ff5d9e\";\n    ctx.fillStyle = \"#f25f9e\";\n    for (const o of obstacles) {\n      ctx.beginPath();\n      ctx.moveTo(o.x, o.y - o.size);\n      ctx.lineTo(o.x + o.size * 0.7, o.y);\n      ctx.lineTo(o.x, o.y + o.size);\n      ctx.lineTo(o.x - o.size * 0.7, o.y);\n      ctx.closePath();\n      ctx.fill();\n    }\n    ctx.shadowColor = \"#43d5ff\";\n    ctx.fillStyle = \"#63e1ff\";\n    ctx.beginPath();\n    ctx.moveTo(x, H - 85);\n    ctx.lineTo(x + 15, H - 48);\n    ctx.lineTo(x, H - 57);\n    ctx.lineTo(x - 15, H - 48);\n    ctx.closePath();\n    ctx.fill();\n    ctx.shadowBlur = 0;\n    if (shieldActive) {\n      ctx.fillStyle = \"#00ff00\";\n      ctx.beginPath();\n      ctx.arc(W / 2, H - 50, 15, 0, Math.PI * 2);\n      ctx.fill();\n    }\n    if (state === \"paused\") {\n      ctx.fillStyle = \"#08101b99\";\n      ctx.fillRect(0, 0, W, H);\n      ctx.fillStyle = \"#d8f5ff\";\n      ctx.font = \"bold 32px system-ui\";\n      ctx.textAlign = \"center\";\n      ctx.fillText(\"PAUSED\", W / 2, H / 2);\n    }\n  }\n  function frame(now) {\n    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));\n    last = now;\n    update(dt);\n    draw(now);\n    requestAnimationFrame(frame);\n  }\n  const keyMap = {\n    ArrowLeft: \"left\",\n    a: \"left\",\n    A: \"left\",\n    ArrowRight: \"right\",\n    d: \"right\",\n    D: \"right\",\n  };\n  window.addEventListener(\"keydown\", (e) => {\n    if (keyMap[e.key]) {\n      e.preventDefault();\n      keys.add(keyMap[e.key]);\n    }\n    if ([\"p\", \"P\", \" \"].includes(e.key)) {\n      e.preventDefault();\n      if (!e.repeat) pause();\n    }\n  });\n  window.addEventListener(\"keyup\", (e) => keys.delete(keyMap[e.key]));\n  window.addEventListener(\"blur\", () => {\n    keys.clear();\n    if (state === \"playing\") pause();\n  });\n  document.addEventListener(\"visibilitychange\", () => {\n    if (document.hidden && state === \"playing\") pause();\n  });\n  for (const id of [\"left\", \"right\"]) {\n    $(id).addEventListener(\"pointerdown\", (e) => {\n      e.preventDefault();\n      $(id).setPointerCapture(e.pointerId);\n      keys.add(id);\n    });\n    for (const event of [\"pointerup\", \"pointercancel\", \"lostpointercapture\"])\n      $(id).addEventListener(event, () => keys.delete(id));\n  }\n  $(\"start\").addEventListener(\"click\", start);\n  $(\"restart\").addEventListener(\"click\", start);\n  $(\"pause\").addEventListener(\"click\", pause);\n  requestAnimationFrame(frame);\n})();\n"
+        },
+        "source_map": [
+          {
+            "file": "game.js",
+            "characters": 7155,
+            "sha256": "6eaf054c603e"
+          }
+        ],
+        "feedback": {
+          "phase": "manual",
+          "diagnosis": "game.js: shield consumed but overlapping obstacle causes game-over next frame.",
+          "evidence": [],
+          "traceback_tail": "game.js: shield consumed but overlapping obstacle causes game-over next frame.",
+          "referenced_files": [
+            "game.js"
+          ],
+          "browser_failure": null
+        },
+        "failure": "game.js: shield consumed but overlapping obstacle causes game-over next frame.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 3626,
+      "baseline_serialized_characters": 8778
+    },
+    {
+      "id": "neon-invisible-pickup",
+      "origin": "historical_fixture",
+      "reference": "tests/fixture_data/neon-shield-broken.js",
+      "failure_class": "manual",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "game.js": "(() => {\n  const canvas = document.getElementById(\"game\"),\n    ctx = canvas.getContext(\"2d\");\n  const $ = (id) => document.getElementById(id);\n  const W = canvas.width,\n    H = canvas.height,\n    keys = new Set();\n  let state = \"ready\",\n    x = W / 2,\n    elapsed = 0,\n    spawn = 0,\n    last = 0,\n    score = 0,\n    best = 0;\n  let obstacles = [],\n    particles = [],\n    shield = null,\n    pickups = [],\n    shieldActive = false;\n  const storageKey = \"neon-dodge-best\";\n  try {\n    const saved = Number(localStorage.getItem(storageKey));\n    best = Number.isFinite(saved) ? Math.max(0, Math.floor(saved)) : 0;\n  } catch (_) {\n    $(\"storage-notice\").textContent =\n      \"Storage is unavailable. High scores last only for this session.\";\n  }\n  $(\"best\").textContent = best;\n  function persist() {\n    if (score > best) {\n      best = score;\n      $(\"best\").textContent = best;\n      try {\n        localStorage.setItem(storageKey, String(best));\n      } catch (_) {\n        $(\"storage-notice\").textContent =\n          \"Your browser could not save the high score.\";\n      }\n    }\n  }\n  function showState(value) {\n    $(\"state\").textContent = value;\n  }\n  function start() {\n    state = \"playing\";\n    x = W / 2;\n    elapsed = spawn = score = 0;\n    obstacles = [];\n    particles = [];\n    pickups = [];\n    shieldActive = false;\n    keys.clear();\n    $(\"score\").textContent = \"0\";\n    $(\"overlay\").hidden = true;\n    $(\"pause\").disabled = false;\n    $(\"pause\").textContent = \"Pause\";\n    showState(\"Playing\");\n    canvas.focus();\n  }\n  function pause() {\n    if (state === \"playing\") {\n      state = \"paused\";\n      keys.clear();\n      showState(\"Paused\");\n      $(\"pause\").textContent = \"Resume\";\n    } else if (state === \"paused\") {\n      state = \"playing\";\n      showState(\"Playing\");\n      $(\"pause\").textContent = \"Pause\";\n    }\n  }\n  function gameOver() {\n    state = \"over\";\n    persist();\n    keys.clear();\n    showState(\"Game over\");\n    $(\"pause\").disabled = true;\n    $(\"overlay-title\").textContent = \"Nice flight.\";\n    $(\"overlay-message\").textContent =\n      `Final score: ${score}. Ready for another run?`;\n    $(\"start\").textContent = \"Play again\";\n    $(\"overlay\").hidden = false;\n  }\n  function update(dt) {\n    if (state !== \"playing\") return;\n    elapsed += dt;\n    score = Math.floor(elapsed * 10);\n    $(\"score\").textContent = score;\n    // Save earned progress even if the user refreshes before a collision.\n    persist();\n    const direction = (keys.has(\"right\") ? 1 : 0) - (keys.has(\"left\") ? 1 : 0);\n    x = Math.max(18, Math.min(W - 18, x + direction * 370 * dt));\n    spawn += dt;\n    const interval = Math.max(0.24, 0.9 - elapsed * 0.009);\n    while (spawn >= interval) {\n      spawn -= interval;\n      const size = 18 + Math.random() * 22;\n      obstacles.push({\n        x: size + Math.random() * (W - size * 2),\n        y: -size,\n        size,\n        speed: Math.min(420, 140 + elapsed * 4) + Math.random() * 50,\n      });\n      if (Math.random() < 0.15) {\n        pickups.push({\n          x: size + Math.random() * (W - size * 2),\n          y: -size,\n          size,\n          speed: Math.min(420, 140 + elapsed * 4) + Math.random() * 50,\n        });\n      }\n    }\n    for (const o of obstacles) {\n      o.y += o.speed * dt;\n      if (\n        Math.abs(o.x - x) < o.size * 0.65 + 12 &&\n        Math.abs(o.y - (H - 65)) < o.size * 0.65 + 16\n      ) {\n        if (shieldActive) {\n          shieldActive = false;\n        } else {\n          gameOver();\n          break;\n        }\n      }\n    }\n    for (const p of pickups) {\n      p.y += p.speed * dt;\n      if (\n        Math.abs(p.x - x) < p.size * 0.65 + 12 &&\n        Math.abs(p.y - (H - 65)) < p.size * 0.65 + 16\n      ) {\n        shieldActive = true;\n        pickups = pickups.filter((p) => p !== p);\n        break;\n      }\n    }\n    obstacles = obstacles.filter((o) => o.y < H + 50);\n    pickups = pickups.filter((p) => p.y < H + 50);\n    if (direction) particles.push({ x, y: H - 44, life: 0.3 });\n    for (const p of particles) {\n      p.y += 70 * dt;\n      p.life -= dt;\n    }\n    particles = particles.filter((p) => p.life > 0).slice(-100);\n  }\n  function draw(now) {\n    ctx.fillStyle = \"#09111f\";\n    ctx.fillRect(0, 0, W, H);\n    for (let i = 0; i < 65; i++) {\n      const sx = (i * 127.3) % W,\n        sy = (i * 83.7 + elapsed * (12 + (i % 9))) % H;\n      ctx.fillStyle = i % 3 ? \"#40546e\" : \"#86bbda\";\n      ctx.fillRect(sx, sy, 1.5, 1.5);\n    }\n    ctx.strokeStyle = \"#10243a\";\n    ctx.lineWidth = 1;\n    for (let i = 1; i < 6; i++) {\n      ctx.beginPath();\n      ctx.moveTo(i * 100, 0);\n      ctx.lineTo(i * 100, H);\n      ctx.stroke();\n    }\n    for (const p of particles) {\n      ctx.fillStyle = `rgba(77,218,255,${p.life})`;\n      ctx.fillRect(p.x - 2, p.y, 4, 8);\n    }\n    ctx.shadowBlur = 16;\n    ctx.shadowColor = \"#ff5d9e\";\n    ctx.fillStyle = \"#f25f9e\";\n    for (const o of obstacles) {\n      ctx.beginPath();\n      ctx.moveTo(o.x, o.y - o.size);\n      ctx.lineTo(o.x + o.size * 0.7, o.y);\n      ctx.lineTo(o.x, o.y + o.size);\n      ctx.lineTo(o.x - o.size * 0.7, o.y);\n      ctx.closePath();\n      ctx.fill();\n    }\n    ctx.shadowColor = \"#43d5ff\";\n    ctx.fillStyle = \"#63e1ff\";\n    ctx.beginPath();\n    ctx.moveTo(x, H - 85);\n    ctx.lineTo(x + 15, H - 48);\n    ctx.lineTo(x, H - 57);\n    ctx.lineTo(x - 15, H - 48);\n    ctx.closePath();\n    ctx.fill();\n    ctx.shadowBlur = 0;\n    if (shieldActive) {\n      ctx.fillStyle = \"#00ff00\";\n      ctx.beginPath();\n      ctx.arc(W / 2, H - 50, 15, 0, Math.PI * 2);\n      ctx.fill();\n    }\n    if (state === \"paused\") {\n      ctx.fillStyle = \"#08101b99\";\n      ctx.fillRect(0, 0, W, H);\n      ctx.fillStyle = \"#d8f5ff\";\n      ctx.font = \"bold 32px system-ui\";\n      ctx.textAlign = \"center\";\n      ctx.fillText(\"PAUSED\", W / 2, H / 2);\n    }\n  }\n  function frame(now) {\n    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));\n    last = now;\n    update(dt);\n    draw(now);\n    requestAnimationFrame(frame);\n  }\n  const keyMap = {\n    ArrowLeft: \"left\",\n    a: \"left\",\n    A: \"left\",\n    ArrowRight: \"right\",\n    d: \"right\",\n    D: \"right\",\n  };\n  window.addEventListener(\"keydown\", (e) => {\n    if (keyMap[e.key]) {\n      e.preventDefault();\n      keys.add(keyMap[e.key]);\n    }\n    if ([\"p\", \"P\", \" \"].includes(e.key)) {\n      e.preventDefault();\n      if (!e.repeat) pause();\n    }\n  });\n  window.addEventListener(\"keyup\", (e) => keys.delete(keyMap[e.key]));\n  window.addEventListener(\"blur\", () => {\n    keys.clear();\n    if (state === \"playing\") pause();\n  });\n  document.addEventListener(\"visibilitychange\", () => {\n    if (document.hidden && state === \"playing\") pause();\n  });\n  for (const id of [\"left\", \"right\"]) {\n    $(id).addEventListener(\"pointerdown\", (e) => {\n      e.preventDefault();\n      $(id).setPointerCapture(e.pointerId);\n      keys.add(id);\n    });\n    for (const event of [\"pointerup\", \"pointercancel\", \"lostpointercapture\"])\n      $(id).addEventListener(event, () => keys.delete(id));\n  }\n  $(\"start\").addEventListener(\"click\", start);\n  $(\"restart\").addEventListener(\"click\", start);\n  $(\"pause\").addEventListener(\"click\", pause);\n  requestAnimationFrame(frame);\n})();\n"
+        },
+        "source_map": [
+          {
+            "file": "game.js",
+            "characters": 7155,
+            "sha256": "6eaf054c603e"
+          }
+        ],
+        "feedback": {
+          "phase": "manual",
+          "diagnosis": "game.js: pickups are not rendered.",
+          "evidence": [],
+          "traceback_tail": "game.js: pickups are not rendered.",
+          "referenced_files": [
+            "game.js"
+          ],
+          "browser_failure": null
+        },
+        "failure": "game.js: pickups are not rendered.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 3608,
+      "baseline_serialized_characters": 8646
+    },
+    {
+      "id": "neon-pickup-clear",
+      "origin": "historical_fixture",
+      "reference": "tests/fixture_data/neon-shield-broken.js",
+      "failure_class": "manual",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "game.js": "(() => {\n  const canvas = document.getElementById(\"game\"),\n    ctx = canvas.getContext(\"2d\");\n  const $ = (id) => document.getElementById(id);\n  const W = canvas.width,\n    H = canvas.height,\n    keys = new Set();\n  let state = \"ready\",\n    x = W / 2,\n    elapsed = 0,\n    spawn = 0,\n    last = 0,\n    score = 0,\n    best = 0;\n  let obstacles = [],\n    particles = [],\n    shield = null,\n    pickups = [],\n    shieldActive = false;\n  const storageKey = \"neon-dodge-best\";\n  try {\n    const saved = Number(localStorage.getItem(storageKey));\n    best = Number.isFinite(saved) ? Math.max(0, Math.floor(saved)) : 0;\n  } catch (_) {\n    $(\"storage-notice\").textContent =\n      \"Storage is unavailable. High scores last only for this session.\";\n  }\n  $(\"best\").textContent = best;\n  function persist() {\n    if (score > best) {\n      best = score;\n      $(\"best\").textContent = best;\n      try {\n        localStorage.setItem(storageKey, String(best));\n      } catch (_) {\n        $(\"storage-notice\").textContent =\n          \"Your browser could not save the high score.\";\n      }\n    }\n  }\n  function showState(value) {\n    $(\"state\").textContent = value;\n  }\n  function start() {\n    state = \"playing\";\n    x = W / 2;\n    elapsed = spawn = score = 0;\n    obstacles = [];\n    particles = [];\n    pickups = [];\n    shieldActive = false;\n    keys.clear();\n    $(\"score\").textContent = \"0\";\n    $(\"overlay\").hidden = true;\n    $(\"pause\").disabled = false;\n    $(\"pause\").textContent = \"Pause\";\n    showState(\"Playing\");\n    canvas.focus();\n  }\n  function pause() {\n    if (state === \"playing\") {\n      state = \"paused\";\n      keys.clear();\n      showState(\"Paused\");\n      $(\"pause\").textContent = \"Resume\";\n    } else if (state === \"paused\") {\n      state = \"playing\";\n      showState(\"Playing\");\n      $(\"pause\").textContent = \"Pause\";\n    }\n  }\n  function gameOver() {\n    state = \"over\";\n    persist();\n    keys.clear();\n    showState(\"Game over\");\n    $(\"pause\").disabled = true;\n    $(\"overlay-title\").textContent = \"Nice flight.\";\n    $(\"overlay-message\").textContent =\n      `Final score: ${score}. Ready for another run?`;\n    $(\"start\").textContent = \"Play again\";\n    $(\"overlay\").hidden = false;\n  }\n  function update(dt) {\n    if (state !== \"playing\") return;\n    elapsed += dt;\n    score = Math.floor(elapsed * 10);\n    $(\"score\").textContent = score;\n    // Save earned progress even if the user refreshes before a collision.\n    persist();\n    const direction = (keys.has(\"right\") ? 1 : 0) - (keys.has(\"left\") ? 1 : 0);\n    x = Math.max(18, Math.min(W - 18, x + direction * 370 * dt));\n    spawn += dt;\n    const interval = Math.max(0.24, 0.9 - elapsed * 0.009);\n    while (spawn >= interval) {\n      spawn -= interval;\n      const size = 18 + Math.random() * 22;\n      obstacles.push({\n        x: size + Math.random() * (W - size * 2),\n        y: -size,\n        size,\n        speed: Math.min(420, 140 + elapsed * 4) + Math.random() * 50,\n      });\n      if (Math.random() < 0.15) {\n        pickups.push({\n          x: size + Math.random() * (W - size * 2),\n          y: -size,\n          size,\n          speed: Math.min(420, 140 + elapsed * 4) + Math.random() * 50,\n        });\n      }\n    }\n    for (const o of obstacles) {\n      o.y += o.speed * dt;\n      if (\n        Math.abs(o.x - x) < o.size * 0.65 + 12 &&\n        Math.abs(o.y - (H - 65)) < o.size * 0.65 + 16\n      ) {\n        if (shieldActive) {\n          shieldActive = false;\n        } else {\n          gameOver();\n          break;\n        }\n      }\n    }\n    for (const p of pickups) {\n      p.y += p.speed * dt;\n      if (\n        Math.abs(p.x - x) < p.size * 0.65 + 12 &&\n        Math.abs(p.y - (H - 65)) < p.size * 0.65 + 16\n      ) {\n        shieldActive = true;\n        pickups = pickups.filter((p) => p !== p);\n        break;\n      }\n    }\n    obstacles = obstacles.filter((o) => o.y < H + 50);\n    pickups = pickups.filter((p) => p.y < H + 50);\n    if (direction) particles.push({ x, y: H - 44, life: 0.3 });\n    for (const p of particles) {\n      p.y += 70 * dt;\n      p.life -= dt;\n    }\n    particles = particles.filter((p) => p.life > 0).slice(-100);\n  }\n  function draw(now) {\n    ctx.fillStyle = \"#09111f\";\n    ctx.fillRect(0, 0, W, H);\n    for (let i = 0; i < 65; i++) {\n      const sx = (i * 127.3) % W,\n        sy = (i * 83.7 + elapsed * (12 + (i % 9))) % H;\n      ctx.fillStyle = i % 3 ? \"#40546e\" : \"#86bbda\";\n      ctx.fillRect(sx, sy, 1.5, 1.5);\n    }\n    ctx.strokeStyle = \"#10243a\";\n    ctx.lineWidth = 1;\n    for (let i = 1; i < 6; i++) {\n      ctx.beginPath();\n      ctx.moveTo(i * 100, 0);\n      ctx.lineTo(i * 100, H);\n      ctx.stroke();\n    }\n    for (const p of particles) {\n      ctx.fillStyle = `rgba(77,218,255,${p.life})`;\n      ctx.fillRect(p.x - 2, p.y, 4, 8);\n    }\n    ctx.shadowBlur = 16;\n    ctx.shadowColor = \"#ff5d9e\";\n    ctx.fillStyle = \"#f25f9e\";\n    for (const o of obstacles) {\n      ctx.beginPath();\n      ctx.moveTo(o.x, o.y - o.size);\n      ctx.lineTo(o.x + o.size * 0.7, o.y);\n      ctx.lineTo(o.x, o.y + o.size);\n      ctx.lineTo(o.x - o.size * 0.7, o.y);\n      ctx.closePath();\n      ctx.fill();\n    }\n    ctx.shadowColor = \"#43d5ff\";\n    ctx.fillStyle = \"#63e1ff\";\n    ctx.beginPath();\n    ctx.moveTo(x, H - 85);\n    ctx.lineTo(x + 15, H - 48);\n    ctx.lineTo(x, H - 57);\n    ctx.lineTo(x - 15, H - 48);\n    ctx.closePath();\n    ctx.fill();\n    ctx.shadowBlur = 0;\n    if (shieldActive) {\n      ctx.fillStyle = \"#00ff00\";\n      ctx.beginPath();\n      ctx.arc(W / 2, H - 50, 15, 0, Math.PI * 2);\n      ctx.fill();\n    }\n    if (state === \"paused\") {\n      ctx.fillStyle = \"#08101b99\";\n      ctx.fillRect(0, 0, W, H);\n      ctx.fillStyle = \"#d8f5ff\";\n      ctx.font = \"bold 32px system-ui\";\n      ctx.textAlign = \"center\";\n      ctx.fillText(\"PAUSED\", W / 2, H / 2);\n    }\n  }\n  function frame(now) {\n    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));\n    last = now;\n    update(dt);\n    draw(now);\n    requestAnimationFrame(frame);\n  }\n  const keyMap = {\n    ArrowLeft: \"left\",\n    a: \"left\",\n    A: \"left\",\n    ArrowRight: \"right\",\n    d: \"right\",\n    D: \"right\",\n  };\n  window.addEventListener(\"keydown\", (e) => {\n    if (keyMap[e.key]) {\n      e.preventDefault();\n      keys.add(keyMap[e.key]);\n    }\n    if ([\"p\", \"P\", \" \"].includes(e.key)) {\n      e.preventDefault();\n      if (!e.repeat) pause();\n    }\n  });\n  window.addEventListener(\"keyup\", (e) => keys.delete(keyMap[e.key]));\n  window.addEventListener(\"blur\", () => {\n    keys.clear();\n    if (state === \"playing\") pause();\n  });\n  document.addEventListener(\"visibilitychange\", () => {\n    if (document.hidden && state === \"playing\") pause();\n  });\n  for (const id of [\"left\", \"right\"]) {\n    $(id).addEventListener(\"pointerdown\", (e) => {\n      e.preventDefault();\n      $(id).setPointerCapture(e.pointerId);\n      keys.add(id);\n    });\n    for (const event of [\"pointerup\", \"pointercancel\", \"lostpointercapture\"])\n      $(id).addEventListener(event, () => keys.delete(id));\n  }\n  $(\"start\").addEventListener(\"click\", start);\n  $(\"restart\").addEventListener(\"click\", start);\n  $(\"pause\").addEventListener(\"click\", pause);\n  requestAnimationFrame(frame);\n})();\n"
+        },
+        "source_map": [
+          {
+            "file": "game.js",
+            "characters": 7155,
+            "sha256": "6eaf054c603e"
+          }
+        ],
+        "feedback": {
+          "phase": "manual",
+          "diagnosis": "game.js: pickups.filter((p) => p !== p) removes all pickups.",
+          "evidence": [],
+          "traceback_tail": "game.js: pickups.filter((p) => p !== p) removes all pickups.",
+          "referenced_files": [
+            "game.js"
+          ],
+          "browser_failure": null
+        },
+        "failure": "game.js: pickups.filter((p) => p !== p) removes all pickups.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 3635,
+      "baseline_serialized_characters": 8724
+    },
+    {
+      "id": "dashboard-placeholder-api",
+      "origin": "uploaded_failure",
+      "reference": "dashboard upload 2026-10-19",
+      "failure_class": "static",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "\"\"\"Personal Project Dashboard server and API routes.\"\"\"\nimport argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nfrom pathlib import Path\nimport re\nimport urllib.parse\nfrom db import (\n    create_project,\n    delete_project,\n    get_project,\n    get_summary,\n    init_db,\n    list_projects,\n    update_project,\n)\n\nASSETS = Path(__file__).resolve().parent\nPROJECT_DETAIL_RE = re.compile(r\"^/api/projects/(\\d+)$\")\n\n\ndef create_server(host='127.0.0.1', port=8080):\n    init_db()\n\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *_):\n            pass\n\n        def reply(self, value, status=200, content_type='application/json; charset=utf-8'):\n            content = value if isinstance(value, bytes) else json.dumps(value).encode('utf-8')\n            self.send_response(status)\n            self.send_header('Content-Type', content_type)\n            self.send_header('Content-Length', str(len(content)))\n            self.send_header('X-Content-Type-Options', 'nosniff')\n            self.end_headers()\n            self.wfile.write(content)\n\n        def read_json_body(self):\n            content_length = int(self.headers.get('Content-Length', 0))\n            if content_length == 0:\n                return {}\n            try:\n                body = self.rfile.read(content_length).decode('utf-8')\n                return json.loads(body)\n            except Exception:\n                return None\n\n        def do_GET(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            if path == '/health':\n                return self.reply({'status': 'ok'})\n\n            if path == '/api/summary':\n                return self.reply(get_summary())\n\n            if path == '/api/projects':\n                query = urllib.parse.parse_qs(parsed.query)\n                q = query.get('q', [None])[0]\n                status = query.get('status', [None])[0]\n                return self.reply(list_projects(q=q, status=status))\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                project = get_project(project_id)\n                if project is None:\n                    return self.reply({'error': 'Project not found'}, 404)\n                return self.reply(project)\n\n            assets = {\n                '/': ('index.html', 'text/html; charset=utf-8'),\n                '/style.css': ('style.css', 'text/css; charset=utf-8'),\n                '/dashboard.js': ('dashboard.js', 'text/javascript; charset=utf-8'),\n            }\n            if path in assets:\n                filename, content_type = assets[path]\n                asset_path = ASSETS / filename\n                if asset_path.exists():\n                    return self.reply(asset_path.read_bytes(), content_type=content_type)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_POST(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            if path == '/api/projects':\n                data = self.read_json_body()\n                if data is None or not isinstance(data, dict):\n                    return self.reply({'error': 'Invalid JSON body'}, 400)\n                try:\n                    project = create_project(data)\n                    return self.reply(project, 201)\n                except ValueError as exc:\n                    return self.reply({'error': str(exc)}, 400)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_PUT(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                data = self.read_json_body()\n                if data is None or not isinstance(data, dict):\n                    return self.reply({'error': 'Invalid JSON body'}, 400)\n                try:\n                    project = update_project(project_id, data)\n                    if project is None:\n                        return self.reply({'error': 'Project not found'}, 404)\n                    return self.reply(project, 200)\n                except ValueError as exc:\n                    return self.reply({'error': str(exc)}, 400)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_DELETE(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                success = delete_project(project_id)\n                if not success:\n                    return self.reply({'error': 'Project not found'}, 404)\n                return self.reply({'success': True}, 200)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n    return ThreadingHTTPServer((host, port), Handler)\n\n\nif __name__ == '__main__':\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--host', default='127.0.0.1')\n    parser.add_argument('--port', type=int, default=8080)\n    args = parser.parse_args()\n    create_server(args.host, args.port).serve_forever()\n",
+          "db.py": "\"\"\"SQLite database access layer and project model operations.\"\"\"\nfrom datetime import datetime, timezone\nimport sqlite3\nfrom contextlib import contextmanager\n\nDB_FILE = 'projects.db'\nVALID_STATUSES = ('planned', 'active', 'completed')\n\n\n@contextmanager\ndef get_connection(db_path=DB_FILE):\n    conn = sqlite3.connect(db_path)\n    conn.row_factory = sqlite3.Row\n    try:\n        yield conn\n    finally:\n        conn.close()\n\n\ndef init_db(db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        conn.execute('''\n            CREATE TABLE IF NOT EXISTS projects (\n                id INTEGER PRIMARY KEY AUTOINCREMENT,\n                name TEXT NOT NULL,\n                description TEXT DEFAULT '',\n                status TEXT NOT NULL DEFAULT 'planned',\n                deadline TEXT DEFAULT '',\n                created_at TEXT NOT NULL,\n                updated_at TEXT NOT NULL\n            )\n        ''')\n        conn.commit()\n\n\ndef row_to_dict(row):\n    if row is None:\n        return None\n    return {\n        'id': row['id'],\n        'name': row['name'],\n        'description': row['description'] or '',\n        'status': row['status'],\n        'deadline': row['deadline'] or '',\n        'created_at': row['created_at'],\n        'updated_at': row['updated_at'],\n    }\n\n\ndef create_project(data, db_path=DB_FILE):\n    name = (data.get('name') or '').strip()\n    if not name:\n        raise ValueError('Project name is required')\n    description = (data.get('description') or '').strip()\n    status = data.get('status', 'planned')\n    if status not in VALID_STATUSES:\n        status = 'planned'\n    deadline = (data.get('deadline') or '').strip()\n    now = datetime.now(timezone.utc).isoformat()\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(\n            '''\n            INSERT INTO projects (name, description, status, deadline, created_at, updated_at)\n            VALUES (?, ?, ?, ?, ?, ?)\n            ''',\n            (name, description, status, deadline, now, now),\n        )\n        conn.commit()\n        project_id = cursor.lastrowid\n    return get_project(project_id, db_path=db_path)\n\n\ndef get_project(project_id, db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('SELECT * FROM projects WHERE id = ?', (project_id,))\n        row = cursor.fetchone()\n        return row_to_dict(row)\n\n\ndef list_projects(q=None, status=None, db_path=DB_FILE):\n    sql = 'SELECT * FROM projects WHERE 1=1'\n    params = []\n    if q:\n        sql += ' AND (name LIKE ? OR description LIKE ?)'\n        search_term = f'%{q.strip()}%'\n        params.extend([search_term, search_term])\n    if status and status in VALID_STATUSES:\n        sql += ' AND status = ?'\n        params.append(status)\n    sql += ' ORDER BY id DESC'\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(sql, tuple(params))\n        rows = cursor.fetchall()\n        return [row_to_dict(row) for row in rows]\n\n\ndef update_project(project_id, data, db_path=DB_FILE):\n    current = get_project(project_id, db_path=db_path)\n    if not current:\n        return None\n\n    name = data.get('name')\n    name = name.strip() if name is not None else current['name']\n    if not name:\n        raise ValueError('Project name cannot be empty')\n\n    description = data.get('description')\n    description = description.strip() if description is not None else current['description']\n\n    status = data.get('status')\n    if status is not None:\n        if status not in VALID_STATUSES:\n            status = current['status']\n    else:\n        status = current['status']\n\n    deadline = data.get('deadline')\n    deadline = deadline.strip() if deadline is not None else current['deadline']\n    now = datetime.now(timezone.utc).isoformat()\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(\n            '''\n            UPDATE projects\n            SET name = ?, description = ?, status = ?, deadline = ?, updated_at = ?\n            WHERE id = ?\n            ''',\n            (name, description, status, deadline, now, project_id),\n        )\n        conn.commit()\n    return get_project(project_id, db_path=db_path)\n\n\ndef delete_project(project_id, db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM projects WHERE id = ?', (project_id,))\n        conn.commit()\n        return cursor.rowcount > 0\n\n\ndef get_summary(db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('''\n            SELECT\n                COUNT(*) as total,\n                SUM(CASE WHEN status = 'planned' THEN 1 ELSE 0 END) as planned,\n                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,\n                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed\n            FROM projects\n        ''')\n        row = cursor.fetchone()\n        return {\n            'planned': row['planned'] or 0,\n            'active': row['active'] or 0,\n            'completed': row['completed'] or 0,\n            'total': row['total'] or 0,\n        }\n",
+          "test_app.py": "\"\"\"Integration tests for REST API endpoints and server persistence.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport tempfile\nimport threading\nimport unittest\nimport urllib.error\nimport urllib.request\nfrom app import create_server\n\n\ndef request_json(url, method='GET', payload=None):\n    data = json.dumps(payload).encode('utf-8') if payload is not None else None\n    headers = {'Content-Type': 'application/json'} if payload is not None else {}\n    req = urllib.request.Request(url, data=data, headers=headers, method=method)\n    try:\n        with urllib.request.urlopen(req, timeout=3) as resp:\n            body = resp.read().decode('utf-8')\n            return resp.status, json.loads(body) if body else None\n    except urllib.error.HTTPError as exc:\n        body = exc.read().decode('utf-8')\n        return exc.code, json.loads(body) if body else None\n\n\nclass RestApiTests(unittest.TestCase):\n    def setUp(self):\n        self.prev_dir = Path.cwd()\n        self.temp_dir = tempfile.TemporaryDirectory()\n        os.chdir(self.temp_dir.name)\n        self.server = create_server('127.0.0.1', 0)\n        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)\n        self.thread.start()\n        self.base_url = f'http://127.0.0.1:{self.server.server_address[1]}'\n\n    def tearDown(self):\n        if self.server:\n            self.server.shutdown()\n            self.server.server_close()\n            self.thread.join(3)\n        os.chdir(self.prev_dir)\n        self.temp_dir.cleanup()\n\n    def test_full_project_crud_and_summary_flow(self):\n        # Initial summary\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 0, 'completed': 0, 'total': 0})\n\n        # Create project 1 (planned)\n        status, p1 = request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'Portfolio Redesign', 'description': 'Revamp personal site', 'status': 'planned', 'deadline': '2025-12-31'},\n        )\n        self.assertEqual(status, 201)\n        self.assertEqual(p1['name'], 'Portfolio Redesign')\n        self.assertEqual(p1['status'], 'planned')\n        self.assertEqual(p1['id'], 1)\n\n        # Create project 2 (active)\n        status, p2 = request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'API Service', 'description': 'Lightweight web service', 'status': 'active', 'deadline': '2025-06-30'},\n        )\n        self.assertEqual(status, 201)\n        self.assertEqual(p2['name'], 'API Service')\n        self.assertEqual(p2['status'], 'active')\n\n        # Verify summary counts\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 1, 'active': 1, 'completed': 0, 'total': 2})\n\n        # Fetch single project\n        status, fetched_p1 = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 200)\n        self.assertEqual(fetched_p1['id'], 1)\n        self.assertEqual(fetched_p1['name'], 'Portfolio Redesign')\n\n        # Search by query\n        status, search_results = request_json(f'{self.base_url}/api/projects?q=Portfolio')\n        self.assertEqual(status, 200)\n        self.assertEqual(len(search_results), 1)\n        self.assertEqual(search_results[0]['name'], 'Portfolio Redesign')\n\n        # Filter by status\n        status, filtered_results = request_json(f'{self.base_url}/api/projects?status=active')\n        self.assertEqual(status, 200)\n        self.assertEqual(len(filtered_results), 1)\n        self.assertEqual(filtered_results[0]['name'], 'API Service')\n\n        # Update project 1 to completed\n        status, updated_p1 = request_json(\n            f'{self.base_url}/api/projects/1',\n            method='PUT',\n            payload={'name': 'Portfolio Redesign v2', 'description': 'Updated design brief', 'status': 'completed', 'deadline': '2025-11-15'},\n        )\n        self.assertEqual(status, 200)\n        self.assertEqual(updated_p1['id'], 1)\n        self.assertEqual(updated_p1['name'], 'Portfolio Redesign v2')\n        self.assertEqual(updated_p1['status'], 'completed')\n\n        # Summary after update\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 1, 'completed': 1, 'total': 2})\n\n        # Delete project 1\n        status, del_resp = request_json(f'{self.base_url}/api/projects/1', method='DELETE')\n        self.assertEqual(status, 200)\n        self.assertEqual(del_resp, {'success': True})\n\n        # Fetch deleted project returns 404\n        status, err_resp = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 404)\n\n        # Summary after delete\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 1, 'completed': 0, 'total': 1})\n\n    def test_persistence_across_restart(self):\n        request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'Persistent Project', 'status': 'active'},\n        )\n        # Restart server instance\n        self.server.shutdown()\n        self.server.server_close()\n        self.thread.join(3)\n\n        self.server = create_server('127.0.0.1', 0)\n        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)\n        self.thread.start()\n        self.base_url = f'http://127.0.0.1:{self.server.server_address[1]}'\n\n        status, fetched = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 200)\n        self.assertEqual(fetched['name'], 'Persistent Project')\n        self.assertEqual(fetched['status'], 'active')\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+          "test_api.py": "NEW file contents",
+          "test_db.py": "COMPLETE file contents"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 5188,
+            "sha256": "54d60ba99a66",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "read_json_body",
+              "do_GET",
+              "do_POST",
+              "do_PUT",
+              "do_DELETE"
+            ]
+          },
+          {
+            "file": "db.py",
+            "characters": 5217,
+            "sha256": "8366e5486804",
+            "symbols": [
+              "get_connection",
+              "init_db",
+              "row_to_dict",
+              "create_project",
+              "get_project",
+              "list_projects",
+              "update_project",
+              "delete_project",
+              "get_summary"
+            ]
+          },
+          {
+            "file": "test_api.py",
+            "characters": 17,
+            "sha256": "511f7f614c21",
+            "syntax": "invalid"
+          },
+          {
+            "file": "test_app.py",
+            "characters": 5984,
+            "sha256": "51827e65d343",
+            "symbols": [
+              "request_json",
+              "RestApiTests",
+              "setUp",
+              "tearDown",
+              "test_full_project_crud_and_summary_flow",
+              "test_persistence_across_restart"
+            ]
+          },
+          {
+            "file": "test_db.py",
+            "characters": 22,
+            "sha256": "823545ec3863",
+            "syntax": "invalid"
+          }
+        ],
+        "feedback": {
+          "phase": "static",
+          "diagnosis": "test_api.py: Python syntax error at line 1: NEW file contents",
+          "evidence": [],
+          "traceback_tail": "test_api.py: Python syntax error at line 1: NEW file contents",
+          "referenced_files": [
+            "test_api.py"
+          ],
+          "browser_failure": null
+        },
+        "failure": "test_api.py: Python syntax error at line 1: NEW file contents",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 5556,
+      "baseline_serialized_characters": 18872
+    },
+    {
+      "id": "dashboard-placeholder-db",
+      "origin": "uploaded_failure",
+      "reference": "dashboard upload 2026-10-19",
+      "failure_class": "static",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "\"\"\"Personal Project Dashboard server and API routes.\"\"\"\nimport argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nfrom pathlib import Path\nimport re\nimport urllib.parse\nfrom db import (\n    create_project,\n    delete_project,\n    get_project,\n    get_summary,\n    init_db,\n    list_projects,\n    update_project,\n)\n\nASSETS = Path(__file__).resolve().parent\nPROJECT_DETAIL_RE = re.compile(r\"^/api/projects/(\\d+)$\")\n\n\ndef create_server(host='127.0.0.1', port=8080):\n    init_db()\n\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *_):\n            pass\n\n        def reply(self, value, status=200, content_type='application/json; charset=utf-8'):\n            content = value if isinstance(value, bytes) else json.dumps(value).encode('utf-8')\n            self.send_response(status)\n            self.send_header('Content-Type', content_type)\n            self.send_header('Content-Length', str(len(content)))\n            self.send_header('X-Content-Type-Options', 'nosniff')\n            self.end_headers()\n            self.wfile.write(content)\n\n        def read_json_body(self):\n            content_length = int(self.headers.get('Content-Length', 0))\n            if content_length == 0:\n                return {}\n            try:\n                body = self.rfile.read(content_length).decode('utf-8')\n                return json.loads(body)\n            except Exception:\n                return None\n\n        def do_GET(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            if path == '/health':\n                return self.reply({'status': 'ok'})\n\n            if path == '/api/summary':\n                return self.reply(get_summary())\n\n            if path == '/api/projects':\n                query = urllib.parse.parse_qs(parsed.query)\n                q = query.get('q', [None])[0]\n                status = query.get('status', [None])[0]\n                return self.reply(list_projects(q=q, status=status))\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                project = get_project(project_id)\n                if project is None:\n                    return self.reply({'error': 'Project not found'}, 404)\n                return self.reply(project)\n\n            assets = {\n                '/': ('index.html', 'text/html; charset=utf-8'),\n                '/style.css': ('style.css', 'text/css; charset=utf-8'),\n                '/dashboard.js': ('dashboard.js', 'text/javascript; charset=utf-8'),\n            }\n            if path in assets:\n                filename, content_type = assets[path]\n                asset_path = ASSETS / filename\n                if asset_path.exists():\n                    return self.reply(asset_path.read_bytes(), content_type=content_type)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_POST(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            if path == '/api/projects':\n                data = self.read_json_body()\n                if data is None or not isinstance(data, dict):\n                    return self.reply({'error': 'Invalid JSON body'}, 400)\n                try:\n                    project = create_project(data)\n                    return self.reply(project, 201)\n                except ValueError as exc:\n                    return self.reply({'error': str(exc)}, 400)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_PUT(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                data = self.read_json_body()\n                if data is None or not isinstance(data, dict):\n                    return self.reply({'error': 'Invalid JSON body'}, 400)\n                try:\n                    project = update_project(project_id, data)\n                    if project is None:\n                        return self.reply({'error': 'Project not found'}, 404)\n                    return self.reply(project, 200)\n                except ValueError as exc:\n                    return self.reply({'error': str(exc)}, 400)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_DELETE(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                success = delete_project(project_id)\n                if not success:\n                    return self.reply({'error': 'Project not found'}, 404)\n                return self.reply({'success': True}, 200)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n    return ThreadingHTTPServer((host, port), Handler)\n\n\nif __name__ == '__main__':\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--host', default='127.0.0.1')\n    parser.add_argument('--port', type=int, default=8080)\n    args = parser.parse_args()\n    create_server(args.host, args.port).serve_forever()\n",
+          "db.py": "\"\"\"SQLite database access layer and project model operations.\"\"\"\nfrom datetime import datetime, timezone\nimport sqlite3\nfrom contextlib import contextmanager\n\nDB_FILE = 'projects.db'\nVALID_STATUSES = ('planned', 'active', 'completed')\n\n\n@contextmanager\ndef get_connection(db_path=DB_FILE):\n    conn = sqlite3.connect(db_path)\n    conn.row_factory = sqlite3.Row\n    try:\n        yield conn\n    finally:\n        conn.close()\n\n\ndef init_db(db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        conn.execute('''\n            CREATE TABLE IF NOT EXISTS projects (\n                id INTEGER PRIMARY KEY AUTOINCREMENT,\n                name TEXT NOT NULL,\n                description TEXT DEFAULT '',\n                status TEXT NOT NULL DEFAULT 'planned',\n                deadline TEXT DEFAULT '',\n                created_at TEXT NOT NULL,\n                updated_at TEXT NOT NULL\n            )\n        ''')\n        conn.commit()\n\n\ndef row_to_dict(row):\n    if row is None:\n        return None\n    return {\n        'id': row['id'],\n        'name': row['name'],\n        'description': row['description'] or '',\n        'status': row['status'],\n        'deadline': row['deadline'] or '',\n        'created_at': row['created_at'],\n        'updated_at': row['updated_at'],\n    }\n\n\ndef create_project(data, db_path=DB_FILE):\n    name = (data.get('name') or '').strip()\n    if not name:\n        raise ValueError('Project name is required')\n    description = (data.get('description') or '').strip()\n    status = data.get('status', 'planned')\n    if status not in VALID_STATUSES:\n        status = 'planned'\n    deadline = (data.get('deadline') or '').strip()\n    now = datetime.now(timezone.utc).isoformat()\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(\n            '''\n            INSERT INTO projects (name, description, status, deadline, created_at, updated_at)\n            VALUES (?, ?, ?, ?, ?, ?)\n            ''',\n            (name, description, status, deadline, now, now),\n        )\n        conn.commit()\n        project_id = cursor.lastrowid\n    return get_project(project_id, db_path=db_path)\n\n\ndef get_project(project_id, db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('SELECT * FROM projects WHERE id = ?', (project_id,))\n        row = cursor.fetchone()\n        return row_to_dict(row)\n\n\ndef list_projects(q=None, status=None, db_path=DB_FILE):\n    sql = 'SELECT * FROM projects WHERE 1=1'\n    params = []\n    if q:\n        sql += ' AND (name LIKE ? OR description LIKE ?)'\n        search_term = f'%{q.strip()}%'\n        params.extend([search_term, search_term])\n    if status and status in VALID_STATUSES:\n        sql += ' AND status = ?'\n        params.append(status)\n    sql += ' ORDER BY id DESC'\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(sql, tuple(params))\n        rows = cursor.fetchall()\n        return [row_to_dict(row) for row in rows]\n\n\ndef update_project(project_id, data, db_path=DB_FILE):\n    current = get_project(project_id, db_path=db_path)\n    if not current:\n        return None\n\n    name = data.get('name')\n    name = name.strip() if name is not None else current['name']\n    if not name:\n        raise ValueError('Project name cannot be empty')\n\n    description = data.get('description')\n    description = description.strip() if description is not None else current['description']\n\n    status = data.get('status')\n    if status is not None:\n        if status not in VALID_STATUSES:\n            status = current['status']\n    else:\n        status = current['status']\n\n    deadline = data.get('deadline')\n    deadline = deadline.strip() if deadline is not None else current['deadline']\n    now = datetime.now(timezone.utc).isoformat()\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(\n            '''\n            UPDATE projects\n            SET name = ?, description = ?, status = ?, deadline = ?, updated_at = ?\n            WHERE id = ?\n            ''',\n            (name, description, status, deadline, now, project_id),\n        )\n        conn.commit()\n    return get_project(project_id, db_path=db_path)\n\n\ndef delete_project(project_id, db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM projects WHERE id = ?', (project_id,))\n        conn.commit()\n        return cursor.rowcount > 0\n\n\ndef get_summary(db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('''\n            SELECT\n                COUNT(*) as total,\n                SUM(CASE WHEN status = 'planned' THEN 1 ELSE 0 END) as planned,\n                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,\n                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed\n            FROM projects\n        ''')\n        row = cursor.fetchone()\n        return {\n            'planned': row['planned'] or 0,\n            'active': row['active'] or 0,\n            'completed': row['completed'] or 0,\n            'total': row['total'] or 0,\n        }\n",
+          "test_app.py": "\"\"\"Integration tests for REST API endpoints and server persistence.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport tempfile\nimport threading\nimport unittest\nimport urllib.error\nimport urllib.request\nfrom app import create_server\n\n\ndef request_json(url, method='GET', payload=None):\n    data = json.dumps(payload).encode('utf-8') if payload is not None else None\n    headers = {'Content-Type': 'application/json'} if payload is not None else {}\n    req = urllib.request.Request(url, data=data, headers=headers, method=method)\n    try:\n        with urllib.request.urlopen(req, timeout=3) as resp:\n            body = resp.read().decode('utf-8')\n            return resp.status, json.loads(body) if body else None\n    except urllib.error.HTTPError as exc:\n        body = exc.read().decode('utf-8')\n        return exc.code, json.loads(body) if body else None\n\n\nclass RestApiTests(unittest.TestCase):\n    def setUp(self):\n        self.prev_dir = Path.cwd()\n        self.temp_dir = tempfile.TemporaryDirectory()\n        os.chdir(self.temp_dir.name)\n        self.server = create_server('127.0.0.1', 0)\n        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)\n        self.thread.start()\n        self.base_url = f'http://127.0.0.1:{self.server.server_address[1]}'\n\n    def tearDown(self):\n        if self.server:\n            self.server.shutdown()\n            self.server.server_close()\n            self.thread.join(3)\n        os.chdir(self.prev_dir)\n        self.temp_dir.cleanup()\n\n    def test_full_project_crud_and_summary_flow(self):\n        # Initial summary\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 0, 'completed': 0, 'total': 0})\n\n        # Create project 1 (planned)\n        status, p1 = request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'Portfolio Redesign', 'description': 'Revamp personal site', 'status': 'planned', 'deadline': '2025-12-31'},\n        )\n        self.assertEqual(status, 201)\n        self.assertEqual(p1['name'], 'Portfolio Redesign')\n        self.assertEqual(p1['status'], 'planned')\n        self.assertEqual(p1['id'], 1)\n\n        # Create project 2 (active)\n        status, p2 = request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'API Service', 'description': 'Lightweight web service', 'status': 'active', 'deadline': '2025-06-30'},\n        )\n        self.assertEqual(status, 201)\n        self.assertEqual(p2['name'], 'API Service')\n        self.assertEqual(p2['status'], 'active')\n\n        # Verify summary counts\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 1, 'active': 1, 'completed': 0, 'total': 2})\n\n        # Fetch single project\n        status, fetched_p1 = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 200)\n        self.assertEqual(fetched_p1['id'], 1)\n        self.assertEqual(fetched_p1['name'], 'Portfolio Redesign')\n\n        # Search by query\n        status, search_results = request_json(f'{self.base_url}/api/projects?q=Portfolio')\n        self.assertEqual(status, 200)\n        self.assertEqual(len(search_results), 1)\n        self.assertEqual(search_results[0]['name'], 'Portfolio Redesign')\n\n        # Filter by status\n        status, filtered_results = request_json(f'{self.base_url}/api/projects?status=active')\n        self.assertEqual(status, 200)\n        self.assertEqual(len(filtered_results), 1)\n        self.assertEqual(filtered_results[0]['name'], 'API Service')\n\n        # Update project 1 to completed\n        status, updated_p1 = request_json(\n            f'{self.base_url}/api/projects/1',\n            method='PUT',\n            payload={'name': 'Portfolio Redesign v2', 'description': 'Updated design brief', 'status': 'completed', 'deadline': '2025-11-15'},\n        )\n        self.assertEqual(status, 200)\n        self.assertEqual(updated_p1['id'], 1)\n        self.assertEqual(updated_p1['name'], 'Portfolio Redesign v2')\n        self.assertEqual(updated_p1['status'], 'completed')\n\n        # Summary after update\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 1, 'completed': 1, 'total': 2})\n\n        # Delete project 1\n        status, del_resp = request_json(f'{self.base_url}/api/projects/1', method='DELETE')\n        self.assertEqual(status, 200)\n        self.assertEqual(del_resp, {'success': True})\n\n        # Fetch deleted project returns 404\n        status, err_resp = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 404)\n\n        # Summary after delete\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 1, 'completed': 0, 'total': 1})\n\n    def test_persistence_across_restart(self):\n        request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'Persistent Project', 'status': 'active'},\n        )\n        # Restart server instance\n        self.server.shutdown()\n        self.server.server_close()\n        self.thread.join(3)\n\n        self.server = create_server('127.0.0.1', 0)\n        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)\n        self.thread.start()\n        self.base_url = f'http://127.0.0.1:{self.server.server_address[1]}'\n\n        status, fetched = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 200)\n        self.assertEqual(fetched['name'], 'Persistent Project')\n        self.assertEqual(fetched['status'], 'active')\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+          "test_api.py": "NEW file contents",
+          "test_db.py": "COMPLETE file contents"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 5188,
+            "sha256": "54d60ba99a66",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "read_json_body",
+              "do_GET",
+              "do_POST",
+              "do_PUT",
+              "do_DELETE"
+            ]
+          },
+          {
+            "file": "db.py",
+            "characters": 5217,
+            "sha256": "8366e5486804",
+            "symbols": [
+              "get_connection",
+              "init_db",
+              "row_to_dict",
+              "create_project",
+              "get_project",
+              "list_projects",
+              "update_project",
+              "delete_project",
+              "get_summary"
+            ]
+          },
+          {
+            "file": "test_api.py",
+            "characters": 17,
+            "sha256": "511f7f614c21",
+            "syntax": "invalid"
+          },
+          {
+            "file": "test_app.py",
+            "characters": 5984,
+            "sha256": "51827e65d343",
+            "symbols": [
+              "request_json",
+              "RestApiTests",
+              "setUp",
+              "tearDown",
+              "test_full_project_crud_and_summary_flow",
+              "test_persistence_across_restart"
+            ]
+          },
+          {
+            "file": "test_db.py",
+            "characters": 22,
+            "sha256": "823545ec3863",
+            "syntax": "invalid"
+          }
+        ],
+        "feedback": {
+          "phase": "static",
+          "diagnosis": "test_db.py: Python syntax error at line 1: COMPLETE file contents",
+          "evidence": [],
+          "traceback_tail": "test_db.py: Python syntax error at line 1: COMPLETE file contents",
+          "referenced_files": [
+            "test_db.py"
+          ],
+          "browser_failure": null
+        },
+        "failure": "test_db.py: Python syntax error at line 1: COMPLETE file contents",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 5556,
+      "baseline_serialized_characters": 18883
+    },
+    {
+      "id": "dashboard-budget",
+      "origin": "uploaded_failure",
+      "reference": "dashboard journal 2026-10-19",
+      "failure_class": "response",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "\"\"\"Personal Project Dashboard server and API routes.\"\"\"\nimport argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nfrom pathlib import Path\nimport re\nimport urllib.parse\nfrom db import (\n    create_project,\n    delete_project,\n    get_project,\n    get_summary,\n    init_db,\n    list_projects,\n    update_project,\n)\n\nASSETS = Path(__file__).resolve().parent\nPROJECT_DETAIL_RE = re.compile(r\"^/api/projects/(\\d+)$\")\n\n\ndef create_server(host='127.0.0.1', port=8080):\n    init_db()\n\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *_):\n            pass\n\n        def reply(self, value, status=200, content_type='application/json; charset=utf-8'):\n            content = value if isinstance(value, bytes) else json.dumps(value).encode('utf-8')\n            self.send_response(status)\n            self.send_header('Content-Type', content_type)\n            self.send_header('Content-Length', str(len(content)))\n            self.send_header('X-Content-Type-Options', 'nosniff')\n            self.end_headers()\n            self.wfile.write(content)\n\n        def read_json_body(self):\n            content_length = int(self.headers.get('Content-Length', 0))\n            if content_length == 0:\n                return {}\n            try:\n                body = self.rfile.read(content_length).decode('utf-8')\n                return json.loads(body)\n            except Exception:\n                return None\n\n        def do_GET(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            if path == '/health':\n                return self.reply({'status': 'ok'})\n\n            if path == '/api/summary':\n                return self.reply(get_summary())\n\n            if path == '/api/projects':\n                query = urllib.parse.parse_qs(parsed.query)\n                q = query.get('q', [None])[0]\n                status = query.get('status', [None])[0]\n                return self.reply(list_projects(q=q, status=status))\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                project = get_project(project_id)\n                if project is None:\n                    return self.reply({'error': 'Project not found'}, 404)\n                return self.reply(project)\n\n            assets = {\n                '/': ('index.html', 'text/html; charset=utf-8'),\n                '/style.css': ('style.css', 'text/css; charset=utf-8'),\n                '/dashboard.js': ('dashboard.js', 'text/javascript; charset=utf-8'),\n            }\n            if path in assets:\n                filename, content_type = assets[path]\n                asset_path = ASSETS / filename\n                if asset_path.exists():\n                    return self.reply(asset_path.read_bytes(), content_type=content_type)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_POST(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            if path == '/api/projects':\n                data = self.read_json_body()\n                if data is None or not isinstance(data, dict):\n                    return self.reply({'error': 'Invalid JSON body'}, 400)\n                try:\n                    project = create_project(data)\n                    return self.reply(project, 201)\n                except ValueError as exc:\n                    return self.reply({'error': str(exc)}, 400)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_PUT(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                data = self.read_json_body()\n                if data is None or not isinstance(data, dict):\n                    return self.reply({'error': 'Invalid JSON body'}, 400)\n                try:\n                    project = update_project(project_id, data)\n                    if project is None:\n                        return self.reply({'error': 'Project not found'}, 404)\n                    return self.reply(project, 200)\n                except ValueError as exc:\n                    return self.reply({'error': str(exc)}, 400)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_DELETE(self):\n            parsed = urllib.parse.urlparse(self.path)\n            path = parsed.path\n\n            m = PROJECT_DETAIL_RE.match(path)\n            if m:\n                project_id = int(m.group(1))\n                success = delete_project(project_id)\n                if not success:\n                    return self.reply({'error': 'Project not found'}, 404)\n                return self.reply({'success': True}, 200)\n\n            return self.reply({'error': 'Not found'}, 404)\n\n    return ThreadingHTTPServer((host, port), Handler)\n\n\nif __name__ == '__main__':\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--host', default='127.0.0.1')\n    parser.add_argument('--port', type=int, default=8080)\n    args = parser.parse_args()\n    create_server(args.host, args.port).serve_forever()\n",
+          "db.py": "\"\"\"SQLite database access layer and project model operations.\"\"\"\nfrom datetime import datetime, timezone\nimport sqlite3\nfrom contextlib import contextmanager\n\nDB_FILE = 'projects.db'\nVALID_STATUSES = ('planned', 'active', 'completed')\n\n\n@contextmanager\ndef get_connection(db_path=DB_FILE):\n    conn = sqlite3.connect(db_path)\n    conn.row_factory = sqlite3.Row\n    try:\n        yield conn\n    finally:\n        conn.close()\n\n\ndef init_db(db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        conn.execute('''\n            CREATE TABLE IF NOT EXISTS projects (\n                id INTEGER PRIMARY KEY AUTOINCREMENT,\n                name TEXT NOT NULL,\n                description TEXT DEFAULT '',\n                status TEXT NOT NULL DEFAULT 'planned',\n                deadline TEXT DEFAULT '',\n                created_at TEXT NOT NULL,\n                updated_at TEXT NOT NULL\n            )\n        ''')\n        conn.commit()\n\n\ndef row_to_dict(row):\n    if row is None:\n        return None\n    return {\n        'id': row['id'],\n        'name': row['name'],\n        'description': row['description'] or '',\n        'status': row['status'],\n        'deadline': row['deadline'] or '',\n        'created_at': row['created_at'],\n        'updated_at': row['updated_at'],\n    }\n\n\ndef create_project(data, db_path=DB_FILE):\n    name = (data.get('name') or '').strip()\n    if not name:\n        raise ValueError('Project name is required')\n    description = (data.get('description') or '').strip()\n    status = data.get('status', 'planned')\n    if status not in VALID_STATUSES:\n        status = 'planned'\n    deadline = (data.get('deadline') or '').strip()\n    now = datetime.now(timezone.utc).isoformat()\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(\n            '''\n            INSERT INTO projects (name, description, status, deadline, created_at, updated_at)\n            VALUES (?, ?, ?, ?, ?, ?)\n            ''',\n            (name, description, status, deadline, now, now),\n        )\n        conn.commit()\n        project_id = cursor.lastrowid\n    return get_project(project_id, db_path=db_path)\n\n\ndef get_project(project_id, db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('SELECT * FROM projects WHERE id = ?', (project_id,))\n        row = cursor.fetchone()\n        return row_to_dict(row)\n\n\ndef list_projects(q=None, status=None, db_path=DB_FILE):\n    sql = 'SELECT * FROM projects WHERE 1=1'\n    params = []\n    if q:\n        sql += ' AND (name LIKE ? OR description LIKE ?)'\n        search_term = f'%{q.strip()}%'\n        params.extend([search_term, search_term])\n    if status and status in VALID_STATUSES:\n        sql += ' AND status = ?'\n        params.append(status)\n    sql += ' ORDER BY id DESC'\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(sql, tuple(params))\n        rows = cursor.fetchall()\n        return [row_to_dict(row) for row in rows]\n\n\ndef update_project(project_id, data, db_path=DB_FILE):\n    current = get_project(project_id, db_path=db_path)\n    if not current:\n        return None\n\n    name = data.get('name')\n    name = name.strip() if name is not None else current['name']\n    if not name:\n        raise ValueError('Project name cannot be empty')\n\n    description = data.get('description')\n    description = description.strip() if description is not None else current['description']\n\n    status = data.get('status')\n    if status is not None:\n        if status not in VALID_STATUSES:\n            status = current['status']\n    else:\n        status = current['status']\n\n    deadline = data.get('deadline')\n    deadline = deadline.strip() if deadline is not None else current['deadline']\n    now = datetime.now(timezone.utc).isoformat()\n\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute(\n            '''\n            UPDATE projects\n            SET name = ?, description = ?, status = ?, deadline = ?, updated_at = ?\n            WHERE id = ?\n            ''',\n            (name, description, status, deadline, now, project_id),\n        )\n        conn.commit()\n    return get_project(project_id, db_path=db_path)\n\n\ndef delete_project(project_id, db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('DELETE FROM projects WHERE id = ?', (project_id,))\n        conn.commit()\n        return cursor.rowcount > 0\n\n\ndef get_summary(db_path=DB_FILE):\n    with get_connection(db_path) as conn:\n        cursor = conn.cursor()\n        cursor.execute('''\n            SELECT\n                COUNT(*) as total,\n                SUM(CASE WHEN status = 'planned' THEN 1 ELSE 0 END) as planned,\n                SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active,\n                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed\n            FROM projects\n        ''')\n        row = cursor.fetchone()\n        return {\n            'planned': row['planned'] or 0,\n            'active': row['active'] or 0,\n            'completed': row['completed'] or 0,\n            'total': row['total'] or 0,\n        }\n",
+          "test_app.py": "\"\"\"Integration tests for REST API endpoints and server persistence.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport tempfile\nimport threading\nimport unittest\nimport urllib.error\nimport urllib.request\nfrom app import create_server\n\n\ndef request_json(url, method='GET', payload=None):\n    data = json.dumps(payload).encode('utf-8') if payload is not None else None\n    headers = {'Content-Type': 'application/json'} if payload is not None else {}\n    req = urllib.request.Request(url, data=data, headers=headers, method=method)\n    try:\n        with urllib.request.urlopen(req, timeout=3) as resp:\n            body = resp.read().decode('utf-8')\n            return resp.status, json.loads(body) if body else None\n    except urllib.error.HTTPError as exc:\n        body = exc.read().decode('utf-8')\n        return exc.code, json.loads(body) if body else None\n\n\nclass RestApiTests(unittest.TestCase):\n    def setUp(self):\n        self.prev_dir = Path.cwd()\n        self.temp_dir = tempfile.TemporaryDirectory()\n        os.chdir(self.temp_dir.name)\n        self.server = create_server('127.0.0.1', 0)\n        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)\n        self.thread.start()\n        self.base_url = f'http://127.0.0.1:{self.server.server_address[1]}'\n\n    def tearDown(self):\n        if self.server:\n            self.server.shutdown()\n            self.server.server_close()\n            self.thread.join(3)\n        os.chdir(self.prev_dir)\n        self.temp_dir.cleanup()\n\n    def test_full_project_crud_and_summary_flow(self):\n        # Initial summary\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 0, 'completed': 0, 'total': 0})\n\n        # Create project 1 (planned)\n        status, p1 = request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'Portfolio Redesign', 'description': 'Revamp personal site', 'status': 'planned', 'deadline': '2025-12-31'},\n        )\n        self.assertEqual(status, 201)\n        self.assertEqual(p1['name'], 'Portfolio Redesign')\n        self.assertEqual(p1['status'], 'planned')\n        self.assertEqual(p1['id'], 1)\n\n        # Create project 2 (active)\n        status, p2 = request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'API Service', 'description': 'Lightweight web service', 'status': 'active', 'deadline': '2025-06-30'},\n        )\n        self.assertEqual(status, 201)\n        self.assertEqual(p2['name'], 'API Service')\n        self.assertEqual(p2['status'], 'active')\n\n        # Verify summary counts\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 1, 'active': 1, 'completed': 0, 'total': 2})\n\n        # Fetch single project\n        status, fetched_p1 = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 200)\n        self.assertEqual(fetched_p1['id'], 1)\n        self.assertEqual(fetched_p1['name'], 'Portfolio Redesign')\n\n        # Search by query\n        status, search_results = request_json(f'{self.base_url}/api/projects?q=Portfolio')\n        self.assertEqual(status, 200)\n        self.assertEqual(len(search_results), 1)\n        self.assertEqual(search_results[0]['name'], 'Portfolio Redesign')\n\n        # Filter by status\n        status, filtered_results = request_json(f'{self.base_url}/api/projects?status=active')\n        self.assertEqual(status, 200)\n        self.assertEqual(len(filtered_results), 1)\n        self.assertEqual(filtered_results[0]['name'], 'API Service')\n\n        # Update project 1 to completed\n        status, updated_p1 = request_json(\n            f'{self.base_url}/api/projects/1',\n            method='PUT',\n            payload={'name': 'Portfolio Redesign v2', 'description': 'Updated design brief', 'status': 'completed', 'deadline': '2025-11-15'},\n        )\n        self.assertEqual(status, 200)\n        self.assertEqual(updated_p1['id'], 1)\n        self.assertEqual(updated_p1['name'], 'Portfolio Redesign v2')\n        self.assertEqual(updated_p1['status'], 'completed')\n\n        # Summary after update\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 1, 'completed': 1, 'total': 2})\n\n        # Delete project 1\n        status, del_resp = request_json(f'{self.base_url}/api/projects/1', method='DELETE')\n        self.assertEqual(status, 200)\n        self.assertEqual(del_resp, {'success': True})\n\n        # Fetch deleted project returns 404\n        status, err_resp = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 404)\n\n        # Summary after delete\n        status, summary = request_json(f'{self.base_url}/api/summary')\n        self.assertEqual(status, 200)\n        self.assertEqual(summary, {'planned': 0, 'active': 1, 'completed': 0, 'total': 1})\n\n    def test_persistence_across_restart(self):\n        request_json(\n            f'{self.base_url}/api/projects',\n            method='POST',\n            payload={'name': 'Persistent Project', 'status': 'active'},\n        )\n        # Restart server instance\n        self.server.shutdown()\n        self.server.server_close()\n        self.thread.join(3)\n\n        self.server = create_server('127.0.0.1', 0)\n        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)\n        self.thread.start()\n        self.base_url = f'http://127.0.0.1:{self.server.server_address[1]}'\n\n        status, fetched = request_json(f'{self.base_url}/api/projects/1')\n        self.assertEqual(status, 200)\n        self.assertEqual(fetched['name'], 'Persistent Project')\n        self.assertEqual(fetched['status'], 'active')\n\n\nif __name__ == '__main__':\n    unittest.main()\n",
+          "test_api.py": "NEW file contents",
+          "test_db.py": "COMPLETE file contents"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 5188,
+            "sha256": "54d60ba99a66",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "read_json_body",
+              "do_GET",
+              "do_POST",
+              "do_PUT",
+              "do_DELETE"
+            ]
+          },
+          {
+            "file": "db.py",
+            "characters": 5217,
+            "sha256": "8366e5486804",
+            "symbols": [
+              "get_connection",
+              "init_db",
+              "row_to_dict",
+              "create_project",
+              "get_project",
+              "list_projects",
+              "update_project",
+              "delete_project",
+              "get_summary"
+            ]
+          },
+          {
+            "file": "test_api.py",
+            "characters": 17,
+            "sha256": "511f7f614c21",
+            "syntax": "invalid"
+          },
+          {
+            "file": "test_app.py",
+            "characters": 5984,
+            "sha256": "51827e65d343",
+            "symbols": [
+              "request_json",
+              "RestApiTests",
+              "setUp",
+              "tearDown",
+              "test_full_project_crud_and_summary_flow",
+              "test_persistence_across_restart"
+            ]
+          },
+          {
+            "file": "test_db.py",
+            "characters": 22,
+            "sha256": "823545ec3863",
+            "syntax": "invalid"
+          }
+        ],
+        "feedback": {
+          "phase": "response",
+          "diagnosis": "Source exceeded the local-model context budget.",
+          "evidence": [],
+          "traceback_tail": "Source exceeded the local-model context budget.",
+          "referenced_files": [],
+          "browser_failure": null
+        },
+        "failure": "Source exceeded the local-model context budget.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 5528,
+      "baseline_serialized_characters": 18819
+    },
+    {
+      "id": "ambiguous-edit",
+      "origin": "derived_regression",
+      "reference": "tests/test_repairs.py",
+      "failure_class": "response",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "game.js": "one one"
+        },
+        "source_map": [
+          {
+            "file": "game.js",
+            "characters": 7,
+            "sha256": "55d489108cb0"
+          }
+        ],
+        "feedback": {
+          "phase": "response",
+          "diagnosis": "game.js: search must match exactly once.",
+          "evidence": [],
+          "traceback_tail": "game.js: search must match exactly once.",
+          "referenced_files": [
+            "game.js"
+          ],
+          "browser_failure": null
+        },
+        "failure": "game.js: search must match exactly once.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 1149,
+      "baseline_serialized_characters": 1096
+    },
+    {
+      "id": "missing-edit",
+      "origin": "derived_regression",
+      "reference": "tests/test_repairs.py",
+      "failure_class": "response",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "game.js": "one"
+        },
+        "source_map": [
+          {
+            "file": "game.js",
+            "characters": 3,
+            "sha256": "7692c3ad3540"
+          }
+        ],
+        "feedback": {
+          "phase": "response",
+          "diagnosis": "game.js: missing exact search.",
+          "evidence": [],
+          "traceback_tail": "game.js: missing exact search.",
+          "referenced_files": [
+            "game.js"
+          ],
+          "browser_failure": null
+        },
+        "failure": "game.js: missing exact search.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 1143,
+      "baseline_serialized_characters": 1062
+    },
+    {
+      "id": "unchanged-repair",
+      "origin": "derived_regression",
+      "reference": "tests/test_upgrade.py",
+      "failure_class": "response",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "import argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nimport sqlite3\n\ndef create_server(host, port):\n    with sqlite3.connect(\"tasks.db\") as db:\n        db.execute(\"CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, title TEXT)\")\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *args): pass\n        def reply(self, value, status=200, html=False):\n            body = value.encode() if html else json.dumps(value).encode()\n            self.send_response(status)\n            self.send_header(\"Content-Type\", \"text/html\" if html else \"application/json\")\n            self.send_header(\"Content-Length\", str(len(body)))\n            self.end_headers()\n            self.wfile.write(body)\n        def do_GET(self):\n            if self.path == \"/health\": self.reply({\"status\":\"ok\"})\n            elif self.path == \"/api/tasks\":\n                with sqlite3.connect(\"tasks.db\") as db:\n                    rows = db.execute(\"SELECT id, title FROM tasks ORDER BY id\").fetchall()\n                self.reply([{\"id\":row[0], \"title\":row[1]} for row in rows])\n            elif self.path == \"/\":\n                self.reply(\"<!doctype html><title>Pocket Tasks</title><h1>Pocket Tasks</h1><form id='f'><input id='title' required><button>Add task</button></form><ul id='tasks'></ul><script>async function load(){const rows=await(await fetch('/api/tasks')).json();tasks.replaceChildren(...rows.map(t=>{const li=document.createElement('li');li.textContent=t.title;return li;}));}f.onsubmit=async e=>{e.preventDefault();await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:document.getElementById('title').value})});f.reset();load();};load();</script>\",html=True)\n            else: self.reply({\"error\":\"Not found\"},404)\n        def do_POST(self):\n            if self.path != \"/api/tasks\": return self.reply({\"error\":\"Not found\"},404)\n            data=json.loads(self.rfile.read(int(self.headers[\"Content-Length\"])))\n            title=data.get(\"title\", \"\").strip()\n            if not title: return self.reply({\"error\":\"Title required\"},400)\n            with sqlite3.connect(\"tasks.db\") as db:\n                ident=db.execute(\"INSERT INTO tasks (title) VALUES (?)\",(title,)).lastrowid\n            self.reply({\"id\":ident,\"title\":title},201)\n    return ThreadingHTTPServer((host,port),Handler)\n\nif __name__ == \"__main__\":\n    p=argparse.ArgumentParser();p.add_argument(\"--host\",default=\"127.0.0.1\");p.add_argument(\"--port\",type=int,default=8080);a=p.parse_args()\n    create_server(a.host,a.port).serve_forever()\n",
+          "test_app.py": "import json\nimport os\nimport tempfile\nimport threading\nimport unittest\nimport urllib.request\nfrom app import create_server\n\nclass TaskTests(unittest.TestCase):\n    def test_health(self):\n        original=os.getcwd()\n        with tempfile.TemporaryDirectory() as temp:\n            os.chdir(temp)\n            server=create_server(\"127.0.0.1\",0)\n            threading.Thread(target=server.serve_forever,daemon=True).start()\n            try:\n                with urllib.request.urlopen(\"http://127.0.0.1:\"+str(server.server_address[1])+\"/health\") as r:\n                    self.assertEqual(json.load(r),{\"status\":\"ok\"})\n            finally:\n                server.shutdown();server.server_close();os.chdir(original)\n"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 2614,
+            "sha256": "89874038af58",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "do_GET",
+              "do_POST"
+            ]
+          },
+          {
+            "file": "test_app.py",
+            "characters": 712,
+            "sha256": "3c41a25e049f",
+            "symbols": [
+              "TaskTests",
+              "test_health"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "response",
+          "diagnosis": "Unchanged source; do not repeat verification.",
+          "evidence": [],
+          "traceback_tail": "Unchanged source; do not repeat verification.",
+          "referenced_files": [],
+          "browser_failure": null
+        },
+        "failure": "Unchanged source; do not repeat verification.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 2051,
+      "baseline_serialized_characters": 4775
+    },
+    {
+      "id": "missing-test-import",
+      "origin": "derived_regression",
+      "reference": "tests/test_verification.py",
+      "failure_class": "static",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "import argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nimport sqlite3\n\ndef create_server(host, port):\n    with sqlite3.connect(\"tasks.db\") as db:\n        db.execute(\"CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, title TEXT)\")\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *args): pass\n        def reply(self, value, status=200, html=False):\n            body = value.encode() if html else json.dumps(value).encode()\n            self.send_response(status)\n            self.send_header(\"Content-Type\", \"text/html\" if html else \"application/json\")\n            self.send_header(\"Content-Length\", str(len(body)))\n            self.end_headers()\n            self.wfile.write(body)\n        def do_GET(self):\n            if self.path == \"/health\": self.reply({\"status\":\"ok\"})\n            elif self.path == \"/api/tasks\":\n                with sqlite3.connect(\"tasks.db\") as db:\n                    rows = db.execute(\"SELECT id, title FROM tasks ORDER BY id\").fetchall()\n                self.reply([{\"id\":row[0], \"title\":row[1]} for row in rows])\n            elif self.path == \"/\":\n                self.reply(\"<!doctype html><title>Pocket Tasks</title><h1>Pocket Tasks</h1><form id='f'><input id='title' required><button>Add task</button></form><ul id='tasks'></ul><script>async function load(){const rows=await(await fetch('/api/tasks')).json();tasks.replaceChildren(...rows.map(t=>{const li=document.createElement('li');li.textContent=t.title;return li;}));}f.onsubmit=async e=>{e.preventDefault();await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:document.getElementById('title').value})});f.reset();load();};load();</script>\",html=True)\n            else: self.reply({\"error\":\"Not found\"},404)\n        def do_POST(self):\n            if self.path != \"/api/tasks\": return self.reply({\"error\":\"Not found\"},404)\n            data=json.loads(self.rfile.read(int(self.headers[\"Content-Length\"])))\n            title=data.get(\"title\", \"\").strip()\n            if not title: return self.reply({\"error\":\"Title required\"},400)\n            with sqlite3.connect(\"tasks.db\") as db:\n                ident=db.execute(\"INSERT INTO tasks (title) VALUES (?)\",(title,)).lastrowid\n            self.reply({\"id\":ident,\"title\":title},201)\n    return ThreadingHTTPServer((host,port),Handler)\n\nif __name__ == \"__main__\":\n    p=argparse.ArgumentParser();p.add_argument(\"--host\",default=\"127.0.0.1\");p.add_argument(\"--port\",type=int,default=8080);a=p.parse_args()\n    create_server(a.host,a.port).serve_forever()\n",
+          "test_app.py": "import unittest\nclass Tests(unittest.TestCase):\n def test_placeholder(self): self.assertTrue(True)\n"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 2614,
+            "sha256": "89874038af58",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "do_GET",
+              "do_POST"
+            ]
+          },
+          {
+            "file": "test_app.py",
+            "characters": 99,
+            "sha256": "c3df2b9bcada",
+            "symbols": [
+              "Tests",
+              "test_placeholder"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "static",
+          "diagnosis": "test_app.py: tests must import real application.",
+          "evidence": [],
+          "traceback_tail": "test_app.py: tests must import real application.",
+          "referenced_files": [
+            "test_app.py"
+          ],
+          "browser_failure": null
+        },
+        "failure": "test_app.py: tests must import real application.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 1912,
+      "baseline_serialized_characters": 4155
+    },
+    {
+      "id": "syntax-response",
+      "origin": "derived_regression",
+      "reference": "tests/test_source_validation.py",
+      "failure_class": "static",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "def create_server(:"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 19,
+            "sha256": "269bd4b87236",
+            "syntax": "invalid"
+          }
+        ],
+        "feedback": {
+          "phase": "static",
+          "diagnosis": "app.py: invalid syntax at line 1.",
+          "evidence": [],
+          "traceback_tail": "app.py: invalid syntax at line 1.",
+          "referenced_files": [
+            "app.py"
+          ],
+          "browser_failure": null
+        },
+        "failure": "app.py: invalid syntax at line 1.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 1161,
+      "baseline_serialized_characters": 1104
+    },
+    {
+      "id": "persistence",
+      "origin": "derived_regression",
+      "reference": "tests/test_verification.py",
+      "failure_class": "acceptance",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "import argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nimport sqlite3\n\ndef create_server(host, port):\n    with sqlite3.connect(\"tasks.db\") as db:\n        db.execute(\"CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, title TEXT)\")\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *args): pass\n        def reply(self, value, status=200, html=False):\n            body = value.encode() if html else json.dumps(value).encode()\n            self.send_response(status)\n            self.send_header(\"Content-Type\", \"text/html\" if html else \"application/json\")\n            self.send_header(\"Content-Length\", str(len(body)))\n            self.end_headers()\n            self.wfile.write(body)\n        def do_GET(self):\n            if self.path == \"/health\": self.reply({\"status\":\"ok\"})\n            elif self.path == \"/api/tasks\":\n                with sqlite3.connect(\"tasks.db\") as db:\n                    rows = db.execute(\"SELECT id, title FROM tasks ORDER BY id\").fetchall()\n                self.reply([{\"id\":row[0], \"title\":row[1]} for row in rows])\n            elif self.path == \"/\":\n                self.reply(\"<!doctype html><title>Pocket Tasks</title><h1>Pocket Tasks</h1><form id='f'><input id='title' required><button>Add task</button></form><ul id='tasks'></ul><script>async function load(){const rows=await(await fetch('/api/tasks')).json();tasks.replaceChildren(...rows.map(t=>{const li=document.createElement('li');li.textContent=t.title;return li;}));}f.onsubmit=async e=>{e.preventDefault();await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:document.getElementById('title').value})});f.reset();load();};load();</script>\",html=True)\n            else: self.reply({\"error\":\"Not found\"},404)\n        def do_POST(self):\n            if self.path != \"/api/tasks\": return self.reply({\"error\":\"Not found\"},404)\n            data=json.loads(self.rfile.read(int(self.headers[\"Content-Length\"])))\n            title=data.get(\"title\", \"\").strip()\n            if not title: return self.reply({\"error\":\"Title required\"},400)\n            with sqlite3.connect(\"tasks.db\") as db:\n                ident=db.execute(\"INSERT INTO tasks (title) VALUES (?)\",(title,)).lastrowid\n            self.reply({\"id\":ident,\"title\":title},201)\n    return ThreadingHTTPServer((host,port),Handler)\n\nif __name__ == \"__main__\":\n    p=argparse.ArgumentParser();p.add_argument(\"--host\",default=\"127.0.0.1\");p.add_argument(\"--port\",type=int,default=8080);a=p.parse_args()\n    create_server(a.host,a.port).serve_forever()\n",
+          "test_app.py": "import json\nimport os\nimport tempfile\nimport threading\nimport unittest\nimport urllib.request\nfrom app import create_server\n\nclass TaskTests(unittest.TestCase):\n    def test_health(self):\n        original=os.getcwd()\n        with tempfile.TemporaryDirectory() as temp:\n            os.chdir(temp)\n            server=create_server(\"127.0.0.1\",0)\n            threading.Thread(target=server.serve_forever,daemon=True).start()\n            try:\n                with urllib.request.urlopen(\"http://127.0.0.1:\"+str(server.server_address[1])+\"/health\") as r:\n                    self.assertEqual(json.load(r),{\"status\":\"ok\"})\n            finally:\n                server.shutdown();server.server_close();os.chdir(original)\n"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 2614,
+            "sha256": "89874038af58",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "do_GET",
+              "do_POST"
+            ]
+          },
+          {
+            "file": "test_app.py",
+            "characters": 712,
+            "sha256": "3c41a25e049f",
+            "symbols": [
+              "TaskTests",
+              "test_health"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "acceptance",
+          "diagnosis": "AssertionError: saved task missing after restart.",
+          "evidence": [
+            "AssertionError: saved task missing after restart."
+          ],
+          "traceback_tail": "AssertionError: saved task missing after restart.",
+          "referenced_files": [],
+          "browser_failure": null
+        },
+        "failure": "AssertionError: saved task missing after restart.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 2062,
+      "baseline_serialized_characters": 4840
+    },
+    {
+      "id": "environment-cleanup",
+      "origin": "derived_regression",
+      "reference": "tests/test_workspace_cleanup.py",
+      "failure_class": "environment",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "import argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nimport sqlite3\n\ndef create_server(host, port):\n    with sqlite3.connect(\"tasks.db\") as db:\n        db.execute(\"CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, title TEXT)\")\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *args): pass\n        def reply(self, value, status=200, html=False):\n            body = value.encode() if html else json.dumps(value).encode()\n            self.send_response(status)\n            self.send_header(\"Content-Type\", \"text/html\" if html else \"application/json\")\n            self.send_header(\"Content-Length\", str(len(body)))\n            self.end_headers()\n            self.wfile.write(body)\n        def do_GET(self):\n            if self.path == \"/health\": self.reply({\"status\":\"ok\"})\n            elif self.path == \"/api/tasks\":\n                with sqlite3.connect(\"tasks.db\") as db:\n                    rows = db.execute(\"SELECT id, title FROM tasks ORDER BY id\").fetchall()\n                self.reply([{\"id\":row[0], \"title\":row[1]} for row in rows])\n            elif self.path == \"/\":\n                self.reply(\"<!doctype html><title>Pocket Tasks</title><h1>Pocket Tasks</h1><form id='f'><input id='title' required><button>Add task</button></form><ul id='tasks'></ul><script>async function load(){const rows=await(await fetch('/api/tasks')).json();tasks.replaceChildren(...rows.map(t=>{const li=document.createElement('li');li.textContent=t.title;return li;}));}f.onsubmit=async e=>{e.preventDefault();await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:document.getElementById('title').value})});f.reset();load();};load();</script>\",html=True)\n            else: self.reply({\"error\":\"Not found\"},404)\n        def do_POST(self):\n            if self.path != \"/api/tasks\": return self.reply({\"error\":\"Not found\"},404)\n            data=json.loads(self.rfile.read(int(self.headers[\"Content-Length\"])))\n            title=data.get(\"title\", \"\").strip()\n            if not title: return self.reply({\"error\":\"Title required\"},400)\n            with sqlite3.connect(\"tasks.db\") as db:\n                ident=db.execute(\"INSERT INTO tasks (title) VALUES (?)\",(title,)).lastrowid\n            self.reply({\"id\":ident,\"title\":title},201)\n    return ThreadingHTTPServer((host,port),Handler)\n\nif __name__ == \"__main__\":\n    p=argparse.ArgumentParser();p.add_argument(\"--host\",default=\"127.0.0.1\");p.add_argument(\"--port\",type=int,default=8080);a=p.parse_args()\n    create_server(a.host,a.port).serve_forever()\n"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 2614,
+            "sha256": "89874038af58",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "do_GET",
+              "do_POST"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "environment",
+          "diagnosis": "PermissionError: Windows cleanup failed in working directory.",
+          "evidence": [
+            "PermissionError: Windows cleanup failed in working directory."
+          ],
+          "traceback_tail": "PermissionError: Windows cleanup failed in working directory.",
+          "referenced_files": [],
+          "browser_failure": null
+        },
+        "failure": "PermissionError: Windows cleanup failed in working directory.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 1853,
+      "baseline_serialized_characters": 4017
+    },
+    {
+      "id": "unicode-input",
+      "origin": "synthetic_boundary",
+      "reference": "new boundary, not historical build",
+      "failure_class": "browser",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "import argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nimport sqlite3\n\ndef create_server(host, port):\n    with sqlite3.connect(\"tasks.db\") as db:\n        db.execute(\"CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, title TEXT)\")\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *args): pass\n        def reply(self, value, status=200, html=False):\n            body = value.encode() if html else json.dumps(value).encode()\n            self.send_response(status)\n            self.send_header(\"Content-Type\", \"text/html\" if html else \"application/json\")\n            self.send_header(\"Content-Length\", str(len(body)))\n            self.end_headers()\n            self.wfile.write(body)\n        def do_GET(self):\n            if self.path == \"/health\": self.reply({\"status\":\"ok\"})\n            elif self.path == \"/api/tasks\":\n                with sqlite3.connect(\"tasks.db\") as db:\n                    rows = db.execute(\"SELECT id, title FROM tasks ORDER BY id\").fetchall()\n                self.reply([{\"id\":row[0], \"title\":row[1]} for row in rows])\n            elif self.path == \"/\":\n                self.reply(\"<!doctype html><title>Pocket Tasks</title><h1>Pocket Tasks</h1><form id='f'><input id='title' required><button>Add task</button></form><ul id='tasks'></ul><script>async function load(){const rows=await(await fetch('/api/tasks')).json();tasks.replaceChildren(...rows.map(t=>{const li=document.createElement('li');li.textContent=t.title;return li;}));}f.onsubmit=async e=>{e.preventDefault();await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:document.getElementById('title').value})});f.reset();load();};load();</script>\",html=True)\n            else: self.reply({\"error\":\"Not found\"},404)\n        def do_POST(self):\n            if self.path != \"/api/tasks\": return self.reply({\"error\":\"Not found\"},404)\n            data=json.loads(self.rfile.read(int(self.headers[\"Content-Length\"])))\n            title=data.get(\"title\", \"\").strip()\n            if not title: return self.reply({\"error\":\"Title required\"},400)\n            with sqlite3.connect(\"tasks.db\") as db:\n                ident=db.execute(\"INSERT INTO tasks (title) VALUES (?)\",(title,)).lastrowid\n            self.reply({\"id\":ident,\"title\":title},201)\n    return ThreadingHTTPServer((host,port),Handler)\n\nif __name__ == \"__main__\":\n    p=argparse.ArgumentParser();p.add_argument(\"--host\",default=\"127.0.0.1\");p.add_argument(\"--port\",type=int,default=8080);a=p.parse_args()\n    create_server(a.host,a.port).serve_forever()\n",
+          "index.html": "<h1>プロジェクト — مشروع — 项目 — café</h1>"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 2614,
+            "sha256": "89874038af58",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "do_GET",
+              "do_POST"
+            ]
+          },
+          {
+            "file": "index.html",
+            "characters": 35,
+            "sha256": "1a4f59f6dbd7"
+          }
+        ],
+        "feedback": {
+          "phase": "browser",
+          "diagnosis": "index.html: preserve user title “项目”.",
+          "evidence": [],
+          "traceback_tail": "index.html: preserve user title “项目”.",
+          "referenced_files": [
+            "index.html"
+          ],
+          "browser_failure": null
+        },
+        "failure": "index.html: preserve user title “项目”.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 1980,
+      "baseline_serialized_characters": 4156
+    },
+    {
+      "id": "frozen-test",
+      "origin": "derived_regression",
+      "reference": "tests/test_repairs.py",
+      "failure_class": "response",
+      "build_task": "Repair the listed failure without weakening approved checks.",
+      "historical_first_attempt_repair_success": null,
+      "historical_provider_tokens": null,
+      "payload": {
+        "proposal": {
+          "title": "Pocket Tasks",
+          "summary": "A small persistent task tracker.",
+          "features": [
+            "Create a task",
+            "List saved tasks"
+          ],
+          "out_of_scope": [
+            "Accounts"
+          ],
+          "risks": [
+            "Review generated code before running."
+          ],
+          "tasks": [
+            {
+              "title": "Build the task tracker",
+              "instructions": "Create app.py and behavioral unittest tests.",
+              "feature_indexes": [
+                0,
+                1
+              ]
+            }
+          ],
+          "checks": [
+            {
+              "name": "Create task",
+              "method": "POST",
+              "path": "/api/tasks",
+              "body": {
+                "title": "Buy milk"
+              },
+              "status": 201,
+              "json_contains": {
+                "title": "Buy milk"
+              },
+              "feature_indexes": [
+                0
+              ]
+            },
+            {
+              "name": "Retrieve saved task",
+              "method": "GET",
+              "path": "/api/tasks",
+              "status": 200,
+              "contains": "Buy milk",
+              "feature_indexes": [
+                1
+              ]
+            }
+          ]
+        },
+        "files": {
+          "app.py": "import argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nimport sqlite3\n\ndef create_server(host, port):\n    with sqlite3.connect(\"tasks.db\") as db:\n        db.execute(\"CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, title TEXT)\")\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *args): pass\n        def reply(self, value, status=200, html=False):\n            body = value.encode() if html else json.dumps(value).encode()\n            self.send_response(status)\n            self.send_header(\"Content-Type\", \"text/html\" if html else \"application/json\")\n            self.send_header(\"Content-Length\", str(len(body)))\n            self.end_headers()\n            self.wfile.write(body)\n        def do_GET(self):\n            if self.path == \"/health\": self.reply({\"status\":\"ok\"})\n            elif self.path == \"/api/tasks\":\n                with sqlite3.connect(\"tasks.db\") as db:\n                    rows = db.execute(\"SELECT id, title FROM tasks ORDER BY id\").fetchall()\n                self.reply([{\"id\":row[0], \"title\":row[1]} for row in rows])\n            elif self.path == \"/\":\n                self.reply(\"<!doctype html><title>Pocket Tasks</title><h1>Pocket Tasks</h1><form id='f'><input id='title' required><button>Add task</button></form><ul id='tasks'></ul><script>async function load(){const rows=await(await fetch('/api/tasks')).json();tasks.replaceChildren(...rows.map(t=>{const li=document.createElement('li');li.textContent=t.title;return li;}));}f.onsubmit=async e=>{e.preventDefault();await fetch('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:document.getElementById('title').value})});f.reset();load();};load();</script>\",html=True)\n            else: self.reply({\"error\":\"Not found\"},404)\n        def do_POST(self):\n            if self.path != \"/api/tasks\": return self.reply({\"error\":\"Not found\"},404)\n            data=json.loads(self.rfile.read(int(self.headers[\"Content-Length\"])))\n            title=data.get(\"title\", \"\").strip()\n            if not title: return self.reply({\"error\":\"Title required\"},400)\n            with sqlite3.connect(\"tasks.db\") as db:\n                ident=db.execute(\"INSERT INTO tasks (title) VALUES (?)\",(title,)).lastrowid\n            self.reply({\"id\":ident,\"title\":title},201)\n    return ThreadingHTTPServer((host,port),Handler)\n\nif __name__ == \"__main__\":\n    p=argparse.ArgumentParser();p.add_argument(\"--host\",default=\"127.0.0.1\");p.add_argument(\"--port\",type=int,default=8080);a=p.parse_args()\n    create_server(a.host,a.port).serve_forever()\n",
+          "test_app.py": "import json\nimport os\nimport tempfile\nimport threading\nimport unittest\nimport urllib.request\nfrom app import create_server\n\nclass TaskTests(unittest.TestCase):\n    def test_health(self):\n        original=os.getcwd()\n        with tempfile.TemporaryDirectory() as temp:\n            os.chdir(temp)\n            server=create_server(\"127.0.0.1\",0)\n            threading.Thread(target=server.serve_forever,daemon=True).start()\n            try:\n                with urllib.request.urlopen(\"http://127.0.0.1:\"+str(server.server_address[1])+\"/health\") as r:\n                    self.assertEqual(json.load(r),{\"status\":\"ok\"})\n            finally:\n                server.shutdown();server.server_close();os.chdir(original)\n"
+        },
+        "source_map": [
+          {
+            "file": "app.py",
+            "characters": 2614,
+            "sha256": "89874038af58",
+            "symbols": [
+              "create_server",
+              "Handler",
+              "log_message",
+              "reply",
+              "do_GET",
+              "do_POST"
+            ]
+          },
+          {
+            "file": "test_app.py",
+            "characters": 712,
+            "sha256": "3c41a25e049f",
+            "symbols": [
+              "TaskTests",
+              "test_health"
+            ]
+          }
+        ],
+        "feedback": {
+          "phase": "response",
+          "diagnosis": "Existing app tests are trusted regression tests and cannot be rewritten.",
+          "evidence": [],
+          "traceback_tail": "Existing app tests are trusted regression tests and cannot be rewritten.",
+          "referenced_files": [],
+          "browser_failure": null
+        },
+        "failure": "Existing app tests are trusted regression tests and cannot be rewritten.",
+        "frozen_tests": []
+      },
+      "baseline_prompt_tokens_cl100k": 2060,
+      "baseline_serialized_characters": 4856
+    }
+  ]
+}

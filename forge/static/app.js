@@ -267,6 +267,10 @@ function render() {
   if (lastResponse)
     $("model-usage").textContent +=
       ` Last response: ${lastResponse.provider}/${lastResponse.model}.`;
+  const lastRequest = (p.model_calls || []).at(-1);
+  if (Number.isInteger(lastRequest?.input_characters))
+    $("model-usage").textContent +=
+      ` Last request size: ${lastRequest.input_characters.toLocaleString()} characters (not tokens).`;
   const measured = (p.model_calls || []).filter(
     (c) =>
       Number.isInteger(c.prompt_tokens) ||

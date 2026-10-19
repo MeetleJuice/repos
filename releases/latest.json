@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.10.1",
+  "version": "0.11.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.10.1.zip",
-  "sha256": "ee282e0731d096f06fd2fb783aa4c7ea515dc6a0e1eb73166b3cb3cde24ef7ec",
-  "notes": "Reject placeholder files, invalid Python and double-escaped HTML before replacing source. Accept database/module unit tests that import actual project code, avoiding a false-positive repair cycle. Saved projects, checks and model routes remain compatible."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.11.0.zip",
+  "sha256": "4b7e51d6987de4052d9ecc084abc816ca45956dcffaebe6a04e8e491bd0d9386",
+  "notes": "Measured harness research and request observability: six gap memos, frozen replay evaluation, three unpromoted prompt prototypes, and character-count/digest metadata for actual model calls. Existing prompts, bounded repairs, verification, model routes and saved projects remain compatible. No live repair-rate improvement is claimed."
 }

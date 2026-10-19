@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.10.1"
+__version__ = "0.11.0"
 
-__release_notes__ = "Reject placeholder files, invalid Python and double-escaped HTML before replacing source. Accept database/module unit tests that import actual project code, avoiding a false-positive repair cycle. Saved projects, checks and model routes remain compatible."
+__release_notes__ = "Measured harness research and request observability: six gap memos, frozen replay evaluation, three unpromoted prompt prototypes, and character-count/digest metadata for actual model calls. Existing prompts, bounded repairs, verification, model routes and saved projects remain compatible. No live repair-rate improvement is claimed."

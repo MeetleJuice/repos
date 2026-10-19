@@ -1,0 +1,24 @@
+# Domain 4: Context engineering and isolated task execution
+
+## Evidence and confidence
+
+The upstream [AGENTS.md README](https://raw.githubusercontent.com/agentsmd/agents.md/main/README.md) was retrieved during this audit. It documents a predictable repository file for environment, testing, and contribution instructions. Its example is a convention, not evidence that merely adding a file improves model correctness. A generated project should carry its reviewed commands and boundaries in an agent-facing guide, without duplicating secrets or asserting that tests passed.
+
+Anthropic's [effective context engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) is a relevant primary reference for selecting task-relevant context and isolating work. This environment's proxy returned HTTP 403 for that page, so no quantitative claims from it are treated as verified. The [official Claude Code README](https://raw.githubusercontent.com/anthropics/claude-code/main/README.md) was retrieved, but describes product capabilities rather than controlled performance results. The requested Microsoft Research “466 projects” claim could not be authenticated from a primary source in this environment and remains **unverified**. Do not advertise a measured improvement or copy that number into release claims.
+
+## Current code baseline (v0.10.1, inspected directly)
+
+`forge/context.py` caps accepted source at **36,000 characters**. `core.apply` also caps the merged project at **70,000 characters**. These are character limits, not token estimates. Improvement planning ranks filenames and textual query matches, sends at most **3 source excerpts totaling 8,000 characters**, and bounds the serialized symbol map at **2,500 characters**. Excerpts are prefixes; important code at the end of a file can be omitted. General source maps contain at most **35 Python symbol names per file**, without dependency edges or line locations. Planner maps reduce that to **12 names of at most 80 characters** per file.
+
+`failure_feedback` returns the last **20 matching evidence lines**, a traceback tail of at most **45 lines / 6,500 characters**, and referenced filenames. Browser failure context includes the previous **4 actions**, up to **32 random values**, and **1,800 characters** of error text. `ModelClient.complete` constructs exactly **2 messages** for each request: system instructions and the current user payload. There is no cumulative chat transcript. That is useful per-call conversational isolation; it is not execution isolation or a guarantee against prompt injection.
+
+The build/repair payload still sends the **entire current source dictionary**, approved proposal, and source map. Frozen test names are included; frozen hashes are enforced by application code. Invalid responses receive at most **one correction**, presently demanding complete changed files. That can inflate output precisely when the context is already large. An Ollama context setting does not by itself ensure that source, JSON escaping, prompts, schema, and reserved output all fit.
+
+## Recommended contract and capability changes
+
+1. Make context selection a deterministic function with an explicit envelope: task, immutable acceptance/API contracts, current source hash, relevant symbols/files, failure evidence, omitted-file metadata, and input/output budget. Preserve the two-message fresh-call pattern. Do not rely on conversation memory for requirements.
+2. Reserve output before selection; estimate serialized request tokens conservatively and label estimates. Prefer complete relevant files when affordable, then symbol-centered excerpts with line spans. Never silently truncate the exact source needed for an edit. Require a complete-file request or fail with a clear scope message when an edit target was omitted.
+3. Add a reviewed project `AGENTS.md` with launch/test commands, architecture, immutable acceptance boundaries, and file ownership. Treat source comments and uploaded documents as data; user-approved requirements retain authority. A guide is not permission to run arbitrary commands.
+4. Separate planning, implementation, and repair envelopes. Repairs should include the actual failing phase, location, expected/actual result, and relevant implementation/tests. Preserve frozen tests and independently rerun verification after application.
+
+Acceptance should measure serialized input size, omitted files, output allowance, attempts, actual provider token usage when available, and success on fixed regression fixtures. Test deterministic selection, late-file failure locations, low-context rejection, immutable requirements, and malicious source comments. Do not claim reduced latency or higher success until those measurements exist. Keep runtime Docker/local consent separate from model-context isolation.

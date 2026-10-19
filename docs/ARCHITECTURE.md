@@ -72,7 +72,7 @@ These constraints prevent silent regression-test deletion but cannot prove seman
 
 An inference lock serializes model requests across projects. Waiting jobs use `queued` and
 can be cancelled before a provider call. Recorded times measure actual request duration, not
-quality, token consumption, cost, or a model-ranking score. Calls have no automatic provider fallback.
+quality, token consumption, cost, or a model-ranking score. Calls use only explicitly configured fallback routes: service/output-limit failures can hand off to the next configured model; invalid-format correction remains bounded. Local fallback is optional, and cloud consent is required before cloud inference.
 
 Source writes prepare an entire new tree, swap directories, and preserve a pre-change checkpoint.
 If a swap fails, the previous source is restored. Startup can recover the old source if termination
@@ -84,7 +84,7 @@ private project data and should not be published. Credentials must be backed up 
 
 ## Verification in 0.4
 
-Test files with test methods must import app.py rather than redefining application handlers.
+Test files with test methods must import actual project modules (app.py or a module such as db.py) rather than redefining application handlers.
 Static checks reject the exact copied-server/handle_request patterns found in the uploaded Notes
 App. Dynamic profiling requires at least one application function call during the test run;
 module import and class-definition execution do not count. This is a minimum test-quality check,
@@ -164,3 +164,10 @@ Automated pass with manual requirements sets review_required. The authenticated 
 accepts explicit booleans only after a successful run with matching source fingerprint. Human
 observations are exported separately. Source replacement, restore and new runs invalidate results.
 The two outcomes must not be conflated in UI or build reports.
+
+
+## Measured handoffs in 0.11
+
+Actual inference attempts additionally record a handoff version, system-plus-user character count, and SHA-256 request identity. This metadata contains no prompt text and is not a token estimate or secrecy guarantee. Optional fields preserve legacy state loading. The UI labels characters separately from actual provider-reported token usage.
+
+Production JSON serialization remains unchanged. `forge/handoffs.py::serialize_handoff` and `tests/benchmark_handoffs.py` contain evaluation-only lossless-format prototypes; they are not an automatic optimizer. The frozen eighteen-case dataset has labeled provenance and is not eighteen independent historical builds. See docs/status.md for measured proxy costs, rejected promotion decisions and unavailable live repair-success evidence. Source and evaluator changes still require reviewed commits.

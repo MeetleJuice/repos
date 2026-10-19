@@ -8,7 +8,7 @@ from forge import __version__, __release_notes__
 from forge.updates import REPOSITORY
 
 ROOT = Path(__file__).resolve().parent
-TOP = {".env.example", ".gitignore", ".gitattributes", "LICENSE", "README.md", "Start-Foundry.bat", "run.py", "bootstrap.py", "package.py"}
+TOP = {"AGENTS.md", ".env.example", ".gitignore", ".gitattributes", "LICENSE", "README.md", "Start-Foundry.bat", "run.py", "bootstrap.py", "package.py"}
 DIRECTORIES = {"forge", "docs", "tests", "examples", ".github"}
 
 
