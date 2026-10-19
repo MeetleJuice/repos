@@ -9,6 +9,7 @@ import urllib.request
 import urllib.parse
 from typing import Any, cast
 
+from . import __version__
 from .routing import validate_options
 from .capabilities import PlannerBudget
 from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
@@ -28,7 +29,7 @@ class ModelError(ValueError):
 
 def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[str, str] | None = None, timeout: float = 300) -> dict[str, Any]:
     body = None if payload is None else json.dumps(payload).encode()
-    req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", **(headers or {})})
+    req = urllib.request.Request(url, data=body, headers={"User-Agent": "IdeaFoundry/" + __version__ + " desktop-client", "Content-Type": "application/json", **(headers or {})})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
             data = response.read(2_000_001)

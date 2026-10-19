@@ -35,3 +35,5 @@ Read docs/status.md and the frozen dataset contract before changing the measured
 - If a task requests controller-owned documentation → supply the explicit file-ownership contract before coding, preserve the original approved task as data, and direct app-specific notes to APP-GUIDE.md. Never weaken protected-file or acceptance guards. Status animations must follow in-flight requests and clear on every exit; configured/catalogue/responded are different evidence states.
 
 - If presenting workflow progress → distinguish declared coverage, saved-task changes, static inspection, current automated evidence and current manual acceptance. Export-only .foundry metadata must remain outside app source and its manifest; never invent receipts for legacy tasks or silently replace browser model choices.
+
+- If a provider accepts the same saved key from another client but refuses urllib → compare request identity before rotating credentials. Use an honest named application User-Agent in the shared HTTP helper; test discovery and inference paths without exposing provider response bodies or secrets.

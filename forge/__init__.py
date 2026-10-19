@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.18.0"
+__version__ = "0.18.1"
 
-__release_notes__ = "Five-category workflow overview with declared feature coverage, ownership advisories, exact task-change receipts and source-bound verification facts. Fresh browsers restore persisted automatic model routes without inference. ZIP exports add a readable .foundry/DELIVERY.md guide while preserving app files, approvals and checks."
+__release_notes__ = "Fix Groq HTTP403 caused by the default Python request identity: shared provider HTTP requests now identify IdeaFoundry explicitly. Applies to catalogue checks and inference without changing keys, routes, approvals or project files. Based on a user-confirmed same-key 403/200 comparison."

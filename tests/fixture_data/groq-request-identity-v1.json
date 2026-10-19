@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "provenance": "User-run Windows PowerShell/Python comparison using the same private saved key and Groq /models endpoint; no key or raw response body supplied.",
+  "observed": {
+    "default_python_user_agent": 403,
+    "named_app_user_agent": 200
+  },
+  "reproduction": "Loopback server refuses Python-urllib identities and accepts named application requests. No live cloud requests in regression tests."
+}

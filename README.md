@@ -1,10 +1,17 @@
-# Idea Foundry 0.18.0
+# Idea Foundry 0.18.1
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.18.1 Groq connection fix
+
+Provider catalogue and generation requests now identify the app explicitly instead of using Python's
+default User-Agent. This addresses the same-key Groq comparison where Python default returned 403
+and a named app returned 200. Update/restart, then **Models → Set up models automatically** to recheck
+and include Groq. No key changes are needed for this request-identity issue. Generation quota is still separate.
 
 ## 0.18.0 five-category workflow
 
