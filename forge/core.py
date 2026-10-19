@@ -16,6 +16,7 @@ import uuid
 import zipfile
 from typing import Any, Callable
 
+from .workflow import workflow_snapshot, delivery_guide
 from .model_status import ModelStatus
 from .build_contract import generation_contract
 from .models import output_contract, ModelClient, ModelError
@@ -149,6 +150,10 @@ class Workbench:
             except (OSError, ValueError) as exc:
                 return {"schema":1, "project_id":ident, "records":[], "coverage":{"warning":str(exc), "complete_since_tracking_started":False}, "meaning":"History unavailable; app files preserved."}
 
+    def workflow(self, ident):
+        with self.lock:
+            return workflow_snapshot(self.load(ident),self.files(ident))
+
     def evidence(self, ident):
         with self.lock:
             return evidence_status(self.load(ident), self.files(ident))
@@ -190,6 +195,9 @@ class Workbench:
                           history_coverage=journal["coverage"])
             if (report.get("checks") or {}).get("passed") and not freshness["automated_evidence_current"]:
                 report["checks"] = {**report["checks"], "passed":False, "historical_passed":True, "evidence_current":False}
+            snapshot = workflow_snapshot(state,files)
+            report.update(workflow=snapshot, task_receipts=snapshot["task_receipts"], delivery_guide=delivery_guide(state,snapshot), export_metadata_files=["BUILD-REPORT.json","RUN-HISTORY.json",".foundry/DELIVERY.md"])
+            report["manifest_scope"] = "UTF-8 project entries only; export_metadata_files are metadata and excluded from this file manifest."
             return files, history.redact(report), journal
 
     def event(self, state, message, origin="controller"):
@@ -1081,6 +1089,7 @@ class Workbench:
                 if cancel.is_set():
                     raise InterruptedError("Build stopped. You can resume from the next unfinished task.")
                 task = state["plan"]["tasks"][index]
+                before_task = self.context_files(state["id"])
                 self.trace(state, "task_started", {"task":index+1, "title":task["title"]})
                 self.event(state, f'Task {index+1}: {task["title"]}')
                 self.generate_and_apply(state, {"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "frozen_tests": list(state.get("frozen_tests", {}))}, cancel)
@@ -1090,7 +1099,12 @@ class Workbench:
                 state["status"] = "building"
                 state.setdefault("milestones", []).append({"task": index + 1, "title": task["title"], "syntax_passed": True, "behavior_verified": False, "time": self.now()})
                 state["next_task"] = index + 1
-                self.trace(state, "task_saved", {"task":index+1, "syntax_passed":True, "behavior_verified":False})
+                after_task = self.context_files(state["id"])
+                changed = sorted(name for name in set(before_task)|set(after_task) if before_task.get(name)!=after_task.get(name))
+                receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":fingerprint(before_task),"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False}
+                state["task_receipts"]=[r for r in state.get("task_receipts",[]) if r["task"]!=index+1]+[receipt]
+                self.trace(state, "task_saved", receipt)
+                if not changed:self.event(state,"Task saved with no source changes. This is not evidence that its requested behavior was implemented.")
                 self.save(state)
                 if options.get("execute") and options.get("milestones", True) and task.get("check_indexes") and index + 1 < len(state["plan"]["tasks"]):
                     remaining_repairs = self._verify_milestone(state, task, index, options, cancel, remaining_repairs)

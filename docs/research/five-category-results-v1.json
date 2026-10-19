@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "version": "0.18.0",
+  "date": "2026-10-19",
+  "baseline": "8254bb4 / v0.17.0",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/python/cpython/3.13/Doc/library/os.rst",
+      "bytes": 205316,
+      "sha256": "1d54f83bb3f583e37bae07d820d16206cf02f4fb2ef281338635b4b7fd01ebe4"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/microsoft/playwright/main/docs/src/actionability.md",
+      "bytes": 6933,
+      "sha256": "461cf8141ebb28ef8867faf79d1d51a9c872d6cc3a19ddcdebfe777dbf19ca9c"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/w3c/aria-practices/main/content/patterns/disclosure/disclosure-pattern.html",
+      "bytes": 3523,
+      "sha256": "4bf2a34ce6ebae8ea48be053eed3c34a1cac1f56667901e1aeaae90881f7016d"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/huggingface/hub-docs/main/docs/inference-providers/index.md",
+      "bytes": 40900,
+      "sha256": "e23cb6bae92af209fabab5294bdcb33eade11a1586a9f290087a48e53de89cb1"
+    }
+  ],
+  "validation": {
+    "workflow_regressions": 8,
+    "focused_legacy_and_contract_tests": 38,
+    "strict_type_modules": 18,
+    "extracted_distribution": {
+      "tests": 307,
+      "seconds": 111.106,
+      "passed": true,
+      "browser_workflows": 6,
+      "browser_workflows_passed": true
+    }
+  },
+  "live_provider_generation": null,
+  "native_windows": null,
+  "quality_or_cost_improvement_measured": false,
+  "evidence_boundary": "Controlled regression and browser workflows; no live provider quality/cost benchmark."
+}

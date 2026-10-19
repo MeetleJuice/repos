@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.17.0",
+  "version": "0.18.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.17.0.zip",
-  "sha256": "b7d55e2db55b24bdf6ccc31eb06ee7dfc364d75683cbf178a954db6f262f7532",
-  "notes": "Build ownership contracts prevent documentation-task conflicts while preserving frozen checks. Rejected code gets one correction through another pooled model. Observed model health avoids recent hard failures; versioned role-selection preferences favour newer coding families. New top-right provider and installed-model status panel animates only active inference. Existing projects resume from saved tasks."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.18.0.zip",
+  "sha256": "7b0d229694218df00ef05434a5971632767a7ed9a85ecb97417ffd98e0b30977",
+  "notes": "Five-category workflow overview with declared feature coverage, ownership advisories, exact task-change receipts and source-bound verification facts. Fresh browsers restore persisted automatic model routes without inference. ZIP exports add a readable .foundry/DELIVERY.md guide while preserving app files, approvals and checks."
 }

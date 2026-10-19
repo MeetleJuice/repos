@@ -33,3 +33,5 @@ Read docs/status.md and the frozen dataset contract before changing the measured
 - If a pooled planner returns valid JSON with invalid proposal semantics → record schema_error, permit one focused correction per model, then advance without restarting failed models. Keep a bounded job-level attempt allowance and all existing approval/check gates. Automatic routes must use discovered IDs and disclose paid usage; catalogue success is not inference success.
 
 - If a task requests controller-owned documentation → supply the explicit file-ownership contract before coding, preserve the original approved task as data, and direct app-specific notes to APP-GUIDE.md. Never weaken protected-file or acceptance guards. Status animations must follow in-flight requests and clear on every exit; configured/catalogue/responded are different evidence states.
+
+- If presenting workflow progress → distinguish declared coverage, saved-task changes, static inspection, current automated evidence and current manual acceptance. Export-only .foundry metadata must remain outside app source and its manifest; never invent receipts for legacy tasks or silently replace browser model choices.

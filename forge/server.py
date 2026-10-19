@@ -182,7 +182,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                 runtime = runtime_diagnostics()
                 provider_info = connection_info()
                 local_info.update(provider_info.get("ollama",{}))
-                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
+                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:
@@ -194,6 +194,8 @@ def make_server(port=8765, workbench=None, credentials=None):
                 self.json(bench.present(ident))
                 return
             action = pieces[-1]
+            if action == "workflow" and not post:
+                self.json(bench.workflow(ident)); return
             if action == "history" and not post:
                 self.json(bench.history(ident))
                 return
@@ -210,6 +212,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                             archive.writestr("generated-app/" + name, content)
                         archive.writestr("generated-app/BUILD-REPORT.json", json.dumps(report, indent=2))
                         archive.writestr("generated-app/RUN-HISTORY.json", json.dumps(journal, indent=2))
+                        archive.writestr("generated-app/.foundry/DELIVERY.md", report["delivery_guide"])
                     self.send_bytes(200, stream.getvalue(), "application/zip", "generated-app.zip")
             elif post and action == "manual":
                 self.json(bench.record_manual(ident, body["results"], body.get("notes")))

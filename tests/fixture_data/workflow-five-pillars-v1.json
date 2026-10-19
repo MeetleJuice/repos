@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "baseline": "8254bb4 / v0.17.0",
+  "provenance": "Synthetic process evidence regression, not live model outcomes.",
+  "cases": [
+    "fresh browser restores persisted automatic model route without inference",
+    "ownership conflicts visible before approval without rewriting plan",
+    "task receipt records exact before/after hashes and changed files",
+    "stale manual evidence is never counted as current acceptance",
+    "ZIP handoff guide states unverified output honestly and preserves source manifest"
+  ]
+}

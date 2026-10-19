@@ -8,6 +8,7 @@ from typing import Any, Literal
 from urllib.parse import urlsplit
 
 from .evidence import validate_evidence
+from .workflow import ownership_warnings
 
 Plan = dict[str, Any]
 
@@ -177,6 +178,8 @@ def review_plan(plan: Plan, starter: str | None = None) -> Review:
         json.dumps(plan, allow_nan=False)
     except (ValueError, TypeError) as exc:
         return Review((Finding('structure', '/', str(exc)),))
+    for warning in ownership_warnings(plan):
+        findings.append(Finding("controller_owned_reference", "/tasks/"+str(warning["task"]-1), warning["message"]+" Files: "+", ".join(warning["files"]), "warning"))
     contracts = starter_contracts(starter)
     declared = plan.get('api_contracts', [])
     if not isinstance(declared, list) or len(declared) > 30:

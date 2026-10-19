@@ -232,6 +232,12 @@
             ><button id="next-models" class="quiet">Choose models</button>
           </div>
         </div>
+        <details id="workflow-overview" class="workflow-overview">
+          <summary>Your project from idea to delivery · <span id="workflow-summary">Loading facts…</span></summary>
+          <div id="workflow-categories" class="workflow-grid"></div>
+          <details><summary>Declared feature coverage</summary><p>These mappings are the proposal's claims, not proof that features work.</p><ul id="workflow-coverage"></ul></details>
+          <details><summary>File ownership and saved task changes</summary><p id="workflow-warnings"></p><ul id="workflow-receipts"></ul><p>Older saved tasks may have no change receipt. Check the build journal for their history.</p></details>
+        </details>
         <div class="tabs" role="tablist" aria-label="Project panels">
           <button
             class="selected"

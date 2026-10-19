@@ -171,6 +171,7 @@ function render() {
   if (!current) return;
   const p = current,
     busy = activeStatuses.has(p.status);
+  refreshWorkflow(p.id);
   $("breadcrumb").textContent = p.title;
   $("project-title").textContent = p.title;
   $("project-summary").textContent = p.plan?.summary || p.idea;
@@ -477,6 +478,17 @@ async function connections() {
   const info = await api("/api/connections");
   if (sequence !== connectionSequence) return;
   lastConnectionInfo = info;
+  // Restore server-persisted automatic defaults in a fresh browser, without inference.
+  if (!localStorage.getItem("foundry-models") && info.automatic_routes?.planner && info.automatic_routes?.coder) {
+    const profile = info.automatic_routes;
+    for (const role of ["planner", "coder"]) {
+      $(role+"-provider").value = profile[role].provider;
+      $(role+"-model").value = profile[role].model;
+      fillModelSettings(role,"",profile[role]);
+    }
+    localStorage.setItem("foundry-models",JSON.stringify(profile));
+    updateCloud();
+  }
   if (typeof renderCloudSetup === "function") renderCloudSetup(info);
   runtimeStatus = info.docker;
   updateRuntime();
@@ -1255,3 +1267,39 @@ async function refreshModelStatus() {
 }
 refreshModelStatus();
 setInterval(refreshModelStatus, 1000);
+
+
+let workflowRequest = 0;
+async function refreshWorkflow(id) {
+  const sequence = ++workflowRequest;
+  try {
+    const data = await api("/api/projects/"+id+"/workflow");
+    if (sequence !== workflowRequest || current?.id !== id) return;
+    $("workflow-summary").textContent = data.next_step;
+    $("workflow-categories").replaceChildren();
+    for (const category of data.categories) {
+      const card=document.createElement("article"); card.className="workflow-card";
+      const title=document.createElement("h4");title.textContent=category.name;
+      const state=document.createElement("strong");state.textContent=category.state;
+      const detail=document.createElement("p");detail.textContent=category.detail;
+      const action=document.createElement("button");action.className="quiet";action.textContent="Open";
+      action.setAttribute("aria-label","Open "+category.name);
+      action.onclick=()=>category.action==="models" ? $("connections-button").click() : tab(category.action);
+      card.append(title,state,detail,action);$("workflow-categories").append(card);
+    }
+    $("workflow-coverage").replaceChildren();
+    for (const row of data.coverage) {
+      const item=document.createElement("li");
+      item.textContent=row.feature+" — tasks "+(row.tasks.join(", ")||"missing")+"; HTTP "+row.checks.length+", browser "+row.browser_checks.length+", manual "+row.manual_checks.length+" declared checks";
+      $("workflow-coverage").append(item);
+    }
+    $("workflow-warnings").textContent=data.ownership_warnings.map(w=>"Task "+w.task+": "+w.files.join(", ")+". "+w.message).join("\n") || "No protected file references found in task text.";
+    $("workflow-receipts").replaceChildren();
+    for (const receipt of data.task_receipts) {
+      const item=document.createElement("li");item.textContent="Task "+receipt.task+": "+(receipt.changed_files.join(", ")||"no source changes")+". Behavioral verification is separate.";
+      $("workflow-receipts").append(item);
+    }
+  } catch (error) {
+    if (sequence===workflowRequest && current?.id===id) $("workflow-summary").textContent="Workflow facts unavailable: "+error.message;
+  }
+}

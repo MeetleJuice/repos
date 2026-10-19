@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.17.0"
+__version__ = "0.18.0"
 
-__release_notes__ = "Build ownership contracts prevent documentation-task conflicts while preserving frozen checks. Rejected code gets one correction through another pooled model. Observed model health avoids recent hard failures; versioned role-selection preferences favour newer coding families. New top-right provider and installed-model status panel animates only active inference. Existing projects resume from saved tasks."
+__release_notes__ = "Five-category workflow overview with declared feature coverage, ownership advisories, exact task-change receipts and source-bound verification facts. Fresh browsers restore persisted automatic model routes without inference. ZIP exports add a readable .foundry/DELIVERY.md guide while preserving app files, approvals and checks."
