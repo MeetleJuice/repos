@@ -1,0 +1,24 @@
+[
+  {
+    "version": "0.18.1",
+    "scope": "controlled fixture replay; not a live model trial",
+    "unchanged_echo": {
+      "status": "error",
+      "saved_tasks": 0,
+      "readme_preserved": true,
+      "error": "Model attempted to modify frozen documentation or acceptance checks: README.md. These are controller-owned. Put app-specific documentation in APP-GUIDE.md."
+    },
+    "slow_body": "accepted at simulated 18s"
+  },
+  {
+    "version": "0.19.0",
+    "scope": "controlled fixture replay; not a live model trial",
+    "unchanged_echo": {
+      "status": "generated",
+      "saved_tasks": 1,
+      "readme_preserved": true,
+      "error": null
+    },
+    "slow_body": "transport at simulated 12s"
+  }
+]

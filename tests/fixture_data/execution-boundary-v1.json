@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "baseline": "a9da611 / v0.18.1",
+  "provenance": "Synthetic cases derived from supplied Josh log; raw rejected responses and generated app files were not supplied.",
+  "observed_failures": [
+    "README.md protection rejection after ownership guidance",
+    "70000 character total budget rejection",
+    "slow body/response delivery exceeding configured socket timeout in elapsed attempt log",
+    "batch-labelled model selected for synchronous route"
+  ],
+  "gates": [
+    "original proposal and task preserved",
+    "changed protected artifacts always rejected",
+    "only exact unchanged echoes may be ignored with explicit accounting",
+    "stream response deadline checked between reads without background threads",
+    "batch models excluded from automatic selection"
+  ]
+}

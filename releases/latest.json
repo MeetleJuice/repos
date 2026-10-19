@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.18.1",
+  "version": "0.19.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.18.1.zip",
-  "sha256": "0ff209b82ab40af80ee3ad52f7e1f69f4310788c464229606ed2edb0d26a7fb3",
-  "notes": "Fix Groq HTTP403 caused by the default Python request identity: shared provider HTTP requests now identify IdeaFoundry explicitly. Applies to catalogue checks and inference without changing keys, routes, approvals or project files. Based on a user-confirmed same-key 403/200 comparison."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.19.0.zip",
+  "sha256": "7969034da6e33127898732ea6ba7a0b9332ac6a27d11c2236fba9cf5846bd00c",
+  "notes": "Execution boundary reliability: explicit approved-task instructions and full snapshot budgets, unchanged protected-echo recovery, elapsed response-read guard, synchronous model filtering, modular activity/workflow UI and repeatable validation tooling. Frozen checks, approvals, keys and project data preserved."
 }

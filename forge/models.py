@@ -3,6 +3,7 @@ import json
 import re
 import hashlib
 import http.client
+import time
 import os
 import urllib.error
 import urllib.request
@@ -10,6 +11,8 @@ import urllib.parse
 from typing import Any, cast
 
 from . import __version__
+from .http_io import read_bounded, ResponseTooLarge
+from .build_contract import execution_directive
 from .routing import validate_options
 from .capabilities import PlannerBudget
 from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
@@ -28,17 +31,18 @@ class ModelError(ValueError):
 
 
 def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[str, str] | None = None, timeout: float = 300) -> dict[str, Any]:
+    deadline = time.monotonic() + timeout
     body = None if payload is None else json.dumps(payload).encode()
     req = urllib.request.Request(url, data=body, headers={"User-Agent": "IdeaFoundry/" + __version__ + " desktop-client", "Content-Type": "application/json", **(headers or {})})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as response:
-            data = response.read(2_000_001)
-            if len(data) > 2_000_000:
-                raise ModelError("Model response exceeded 2 MB; use smaller tasks.", "size")
+            data = read_bounded(response,deadline)
             parsed = json.loads(data)
             if not isinstance(parsed, dict):
                 raise ModelError("Provider response must be a JSON object.")
             return parsed
+    except ResponseTooLarge:
+        raise ModelError("Model response exceeded 2 MB; use smaller tasks.", "size") from None
     except urllib.error.HTTPError as exc:
         # Provider bodies can echo submitted content. Do not leak them or API keys.
         raw_retry = exc.headers.get('Retry-After', '') if exc.headers else ''
@@ -47,6 +51,8 @@ def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[
             exc.close()
         category = "rate_limit" if exc.code == 429 else "auth" if exc.code in {401, 403} else "quota" if exc.code == 402 else "model" if exc.code == 404 else "request" if exc.code == 400 else "provider"
         raise ModelError(f"Provider returned HTTP {exc.code}. Check the key, model access, quota and service availability.", category, retry) from None
+    except TimeoutError as exc:
+        raise ModelError("Model request timed out or exceeded its elapsed response-read budget. Trying another configured model may help.", "transport") from exc
     except (OSError, http.client.HTTPException) as exc:
         raise ModelError("Cannot reach the model service. Check that Ollama is running or that the selected API is reachable.", "transport") from exc
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
@@ -119,6 +125,8 @@ class ModelClient:
         complete_recovery = system == CODE and json.loads(prompt).get("response_mode") == "complete_files"
         if complete_recovery:
             messages[0]["content"] += "\nRESPONSE RECOVERY: Return a nonempty files object containing COMPLETE changed source files and optional summary. Do not return edits, diffs or ellipses. Read the current source in the request. This recovery requirement overrides the earlier preference for exact edits."
+        if system == CODE and (directive := execution_directive(json.loads(prompt))):
+            messages.append({"role":"user","content":directive})
         self.last_metadata.update(input_characters=sum(len(m['content']) for m in messages),
                                   effective_request_sha256=hashlib.sha256(json.dumps(messages).encode()).hexdigest())
         if self.provider == "gemini" and self.planner_budget and (system == PLAN or self.planner_budget.thinking_budget > 0):

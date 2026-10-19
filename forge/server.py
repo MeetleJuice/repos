@@ -111,7 +111,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
                 elif path == "/icon.png":
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "image/png")
-                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/style.css"}:
+                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/activity.js", "/workflow.js", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
                     self.json({"error": "Not found."}, 404)

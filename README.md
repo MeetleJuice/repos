@@ -1,10 +1,14 @@
-# Idea Foundry 0.18.1
+# Idea Foundry 0.19.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.19.0 execution reliability
+
+Explicit task instructions and merged-project budgets help models finish bounded tasks. Exact unchanged protected-file echoes can be ignored safely; changed protected files still reject. Incremental response reads check elapsed budgets, batch-labelled models leave automatic routes, and workflow polling preserves unchanged interface nodes. [Full five-category audit](docs/upgrade-0.19.0.md).
 
 ## 0.18.1 Groq connection fix
 
@@ -438,3 +442,9 @@ Research and the feature decisions are documented in [RESEARCH.md](docs/RESEARCH
 ## License
 
 MIT. This implementation does not include code from the researched projects.
+
+### v0.19.0: execution reliability
+
+[Five-category audit and upgrade details](docs/upgrade-0.19.0.md) explain the final-task ownership fixes, full-project budgets, bounded response reads and modular workflow UI. Existing projects and consent gates remain intact. Run automatic model setup again to refresh old routes and remove batch-labelled candidates, then resume a saved build.
+
+For developers: `python tools/validate.py` runs the full suite. Add `--types` (mypy 1.18.2), `--browser` (Playwright 1.56.0 plus Chromium), or `--package` (extract and test the ZIP). Optional tools are not runtime dependencies. These commands do not publish releases.

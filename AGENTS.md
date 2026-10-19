@@ -37,3 +37,6 @@ Read docs/status.md and the frozen dataset contract before changing the measured
 - If presenting workflow progress → distinguish declared coverage, saved-task changes, static inspection, current automated evidence and current manual acceptance. Export-only .foundry metadata must remain outside app source and its manifest; never invent receipts for legacy tasks or silently replace browser model choices.
 
 - If a provider accepts the same saved key from another client but refuses urllib → compare request identity before rotating credentials. Use an honest named application User-Agent in the shared HTTP helper; test discovery and inference paths without exposing provider response bodies or secrets.
+
+- If a generated response echoes a protected artifact → ignore only exact current snapshot text with explicit accounting; changed protected files must still fail atomically. Preserve original approved task data while supplying separate executable instructions and full merged-project character budgets.
+- If enforcing a provider timeout → distinguish socket-operation timeout, between-read elapsed checks and hard cancellation. Never promise a whole-job deadline from a socket timeout or leave background requests running after a caller timeout. Exclude explicit batch-only IDs from automatic synchronous routes.

@@ -1,0 +1,22 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/python/cpython/3.13/Doc/library/http.client.rst",
+    "bytes": 23158,
+    "sha256": "2c13a237e52e0f7a9de7c797ff047afc4895da6ffbb6224255250637702a8176"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/python/cpython/3.13/Doc/library/socket.rst",
+    "bytes": 88145,
+    "sha256": "fa1ad5f48c9a9d9317a9502aacb068b73dbbdefb5894e61a59ae19838cf07bfe"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/microsoft/playwright/main/docs/src/actionability.md",
+    "bytes": 6933,
+    "sha256": "461cf8141ebb28ef8867faf79d1d51a9c872d6cc3a19ddcdebfe777dbf19ca9c"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/OpenRouterTeam/typescript-sdk/main/README.md",
+    "bytes": 6719,
+    "sha256": "3c911c1f989444d8115407e1b6ccff80a67c8581a973c0e133c6261c380c77bd"
+  }
+]

@@ -59,9 +59,10 @@ class HandoffTests(unittest.TestCase):
             bench=Workbench(Path(directory),models);state=state_for(bench)
             state.update(next_task=0,snapshots=[])
             payload={'files':{},'note':'项目'}
+            before_files=bench.files(state['id'])
             bench.generate_and_apply(state,payload,threading.Event())
             from forge.build_contract import generation_contract
-            self.assertEqual(models.raw,json.dumps(generation_contract(payload)))
+            self.assertEqual(models.raw,json.dumps(generation_contract(payload,before_files)))
             self.assertEqual({k:json.loads(models.raw)[k] for k in payload},payload)
             self.assertIn('\\u9879',models.raw)
             self.assertEqual(state['model_calls'][0]['handoff_version'],1)

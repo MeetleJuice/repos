@@ -18,7 +18,7 @@ from typing import Any, Callable
 
 from .workflow import workflow_snapshot, delivery_guide
 from .model_status import ModelStatus
-from .build_contract import generation_contract
+from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
 from .models import output_contract, ModelClient, ModelError
 from . import history, __version__
 from .reporting import OWNED, evidence_status, file_manifest
@@ -277,6 +277,7 @@ class Workbench:
                     state["status"] = previous
                     self.save(state)
                     self.event(state, "Requesting " + selected["provider"] + "/" + selected["model"] + " (route step " + str(index + 1) + "/" + str(len(choices)) + ").")
+                    budget_system=output_contract(system)+(execution_directive(json.loads(effective_prompt)) if system==CODE else "")
                     client = self.client_factory(selected["provider"], selected["model"])
                     if isinstance(client, ModelClient):
                         client.last_usage = {}
@@ -285,11 +286,11 @@ class Workbench:
                         if role in {'planner', 'coder'}:
                             try:
                                 reserve = registry.reserve if role == 'planner' else registry.reserve_builder
-                                budget = reserve(selected['provider'],selected['model'],client.options,output_contract(system)+prefix,effective_prompt)
+                                budget = reserve(selected['provider'],selected['model'],client.options,budget_system+prefix,effective_prompt)
                             except ValueError as exc:
                                 if role != 'planner': raise ModelError(str(exc),'output_budget') from None
                                 try:
-                                    budget = registry.reserve(selected['provider'],selected['model'],client.options,output_contract(system)+prefix,effective_prompt,compact=True)
+                                    budget = registry.reserve(selected['provider'],selected['model'],client.options,budget_system+prefix,effective_prompt,compact=True)
                                 except ValueError:
                                     raise ModelError(str(exc),'output_budget') from None
                                 if recovery_mode == 'initial':
@@ -855,7 +856,7 @@ class Workbench:
 
     def generate_and_apply(self, state, payload, cancel, repair=False):
         """One bounded correction for malformed code responses; rejected files never land."""
-        payload = generation_contract(payload)
+        payload = generation_contract(payload,self.files(state["id"]))
         for attempt in range(2):
             try:
                 response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel)
@@ -869,7 +870,13 @@ class Workbench:
                 try:
                     if attempt and (not isinstance(response, dict) or response.get("edits")):
                         raise ValueError("Response recovery requires complete changed files, not more exact edits.")
+                    response,ignored=remove_unchanged_owned_echoes(response,self.files(state["id"]))
                     self.apply(state, response, repair=repair)
+                    if ignored:
+                        state.setdefault("generation_stats",{}).setdefault("unchanged_owned_echoes",0)
+                        state["generation_stats"]["unchanged_owned_echoes"]+=len(ignored)
+                        self.trace(state,"unchanged_owned_echoes_ignored",{"files":ignored,"meaning":"Exact protected contents were not replaced; changed protected files are still rejected."})
+                        self.save(state)
                     return
                 except ValueError as exc:
                     if state.get("model_calls"):

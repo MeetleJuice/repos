@@ -39,6 +39,11 @@ def main():
                 page.locator('#workflow-overview > summary').click()
                 expect(page.locator('.workflow-card')).to_have_count(5)
                 expect(page.locator('#workflow-summary')).to_contain_text('Review the proposal')
+                # Repeated identical polls preserve nodes/focus; overlapping calls coalesce.
+                page.evaluate("window.workflowNode=document.querySelector('.workflow-card'); window.workflowCalls=0; window.realFetch=window.fetch; window.fetch=(...args)=>{if(String(args[0]).endsWith('/workflow'))window.workflowCalls++;return window.realFetch(...args)}")
+                page.evaluate("async()=>{await Promise.all([refreshWorkflow(current.id),refreshWorkflow(current.id)]);await refreshWorkflow(current.id)}")
+                assert page.evaluate("window.workflowCalls===2 && window.workflowNode===document.querySelector('.workflow-card')")
+
                 page.locator('#approve').click();page.locator('#runtime').select_option('local')
                 page.locator('#execution-consent').check();page.locator('#project-cloud-consent').check();page.locator('#repairs').select_option('0');page.locator('#verify').click()
                 expect(page.locator('#project-status')).to_have_text('verified',timeout=20000)

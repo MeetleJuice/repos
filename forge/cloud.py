@@ -91,7 +91,7 @@ class CloudSetup:
                 name = entry.get('name' if provider in {'gemini','cloudflare'} else 'id','')
                 if isinstance(name,str):
                     name = name.removeprefix('models/')
-                    if re.fullmatch(MODEL_ID,name) and not any(t in name.lower() for t in ('embed','whisper','tts','guard','image','audio','live','rerank','diffusion','flux')): ids.append(name)
+                    if re.fullmatch(MODEL_ID,name) and ':batch' not in name.lower() and not any(t in name.lower() for t in ('embed','whisper','tts','guard','image','audio','live','rerank','diffusion','flux')): ids.append(name)
             ids = sorted(set(ids))[:1200]
             chosen = self.selected.get(provider)
             if chosen not in ids:

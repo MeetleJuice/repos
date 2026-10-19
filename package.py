@@ -9,7 +9,7 @@ from forge.updates import REPOSITORY
 
 ROOT = Path(__file__).resolve().parent
 TOP = {"AGENTS.md", ".env.example", ".gitignore", ".gitattributes", "LICENSE", "README.md", "Start-Foundry.bat", "run.py", "bootstrap.py", "package.py"}
-DIRECTORIES = {"forge", "docs", "tests", "examples", ".github"}
+DIRECTORIES = {"forge", "docs", "tests", "examples", ".github", "tools"}
 
 
 def main():
