@@ -545,6 +545,9 @@ Generated files will appear here after approval.</pre
         Switch models to retry a difficult task. Approved requirements and files
         are kept. Cloud use still requires consent before inference.
       </p>
+      <button id="project-route-setup" type="button" class="secondary">
+        Choose checked cloud models and optional local fallback
+      </button>
       <form id="model-form">
         <div class="model-grid">
           <fieldset>
@@ -605,7 +608,26 @@ Generated files will appear here after approval.</pre
           content or prove generation quota. Choose models below, then apply the
           cloud route. Generation can incur API charges.
         </p>
+        <p>
+          Route order: Gemini → Groq → OpenRouter → optional Ollama. Skipped
+          providers receive no requests. Each configured model is tried at most
+          once per request. Service failures and output-limit failures hand off
+          to the next model; invalid JSON gets a bounded correction. Cloud
+          requests have a 120-second socket timeout.
+        </p>
         <div id="cloud-providers"></div>
+        <label for="cloud-local-model"
+          >Last resort: installed Ollama model (optional)</label
+        >
+        <select id="cloud-local-model">
+          <option value="">Disabled — cloud providers only</option>
+        </select>
+        <p>
+          Local fallback runs on your computer and may be slower or less
+          capable. It is used only when explicitly selected. Changing routes
+          preserves saved files and resumes unfinished tasks. Applying a route
+          does not grant cloud consent.
+        </p>
         <button id="cloud-new" class="primary" disabled>
           Use cloud for new projects
         </button>

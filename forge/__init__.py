@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.9.0"
+__version__ = "0.10.0"
 
-__release_notes__ = "Cloud-first studio: privately import/reload Desktop .env files, discover available models, and apply Gemini → Groq → OpenRouter failover to planning, building and repairs. Bounded service failover, rate-limit cooldowns, real provider/token reporting, and existing cloud/execution approval. Local models and saved projects remain available."
+__release_notes__ = "Resilient model routes: optional installed Ollama as the final fallback, handoff after output limits, 16K cloud output budgets, 120-second cloud socket timeout, and a shared checked-model setup from project settings. Saved projects and unfinished-task resume preserved."

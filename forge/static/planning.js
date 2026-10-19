@@ -173,7 +173,7 @@ window.addEventListener("DOMContentLoaded", () => {
         </select>
         <label for="${id}-fallback-model">Fallback model ID</label>
         <input id="${id}-fallback-model" disabled placeholder="Choose a provider first">
-        <p class="muted">Manual mode supports one fallback. Cloud-first mode supports two fallbacks. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
+        <p class="muted">Manual mode supports one fallback. Cloud-first mode supports three fallbacks, including optional Ollama. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
       details.append(controls);
       document
         .getElementById(id + "-model")
@@ -184,7 +184,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const output = document.getElementById(id + "-output");
         const previous = Number(output.value);
         output.replaceChildren();
-        for (const size of [1024, 2048, 4096, 8192]) {
+        for (const size of [1024, 2048, 4096, 8192, 16384]) {
           if (size >= Number(context.value)) continue;
           const option = document.createElement("option");
           option.value = size;

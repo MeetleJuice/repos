@@ -114,7 +114,7 @@ class ModelClient:
             result = request_json(base + "/chat/completions", {
                 "model": self.model, "messages": messages, "temperature": 0.2,
                 "max_tokens": self.options["num_predict"], "response_format": {"type": "json_object"},
-            }, {"Authorization": "Bearer " + key}, timeout=60)
+            }, {"Authorization": "Bearer " + key}, timeout=120)
             usage = result.get("usage", {})
             self.last_usage = {key: usage[key] for key in ("prompt_tokens", "completion_tokens") if isinstance(usage, dict) and type(usage.get(key)) is int and usage[key] >= 0}
             choices = result.get("choices")

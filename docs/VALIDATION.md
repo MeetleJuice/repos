@@ -326,3 +326,13 @@ proxy-blocked in this cloud environment and the user's real keys remain on their
 repository references were inspected. Account access, model support, generation quota, cost and
 live model quality must be checked locally; controlled fixtures establish routing mechanics and
 application execution, not a live-model success-rate or throughput benchmark.
+
+
+## 0.10.0 — Resilient model routes
+
+- Full standard-library suite: 203 tests passed on Linux Python 3.12 (98.841 seconds).
+- Strict mypy: nine typed modules passed.
+- Real Chromium cloud workflow passed, including private Notepad key import, checked catalogues, consent rejection, real generated-app HTTP/tests, route persistence, project-to-shared-model setup navigation, optional installed local fallback, 16384-token budget, unchanged approved plan/source, mobile layout and no JavaScript errors. Provider responses use controlled fixtures; no real API keys or paid inference were used.
+- Real Chromium update/runtime workflow passed: missing Docker messaging, explicit execution consent, actual verification, project search, protected export and update dialog.
+- New unit coverage proves truncated cloud output can reach an explicitly configured local model, each route step is attempted once, actual provider attempts are recorded, local choice survives preference reload, larger budgets validate, and disabling local fallback removes it. Existing format-correction, consent, cooldown, backup and legacy route checks remain enabled.
+- Native Windows and live provider model quality/quota remain untested here. Local inference hardware performance is not benchmarked. Longer socket timeout is not a wall-clock cancellation deadline.

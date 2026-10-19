@@ -22,6 +22,14 @@ function renderCloudSetup(info) {
     " " +
     (credentials.warnings || []).join(" ");
   $("cloud-providers").replaceChildren();
+  const local = $("cloud-local-model");
+  local.replaceChildren(new Option("Disabled — cloud providers only", ""));
+  for (const name of info.providers?.ollama?.models || []) {
+    if (!name.toLowerCase().includes("embed"))
+      local.append(new Option(name, name));
+  }
+  local.value = info.cloud_local_model || "";
+  local.disabled = !info.providers?.ollama?.connected;
   let available = 0;
   for (const provider of ["gemini", "groq", "openrouter"]) {
     const status = info.cloud?.[provider];
@@ -55,7 +63,7 @@ function renderCloudSetup(info) {
     limitLabel.textContent = "Maximum output tokens";
     const limit = document.createElement("select");
     limit.id = "cloud-limit-" + provider;
-    for (const n of [1024, 2048, 4096, 8192]) {
+    for (const n of [1024, 2048, 4096, 8192, 16384]) {
       const option = document.createElement("option");
       option.value = n;
       option.textContent = n;
@@ -127,7 +135,11 @@ async function applyCloud(project) {
       Number($("cloud-limit-" + p).value),
     ]),
   );
-  const profile = await api("/api/cloud/select", { models, limits });
+  const profile = await api("/api/cloud/select", {
+    models,
+    limits,
+    local_model: $("cloud-local-model").value,
+  });
   if (project) {
     if (!ident || current?.id !== ident)
       throw new Error("Open the intended project and apply again.");

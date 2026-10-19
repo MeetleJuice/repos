@@ -84,6 +84,19 @@ def main():
                 assert changed['coder']['fallbacks'][0]['options']['num_predict']==2048
                 assert changed['approved'] and changed['plan']==state['plan']
                 assert len(models.calls)==calls and bench.files(state['id'])==before
+                page.locator('#close-connections').click()
+                page.locator('#edit-models').click()
+                with patch('forge.server.connection_info',return_value={'ollama':{'connected':True,'configured':True,'models':['qwen2.5-coder:7b','nomic-embed-text:latest']}}):
+                    page.locator('#project-route-setup').click()
+                    expect(page.locator('#cloud-local-model option')).to_have_count(2)
+                    page.locator('#cloud-local-model').select_option('qwen2.5-coder:7b')
+                    page.locator('#cloud-limit-gemini').select_option('16384')
+                    page.locator('#cloud-project').click()
+                    expect(page.locator('#cloud-feedback')).to_contain_text('ollama/qwen2.5-coder:7b')
+                updated=bench.load(state['id'])
+                assert updated['coder']['fallbacks'][-1]['provider']=='ollama'
+                assert updated['coder']['options']['num_predict']==16384
+                assert bench.files(state['id'])==before and len(models.calls)==calls
                 page.set_viewport_size({'width':390,'height':844})
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
                 assert not errors,errors

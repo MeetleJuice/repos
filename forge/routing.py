@@ -1,4 +1,4 @@
-"""Validated model settings and a single explicit fallback, with no implicit providers."""
+"""Validated model settings and bounded explicit routes, with no implicit providers."""
 from __future__ import annotations
 
 from typing import Any, TypedDict
@@ -31,8 +31,8 @@ def validate_options(options: Any) -> ModelSettings:
     structured = options.get('structured_outputs', True)
     if type(context) is not int or context not in {4096, 8192, 16384, 32768}:
         raise ValueError('Ollama context must be 4096, 8192, 16384 or 32768.')
-    if type(output) is not int or output not in {1024, 2048, 4096, 8192} or output >= context:
-        raise ValueError('Output limit must be 1024/2048/4096/8192 and smaller than context.')
+    if type(output) is not int or output not in {1024, 2048, 4096, 8192, 16384} or output >= context:
+        raise ValueError('Output limit must be 1024/2048/4096/8192/16384 and smaller than context.')
     if type(structured) is not bool:
         raise ValueError('structured_outputs must be true or false.')
     return {'num_ctx': context, 'num_predict': output, 'structured_outputs': structured}
@@ -51,8 +51,8 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
         result['options'] = validate_options(config['options'])
     if 'fallbacks' in config:
         entries = config['fallbacks']
-        if not allow_fallback or 'fallback' in config or not isinstance(entries, list) or not 1 <= len(entries) <= 2:
-            raise ValueError('Choose either one legacy fallback or a flat list of one/two fallbacks.')
+        if not allow_fallback or 'fallback' in config or not isinstance(entries, list) or not 1 <= len(entries) <= 3:
+            raise ValueError('Choose either one legacy fallback or a flat list of one to three fallbacks.')
         chain = [validate_config(entry, allow_fallback=False) for entry in entries]
         identities = [(provider, model.strip()), *((entry['provider'], entry['model']) for entry in chain)]
         if len(set(identities)) != len(identities):

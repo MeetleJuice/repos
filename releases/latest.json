@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.9.0",
+  "version": "0.10.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.9.0.zip",
-  "sha256": "b2391e20c64e8db775d62620f18aa8418bf82550d93f5978bc74be2ed75d32c8",
-  "notes": "Cloud-first studio: privately import/reload Desktop .env files, discover available models, and apply Gemini \u2192 Groq \u2192 OpenRouter failover to planning, building and repairs. Bounded service failover, rate-limit cooldowns, real provider/token reporting, and existing cloud/execution approval. Local models and saved projects remain available."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.10.0.zip",
+  "sha256": "5d3a2037799ed16e5b0aaf3f3b3b0cd3106878b7a368b48a84a051bc1653f181",
+  "notes": "Resilient model routes: optional installed Ollama as the final fallback, handoff after output limits, 16K cloud output budgets, 120-second cloud socket timeout, and a shared checked-model setup from project settings. Saved projects and unfinished-task resume preserved."
 }

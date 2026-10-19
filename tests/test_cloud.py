@@ -145,6 +145,29 @@ class PoolTests(unittest.TestCase):
             self.assertEqual([c['provider'] for c in state['model_calls'][-2:]],['gemini','openrouter'])
             self.assertEqual(len(models.calls),5)
 
+    def test_truncated_cloud_output_can_reach_explicit_local_fallback(self):
+        with tempfile.TemporaryDirectory() as temp:
+            models=ScriptedModels([ModelError('Limit','truncated'), ModelError('Offline','transport'), ModelError('Quota','quota'), PLAN])
+            bench=Workbench(Path(temp),models);state=state_for(bench)
+            state['coder']['fallbacks'].append({'provider':'ollama','model':'qwen2.5-coder:7b'})
+            validate_config(state['coder'])
+            self.assertEqual(bench.call_model(state,'coder','fixture','{}',threading.Event()),PLAN)
+            self.assertEqual([c['provider'] for c in state['model_calls']],['gemini','groq','openrouter','ollama'])
+            self.assertEqual(state['model_calls'][0]['error_category'],'truncated')
+            self.assertTrue(state['model_calls'][-1]['success'])
+
+    def test_cloud_profile_preserves_local_opt_in_and_large_budget(self):
+        with tempfile.TemporaryDirectory() as temp:
+            cloud=CloudSetup(temp)
+            cloud.checked={'gemini':{'status':'catalogue_available','models':['fixture']}}
+            profile=cloud.select({'gemini':'fixture'}, {'gemini':16384}, 'qwen2.5-coder:7b')
+            validate_config(profile['coder'])
+            self.assertEqual(profile['coder']['options']['num_predict'],16384)
+            self.assertEqual(profile['coder']['fallbacks'][-1]['provider'],'ollama')
+            self.assertEqual(CloudSetup(temp).profile('coder'),profile['coder'])
+            cloud.select({'gemini':'fixture'})
+            self.assertNotIn('fallbacks',cloud.profile('coder'))
+
     def test_format_errors_stay_in_correction_loop_not_service_failover(self):
         with tempfile.TemporaryDirectory() as temp:
             models=ScriptedModels([ModelError('Invalid JSON','format')]);bench=Workbench(Path(temp),models);state=state_for(bench)
@@ -161,7 +184,7 @@ class PoolTests(unittest.TestCase):
             created=bench.create('Create a local task tracker.',CHAIN,CHAIN,cloud_consent=True)
             state=await_job(bench,created['id'])
             self.assertEqual(state['status'],'error');self.assertEqual(len(models.calls),3)
-            self.assertIn('All configured cloud tiers',state['error'])
+            self.assertIn('All configured models',state['error'])
 
     def test_reported_tokens_are_kept_even_for_invalid_or_truncated_output(self):
         with tempfile.TemporaryDirectory() as temp,patch.dict(os.environ,KEYS),patch('forge.models.request_json',return_value={

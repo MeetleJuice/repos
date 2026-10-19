@@ -161,6 +161,7 @@ class Workbench:
                 try:
                     state["status"] = previous
                     self.save(state)
+                    self.event(state, "Requesting " + selected["provider"] + "/" + selected["model"] + " (route step " + str(index + 1) + "/" + str(len(choices)) + ").")
                     client = self.client_factory(selected["provider"], selected["model"])
                     if isinstance(client, ModelClient):
                         client.options = validate_options(selected.get("options", {}))
@@ -173,7 +174,7 @@ class Workbench:
                     record["error_category"] = exc.category
                     if exc.retry_after: record["retry_after_seconds"] = exc.retry_after
                     if pool:
-                        if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model"}:
+                        if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model", "truncated"}:
                             raise
                         failures.append(selected["provider"] + ": " + exc.category)
                         if exc.retry_after:
@@ -193,7 +194,7 @@ class Workbench:
                     state["model_calls"] = state["model_calls"][-100:]
                     self.save(state)
             if pool:
-                raise ModelError("All configured cloud tiers are unavailable: " + "; ".join(failures), "exhausted")
+                raise ModelError("All configured models failed: " + "; ".join(failures), "exhausted")
         finally:
             self.inference_lock.release()
 

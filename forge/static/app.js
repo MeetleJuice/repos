@@ -397,9 +397,11 @@ async function loadFiles() {
 }
 async function connections() {
   const sequence = ++connectionSequence;
-  document.querySelectorAll("#cloud-providers select").forEach((control) => {
-    control.disabled = true;
-  });
+  document
+    .querySelectorAll("#cloud-providers select, #cloud-local-model")
+    .forEach((control) => {
+      control.disabled = true;
+    });
   $("cloud-new").disabled = true;
   $("cloud-project").disabled = true;
   $("connection-list").textContent = "Checking connections…";
@@ -948,6 +950,11 @@ $("edit-models").onclick = handle(() => {
     fillModelSettings(role, "project-", current[role]);
   }
   $("models-dialog").showModal();
+});
+$("project-route-setup").onclick = handle(async () => {
+  $("models-dialog").close();
+  $("connections").showModal();
+  await connections();
 });
 $("close-models").onclick = () => $("models-dialog").close();
 $("model-form").onsubmit = handle(async () => {
