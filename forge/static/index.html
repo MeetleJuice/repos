@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="/style.css" />
     <script src="/planning.js" defer></script>
     <script src="/app.js" defer></script>
+    <script src="/cloud.js" defer></script>
     <script src="/updates.js" defer></script>
   </head>
   <body>
@@ -587,6 +588,32 @@ Generated files will appear here after approval.</pre
         Ollama runs on your computer. Optional API keys belong in your local
         <code>.env</code> file; restart the workbench after editing it.
       </p>
+      <section aria-labelledby="cloud-setup-title">
+        <h3 id="cloud-setup-title">Cloud-first studio</h3>
+        <p>
+          Choose your Desktop .env file (a Notepad .env.txt also works). It is
+          copied to your private Foundry workspace on this computer. Key values
+          are never shown or saved in projects.
+        </p>
+        <label for="cloud-env-file">Choose your API key file</label>
+        <input id="cloud-env-file" type="file" accept=".env,.txt,text/plain" />
+        <p id="cloud-env-status" role="status"></p>
+        <button id="cloud-reload" class="secondary">Reload local .env</button>
+        <button id="cloud-check" class="primary">Check cloud providers</button>
+        <p>
+          Checks read model catalogues using your keys. They do not send project
+          content or prove generation quota. Choose models below, then apply the
+          cloud route. Generation can incur API charges.
+        </p>
+        <div id="cloud-providers"></div>
+        <button id="cloud-new" class="primary" disabled>
+          Use cloud for new projects
+        </button>
+        <button id="cloud-project" class="secondary" disabled>
+          Use cloud for this project
+        </button>
+        <p id="cloud-feedback" role="status"></p>
+      </section>
       <div id="connection-list">Checking connections…</div>
       <p class="muted">
         Cloud key status means a key is present, not that the provider has

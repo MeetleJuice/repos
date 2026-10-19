@@ -292,3 +292,37 @@ expanded Chromium repair regression passed, including unchanged-code re-verifica
 failure notes. Seven typed modules pass strict mypy. No native Windows, hosted CI, or live-model
 compliance result is claimed. Final packaging changes only this validation document; all other
 ZIP entry hashes are compared with the tested artifact before publication.
+
+## Version 0.9.0 — cloud-first studio
+
+From a fresh ZIP validated/extracted by the real updater, all **201 automated tests** passed on
+Linux Python 3.12 in 99.395 seconds and native Linux Python 3.13 in 94.847 seconds. Fifteen new cloud
+regressions cover allowlisted/BOM/quoted/aliased dotenv parsing, process/workspace/launcher
+precedence, reload/removal, private atomic import with existing entries preserved, UTF-16 files,
+malformed-file startup recovery, checked catalogue profiles/caps/persistence, OpenRouter's
+separate authenticated key check, distinct flat chains, cloud consent, service failover/cooldowns,
+non-failover JSON correction, stop between tiers, exhausted-pool stopping, real loopback HTTP
+headers/max_tokens/usage, and reported tokens retained on invalid/truncated output without stale
+usage reuse. Fixture keys are used; no live account key or external generation request is needed.
+
+The extracted artifact's real Chromium test imports a UTF-16 Notepad .env.txt, checks controlled
+provider catalogues/key metadata, saves a three-tier profile, persists it across browser reload,
+and proves no inference occurs before cloud consent. Planning fails over Gemini → Groq →
+OpenRouter. Generation skips the cooling-down Gemini identity, fails over Groq → OpenRouter,
+and runs real generated-app HTTP acceptance, unittest and launch phases. It checks the actual
+provider ledger, planner fallback accounting, last-response label, saved route in model settings,
+application of a changed Groq token cap to an existing approved project with no source mutation
+or extra inference, missing-token rejection, secret-free metadata/HTML, and mobile layout.
+
+Existing real-browser planning/correction/fallback/context/consent, update/search/export/runtime,
+proposal import/reload, arcade gameplay/verification, and rejected shield-repair/evidence-retention
+regressions passed during the upgrade. Nine typed modules pass strict mypy. JavaScript syntax
+and git whitespace checks pass. ZIP allowlisting excludes local .env and workspace data.
+Final packaging changes only this validation document; code/UI/tests are hash-compared with the
+tested ZIP before publication. Previous published 0.8.0 and 0.8.1 archives remain immutable.
+
+No native Windows or hosted CI execution is claimed. Hosted provider endpoints/documentation were
+proxy-blocked in this cloud environment and the user's real keys remain on their PC. Official SDK
+repository references were inspected. Account access, model support, generation quota, cost and
+live model quality must be checked locally; controlled fixtures establish routing mechanics and
+application execution, not a live-model success-rate or throughput benchmark.

@@ -20,6 +20,7 @@ class ModelIdentity(TypedDict):
 class ModelConfig(ModelIdentity, total=False):
     options: ModelSettings
     fallback: dict[str, Any]
+    fallbacks: list[dict[str, Any]]
 
 
 def validate_options(options: Any) -> ModelSettings:
@@ -38,7 +39,7 @@ def validate_options(options: Any) -> ModelSettings:
 
 
 def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
-    if not isinstance(config, dict) or set(config) - {'provider', 'model', 'options', 'fallback'}:
+    if not isinstance(config, dict) or set(config) - {'provider', 'model', 'options', 'fallback', 'fallbacks'}:
         raise ValueError('Invalid model configuration.')
     provider, model = config.get('provider'), config.get('model')
     if provider not in PROVIDER_NAMES or not isinstance(model, str) or not model.strip() or len(model) > 200:
@@ -48,6 +49,15 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
     result: ModelConfig = {'provider': provider, 'model': model.strip()}
     if 'options' in config:
         result['options'] = validate_options(config['options'])
+    if 'fallbacks' in config:
+        entries = config['fallbacks']
+        if not allow_fallback or 'fallback' in config or not isinstance(entries, list) or not 1 <= len(entries) <= 2:
+            raise ValueError('Choose either one legacy fallback or a flat list of one/two fallbacks.')
+        chain = [validate_config(entry, allow_fallback=False) for entry in entries]
+        identities = [(provider, model.strip()), *((entry['provider'], entry['model']) for entry in chain)]
+        if len(set(identities)) != len(identities):
+            raise ValueError('Fallback identities must be distinct.')
+        result['fallbacks'] = [dict(entry) for entry in chain]
     if 'fallback' in config:
         if not allow_fallback:
             raise ValueError('Nested fallback chains are not supported.')
@@ -59,4 +69,4 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
 
 
 def uses_cloud(config: dict[str, Any]) -> bool:
-    return config.get('provider', 'ollama') != 'ollama' or bool(config.get('fallback') and uses_cloud(config['fallback']))
+    return config.get('provider', 'ollama') != 'ollama' or bool(config.get('fallback') and uses_cloud(config['fallback'])) or any(uses_cloud(entry) for entry in config.get('fallbacks', []))

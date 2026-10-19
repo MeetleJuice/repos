@@ -59,6 +59,7 @@ class Workbench:
         self.client_factory, self.verifier = client_factory, verifier
         self.lock = threading.RLock()
         self.inference_lock = threading.Lock()
+        self.provider_cooldowns = {}
         self.jobs = {}
         self.warnings = []
         self.maintenance = False
@@ -136,17 +137,27 @@ class Workbench:
                     raise InterruptedError("Stopped while waiting for a model.")
         try:
             config = state[role]
-            choices = [(config["fallback"], True)] if fallback else [(config, False)]
+            pool = bool(config.get("fallbacks"))
+            choices = [(config["fallback"], True)] if fallback and config.get("fallback") else [(config, False)]
             if not fallback and allow_fallback and config.get("fallback"):
                 choices.append((config["fallback"], True))
-            for selected, is_fallback in choices:
+            if pool and allow_fallback:
+                choices.extend((entry, True) for entry in config["fallbacks"])
+            failures = []
+            for index, (selected, is_fallback) in enumerate(choices):
                 if cancel.is_set():
                     raise InterruptedError("Stopped before model inference.")
                 if selected["provider"] != "ollama" and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
+                identity = (selected["provider"], selected["model"])
+                if pool and self.provider_cooldowns.get(identity, 0) > time.monotonic():
+                    failures.append(selected["provider"] + ": cooldown")
+                    self.event(state, "Skipping " + selected["provider"] + " during its temporary rate-limit cooldown.")
+                    continue
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
                           "fallback": is_fallback, "time": self.now(), "success": False}
                 started = time.monotonic()
+                client = None
                 try:
                     state["status"] = previous
                     self.save(state)
@@ -155,19 +166,34 @@ class Workbench:
                         client.options = validate_options(selected.get("options", {}))
                     result = client.complete(system, prompt)
                     record.update(success=True, **getattr(client, "last_usage", {}))
+                    if pool and is_fallback:
+                        self.event(state, "Response received from " + selected["provider"] + "/" + selected["model"] + ".")
                     return result
                 except ModelError as exc:
                     record["error_category"] = exc.category
+                    if exc.retry_after: record["retry_after_seconds"] = exc.retry_after
+                    if pool:
+                        if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model"}:
+                            raise
+                        failures.append(selected["provider"] + ": " + exc.category)
+                        if exc.retry_after:
+                            self.provider_cooldowns[identity] = time.monotonic() + exc.retry_after
+                        self.event(state, selected["provider"] + " request failed (" + exc.category + "). " + ("Trying the next configured tier." if index + 1 < len(choices) else "No more configured tiers."))
+                        continue
                     if is_fallback or not allow_fallback or not config.get("fallback"):
                         raise
                     if cancel.is_set():
                         raise InterruptedError("Stopped before fallback inference.")
                     self.event(state, "Primary model request failed (" + exc.category + "). Trying the explicitly configured fallback.")
                 finally:
+                    if client is not None:
+                        record.update(**getattr(client, "last_usage", {}))
                     record["seconds"] = round(time.monotonic() - started, 2)
                     state.setdefault("model_calls", []).append(record)
                     state["model_calls"] = state["model_calls"][-100:]
                     self.save(state)
+            if pool:
+                raise ModelError("All configured cloud tiers are unavailable: " + "; ".join(failures), "exhausted")
         finally:
             self.inference_lock.release()
 
@@ -709,6 +735,7 @@ class Workbench:
         previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint")} if retain_failures else None
         try:
             if action == "plan":
+                prior_model_records = list(state.get("model_calls", []))
                 self.event(state, "Planning with " + state["planner"]["provider"] + "/" + state["planner"]["model"])
                 revision = options.get("revision", "")
                 if not isinstance(revision, str) or len(revision) > 6000:
@@ -747,12 +774,12 @@ class Workbench:
 
                 result = PlanningEngine().run(
                     request,
-                    lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=False),
+                    lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=bool(state["planner"].get("fallbacks"))),
                     evaluate, report, lambda message: self.event(state, message), cancel,
                     has_fallback=bool(state["planner"].get("fallback")))
                 state.update(plan=result.plan, title=result.plan["title"], status="proposed",
                              plan_review=result.review.to_dict(),
-                             planning_stats={"attempts": result.attempts, "fallback_used": result.fallback_used})
+                             planning_stats={"attempts": result.attempts, "fallback_used": result.fallback_used or any(record.get("fallback") for record in state.get("model_calls", []) if id(record) not in {id(old) for old in prior_model_records})})
                 self.event(state, "Proposal ready. Consistency review passed; no generated code has run. Review the scope and acceptance checks before approval.")
                 return
             if state.get("baseline_plan") and "baseline_frozen_tests" not in state:

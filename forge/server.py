@@ -13,6 +13,8 @@ import zipfile
 
 from .core import Workbench, ACTIVE
 from .models import connection_info
+from .credentials import CredentialStore, parse_dotenv, read_dotenv
+from .cloud import CloudSetup
 from .routing import uses_cloud, validate_config
 from . import __version__
 from .storage import data_home, import_legacy, workspace_lock
@@ -23,18 +25,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_dotenv(path):
-    if path.exists():
-        for line in path.read_text(encoding="utf-8-sig").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            if key.strip() in {"OLLAMA_URL", "GROQ_API_KEY", "OPENROUTER_API_KEY", "GEMINI_API_KEY"}:
-                os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
+    if path.is_file():
+        for key, value in parse_dotenv(read_dotenv(path)).items():
+            if not os.getenv(key): os.environ[key] = value
 
 
-def make_server(port=8765, workbench=None):
+def make_server(port=8765, workbench=None, credentials=None):
     bench = workbench or Workbench(data_home(ROOT) / "projects")
+    roots = [ROOT]
+    if os.getenv("FOUNDRY_LAUNCH_ROOT"): roots.append(Path(os.environ["FOUNDRY_LAUNCH_ROOT"]))
+    credentials = credentials or CredentialStore(bench.root.parent, roots)
+    cloud = CloudSetup(bench.root.parent)
     token = secrets.token_urlsafe(32)
     updater = UpdateManager(bench.root.parent, ROOT, bench)
 
@@ -108,7 +109,7 @@ def make_server(port=8765, workbench=None):
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
                 elif path == "/icon.png":
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "image/png")
-                elif path in {"/app.js", "/planning.js", "/updates.js", "/style.css"}:
+                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
                     self.json({"error": "Not found."}, 404)
@@ -151,10 +152,24 @@ def make_server(port=8765, workbench=None):
                 else:
                     self.json(bench.list_projects())
                 return
+            if path in {"/api/cloud/import", "/api/cloud/reload", "/api/cloud/check", "/api/cloud/select"} and post:
+                if any(thread.is_alive() for thread, _ in bench.jobs.values()):
+                    raise ValueError("Finish or stop running jobs before changing cloud setup.")
+                if path.endswith('/import'):
+                    result = credentials.import_text(body.get('text'))
+                    cloud.checked = {}; bench.provider_cooldowns.clear()
+                    self.json(result); return
+                if path.endswith('/reload'):
+                    result = credentials.reload()
+                    cloud.checked = {}; bench.provider_cooldowns.clear()
+                    self.json(result); return
+                if path.endswith('/check'):
+                    self.json(cloud.check()); return
+                self.json(cloud.select(body.get('models'), body.get('limits'))); return
             if path == "/api/connections" and not post:
                 from .browser_runner import diagnostics
                 runtime = runtime_diagnostics()
-                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics()})
+                self.json({"providers": connection_info(), "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "cloud_limits": cloud.limits})
                 return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:
@@ -230,14 +245,12 @@ def main():
         with workspace_lock(home):
             migration_warnings = []
             imported = import_legacy(ROOT, home, migration_warnings)
-            load_dotenv(home / ".env")
-            load_dotenv(ROOT / ".env")
-            launch_root = os.getenv("FOUNDRY_LAUNCH_ROOT")
-            if launch_root:
-                load_dotenv(Path(launch_root) / ".env")
+            roots = [ROOT]
+            if os.getenv("FOUNDRY_LAUNCH_ROOT"): roots.append(Path(os.environ["FOUNDRY_LAUNCH_ROOT"]))
+            credentials = CredentialStore(home, roots)
             bench = Workbench(home / "projects")
             bench.warnings.extend(migration_warnings)
-            server = make_server(args.port, bench)
+            server = make_server(args.port, bench, credentials)
             print(f"Idea Foundry {__version__} is running locally on port {server.server_port}.\nOpen http://127.0.0.1:{server.server_port}\nYour workspace: {home}", flush=True)
             ready_file = os.getenv("FOUNDRY_READY_FILE")
             if ready_file:

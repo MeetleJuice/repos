@@ -1,5 +1,6 @@
 """Small provider adapter. No provider SDKs or automatic paid fallbacks."""
 import json
+import http.client
 import os
 import urllib.error
 import urllib.request
@@ -18,8 +19,9 @@ PROVIDERS = {
 
 
 class ModelError(ValueError):
-    def __init__(self, message: str, category: str = "format") -> None:
+    def __init__(self, message: str, category: str = "format", retry_after: int = 0) -> None:
         self.category = category
+        self.retry_after = retry_after
         super().__init__(message)
 
 
@@ -37,11 +39,13 @@ def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[
             return parsed
     except urllib.error.HTTPError as exc:
         # Provider bodies can echo submitted content. Do not leak them or API keys.
+        raw_retry = exc.headers.get('Retry-After', '') if exc.headers else ''
+        retry = min(300, int(raw_retry)) if len(raw_retry) <= 9 and raw_retry.isdigit() else 30 if exc.code == 429 else 0
         if exc.fp is not None:
             exc.close()
-        category = "rate_limit" if exc.code == 429 else "auth" if exc.code in {401, 403} else "provider"
-        raise ModelError(f"Provider returned HTTP {exc.code}. Check the model name, key, quota, and provider availability. If native Ollama schemas are unsupported, disable structured outputs in model settings.", category) from None
-    except (urllib.error.URLError, TimeoutError) as exc:
+        category = "rate_limit" if exc.code == 429 else "auth" if exc.code in {401, 403} else "quota" if exc.code == 402 else "model" if exc.code == 404 else "request" if exc.code == 400 else "provider"
+        raise ModelError(f"Provider returned HTTP {exc.code}. Check the key, model access, quota and service availability.", category, retry) from None
+    except (OSError, http.client.HTTPException) as exc:
         raise ModelError("Cannot reach the model service. Check that Ollama is running or that the selected API is reachable.", "transport") from exc
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise ModelError("Provider returned invalid JSON.", "format") from exc
@@ -80,6 +84,7 @@ class ModelClient:
         self.last_usage: dict[str, int] = {}
 
     def complete(self, system: str, prompt: str) -> dict[str, Any]:
+        self.last_usage = {}
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
         complete_recovery = system == CODE and json.loads(prompt).get("response_mode") == "complete_files"
         if complete_recovery:
@@ -92,24 +97,26 @@ class ModelClient:
                 "model": self.model, "messages": messages, "stream": False, "format": schema if self.options["structured_outputs"] else "json", "keep_alive": "5m",
                 "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": self.options["num_predict"]},
             })
+            self.last_usage = {label: result[key] for key, label in [("prompt_eval_count", "prompt_tokens"), ("eval_count", "completion_tokens")] if type(result.get(key)) is int and result[key] >= 0}
             if result.get("done_reason") == "length":
                 raise ModelError("Ollama reached the output limit. Use smaller tasks or increase the output limit within the context budget.", "truncated")
             message = result.get("message")
             if not isinstance(message, dict):
                 raise ModelError("Ollama did not return a chat message.")
             content = message.get("content", "")
-            self.last_usage = {label: result[key] for key, label in [("prompt_eval_count", "prompt_tokens"), ("eval_count", "completion_tokens")] if type(result.get(key)) is int and result[key] >= 0}
         else:
             base, variable = PROVIDERS[self.provider]
             if base is None or variable is None:
                 raise ModelError("Invalid cloud provider adapter.", "provider")
-            key = os.getenv(variable)
+            key = os.getenv(variable) or (os.getenv("OPENROUTER_KEY") if self.provider == "openrouter" else None)
             if not key:
                 raise ModelError(f"Set {variable} in your local .env file and restart. Never put keys in project prompts.", "auth")
             result = request_json(base + "/chat/completions", {
                 "model": self.model, "messages": messages, "temperature": 0.2,
                 "max_tokens": self.options["num_predict"], "response_format": {"type": "json_object"},
-            }, {"Authorization": "Bearer " + key})
+            }, {"Authorization": "Bearer " + key}, timeout=60)
+            usage = result.get("usage", {})
+            self.last_usage = {key: usage[key] for key in ("prompt_tokens", "completion_tokens") if isinstance(usage, dict) and type(usage.get(key)) is int and usage[key] >= 0}
             choices = result.get("choices")
             if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
                 raise ModelError("Provider did not return a chat completion.")
@@ -119,13 +126,11 @@ class ModelClient:
             if not isinstance(message, dict):
                 raise ModelError("Provider did not return a chat message.")
             content = message.get("content", "")
-            usage = result.get("usage", {})
-            self.last_usage = {key: usage[key] for key in ("prompt_tokens", "completion_tokens") if isinstance(usage, dict) and type(usage.get(key)) is int and usage[key] >= 0}
         return extract_json(content)
 
 
 def connection_info() -> dict[str, Any]:
-    info: dict[str, Any] = {p: {"configured": p == "ollama" or bool(os.getenv(v or "")), "key_variable": v} for p, (_, v) in PROVIDERS.items()}
+    info: dict[str, Any] = {p: {"configured": p == "ollama" or bool(os.getenv(v or "") or p == "openrouter" and os.getenv("OPENROUTER_KEY")), "key_variable": v} for p, (_, v) in PROVIDERS.items()}
     try:
         data = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/tags", timeout=5)
         info["ollama"].update(connected=True, models=[m["name"] for m in data.get("models", [])])

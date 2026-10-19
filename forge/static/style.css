@@ -1691,3 +1691,9 @@ a:focus-visible {
     transition: none !important;
   }
 }
+
+#cloud-providers select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}

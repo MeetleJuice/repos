@@ -40,7 +40,7 @@ def main():
                 page.screenshot(path=str(artifacts / 'foundry-05-home.png'), full_page=True)
                 page.locator('#update-button').click()
                 page.locator('#check-update').click()
-                expect(page.locator('#update-status')).to_have_text('Version 0.8.2 is available.')
+                expect(page.locator('#update-status')).to_have_text('Version 0.9.1 is available.')
                 expect(page.locator('#install-update')).to_be_disabled()  # test server bypasses stable launcher
                 expect(page.locator('#update-history')).to_contain_text('Start-Foundry.bat')
                 page.screenshot(path=str(artifacts / 'foundry-05-update.png'), full_page=True)

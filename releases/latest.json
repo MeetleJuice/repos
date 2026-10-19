@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.8.1",
+  "version": "0.9.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.8.1.zip",
-  "sha256": "37cb6342612e31b47372ea4b1278469146e412c2e279b3a53ffd07e5589314c7",
-  "notes": "Repair-response recovery now switches a rejected exact edit to complete-file output with a required nonempty files schema. Failed or unchanged repairs retain saved observations when source is unchanged, so server-test success cannot erase the pending gameplay report."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.9.0.zip",
+  "sha256": "b2391e20c64e8db775d62620f18aa8418bf82550d93f5978bc74be2ed75d32c8",
+  "notes": "Cloud-first studio: privately import/reload Desktop .env files, discover available models, and apply Gemini \u2192 Groq \u2192 OpenRouter failover to planning, building and repairs. Bounded service failover, rate-limit cooldowns, real provider/token reporting, and existing cloud/execution approval. Local models and saved projects remain available."
 }

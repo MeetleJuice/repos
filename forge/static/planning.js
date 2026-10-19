@@ -1,5 +1,6 @@
 "use strict";
 // Proposal review and model settings are independent from source generation.
+const routePools = {};
 let reviewedProposal = null;
 let proposalReviewTimer = null;
 let proposalReviewSequence = 0;
@@ -23,18 +24,25 @@ function modelConfig(role, prefix = "") {
       provider: fallback.value,
       model: document.getElementById(id + "-fallback-model").value,
     };
+  if (routePools[id]?.length) {
+    config.fallbacks = routePools[id];
+    delete config.fallback;
+  }
   return config;
 }
 
 function cloudModel(config) {
   return (
     config.provider !== "ollama" ||
-    !!(config.fallback && cloudModel(config.fallback))
+    !!(config.fallback && cloudModel(config.fallback)) ||
+    (config.fallbacks || []).some(cloudModel)
   );
 }
 
 function fillModelSettings(role, prefix, config) {
   const id = prefix + role;
+  routePools[id] = config.fallbacks || [];
+  showPool(id);
   const context = document.getElementById(id + "-context");
   if (!context) return;
   context.value = config.options?.num_ctx || 16384;
@@ -144,7 +152,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const details = document.createElement("details");
       details.className = "model-advanced";
       const summary = document.createElement("summary");
-      summary.textContent = "Local settings & optional fallback";
+      summary.textContent = "Output settings & routing";
       details.append(summary);
       // This markup contains fixed application strings only, never project/model input.
       const controls = document.createElement("div");
@@ -154,6 +162,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <select id="${id}-context"><option>4096</option><option>8192</option><option selected>16384</option><option>32768</option></select>
         <label for="${id}-output">Maximum output tokens</label><select id="${id}-output"></select>
         <label class="check-line"><input id="${id}-structured" type="checkbox" checked>Use native Ollama JSON schema</label>
+        <p id="${id}-pool-label" class="muted"></p><button type="button" id="${id}-clear-pool" hidden>Use manual model settings</button>
         <label for="${id}-fallback-provider">Fallback provider · optional</label>
         <select id="${id}-fallback-provider">
           <option value="">None · use primary only</option>
@@ -164,7 +173,7 @@ window.addEventListener("DOMContentLoaded", () => {
         </select>
         <label for="${id}-fallback-model">Fallback model ID</label>
         <input id="${id}-fallback-model" disabled placeholder="Choose a provider first">
-        <p class="muted">One fallback at most. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
+        <p class="muted">Manual mode supports one fallback. Cloud-first mode supports two fallbacks. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
       details.append(controls);
       document
         .getElementById(id + "-model")
@@ -188,6 +197,11 @@ window.addEventListener("DOMContentLoaded", () => {
             : Math.min(8192, Number(context.value) / 2);
       };
       context.dispatchEvent(new Event("change"));
+      document.getElementById(id + "-clear-pool").onclick = () => {
+        routePools[id] = [];
+        showPool(id);
+        if (!prefix) updateCloud();
+      };
       document.getElementById(id + "-fallback-provider").onchange = () => {
         const enabled = !!document.getElementById(id + "-fallback-provider")
           .value;
@@ -223,3 +237,21 @@ window.addEventListener("DOMContentLoaded", () => {
     },
   );
 });
+
+function showPool(id) {
+  const label = document.getElementById(id + "-pool-label");
+  if (!label) return;
+  label.textContent = routePools[id]?.length
+    ? "Automatic service failover → " +
+      routePools[id].map((c) => c.provider + "/" + c.model).join(" → ")
+    : "";
+  document.getElementById(id + "-clear-pool").hidden = !routePools[id]?.length;
+}
+function routeLabel(config) {
+  return [
+    config,
+    ...(config.fallbacks || (config.fallback ? [config.fallback] : [])),
+  ]
+    .map((c) => c.provider + "/" + c.model)
+    .join(" → ");
+}

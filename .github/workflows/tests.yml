@@ -29,7 +29,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         run: |
           python -m pip install mypy==1.18.2
-          python -m mypy --strict forge/contracts.py forge/planning.py forge/routing.py forge/schemas.py forge/models.py forge/evidence.py forge/edits.py
+          python -m mypy --strict forge/contracts.py forge/planning.py forge/routing.py forge/schemas.py forge/models.py forge/evidence.py forge/edits.py forge/cloud.py forge/credentials.py
 
   browser:
     runs-on: ubuntu-latest
@@ -40,6 +40,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install playwright==1.56.0
       - run: python -m playwright install --with-deps chromium
+      - run: python tests/browser_cloud_check.py
       - run: python tests/browser_arcade_check.py
       - run: python tests/browser_repair_check.py
       - run: python tests/browser_proposal_import_check.py

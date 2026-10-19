@@ -9,6 +9,8 @@ const activeStatuses = new Set([
   "queued",
 ]);
 let runtimeStatus = null;
+let lastConnectionInfo = null;
+let connectionSequence = 0;
 let current = null,
   lastPlan = "",
   fileCache = {},
@@ -261,6 +263,10 @@ function render() {
   if (p.generation_stats?.exact_edits_applied)
     $("model-usage").textContent +=
       ` ${p.generation_stats.exact_edits_applied} exact edits applied.`;
+  const lastResponse = (p.model_calls || []).filter((c) => c.success).at(-1);
+  if (lastResponse)
+    $("model-usage").textContent +=
+      ` Last response: ${lastResponse.provider}/${lastResponse.model}.`;
   const measured = (p.model_calls || []).filter(
     (c) =>
       Number.isInteger(c.prompt_tokens) ||
@@ -273,7 +279,7 @@ function render() {
     cloudModel,
   );
   $("model-label").textContent =
-    `Planner: ${p.planner.provider}/${p.planner.model}${p.planner.fallback ? ` (fallback: ${p.planner.fallback.provider}/${p.planner.fallback.model})` : ""} · Builder: ${p.coder.provider}/${p.coder.model}${p.coder.fallback ? ` (fallback: ${p.coder.fallback.provider}/${p.coder.fallback.model})` : ""}`;
+    `Planner: ${routeLabel(p.planner)} · Builder: ${routeLabel(p.coder)}`;
   document.querySelector(".project-cloud").hidden = ![p.planner, p.coder].some(
     cloudModel,
   );
@@ -390,8 +396,17 @@ async function loadFiles() {
     : "No generated files yet.";
 }
 async function connections() {
+  const sequence = ++connectionSequence;
+  document.querySelectorAll("#cloud-providers select").forEach((control) => {
+    control.disabled = true;
+  });
+  $("cloud-new").disabled = true;
+  $("cloud-project").disabled = true;
   $("connection-list").textContent = "Checking connections…";
   const info = await api("/api/connections");
+  if (sequence !== connectionSequence) return;
+  lastConnectionInfo = info;
+  if (typeof renderCloudSetup === "function") renderCloudSetup(info);
   runtimeStatus = info.docker;
   updateRuntime();
   $("connection-list").replaceChildren();
@@ -408,7 +423,11 @@ async function connections() {
           ? "Connected · " + p.models.join(", ")
           : "Not connected. Start Ollama, then check again."
         : p.configured
-          ? "API key present · connection not yet tested"
+          ? info.cloud?.[name]?.status === "catalogue_available"
+            ? "API key present · model catalogue access confirmed. Generation quota is checked when you run a job."
+            : info.cloud?.[name]
+              ? "API key present · last check: " + info.cloud[name].status
+              : "API key present · connection not yet tested"
           : `Optional · add ${p.key_variable} to .env`;
     div.append(strong, text);
     $("connection-list").append(div);
