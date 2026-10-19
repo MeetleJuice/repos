@@ -1,10 +1,16 @@
-# Idea Foundry 0.19.0
+# Idea Foundry 0.20.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.20.0 bounded task decomposition
+
+New plans request one outcome per task, up to three editable files, explicit earlier-task dependencies and completion criteria. Structured plans are validated before approval and their file scope is enforced before changes land. The final task integrates previous work instead of absorbing every missing feature. Task contracts appear in the UI, TASKS.md and saved receipts. [Process and compatibility details](docs/task-decomposition-0.20.0.md).
+
+Existing approved plans remain unchanged. Start a fresh project or revise an unapproved plan to test the new task format. Criteria are declarations; actual verification remains separate.
 
 ## 0.19.0 execution reliability
 

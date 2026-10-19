@@ -110,10 +110,11 @@ class CapabilityRegistry:
         if not isinstance(payload, dict): payload = {}
         proposals = [payload.get(k) for k in ('previous_proposal','existing_project','starter_example_plan')]
         valid_proposals: list[dict[str, Any]] = [p for p in proposals if isinstance(p,dict)]
-        tasks = max([4]+[len(p.get('tasks',[])) for p in valid_proposals if isinstance(p.get('tasks'),list)])
+        structured_tasks = payload.get('task_contract_version') == 1
+        tasks = max([8 if structured_tasks else 4]+[len(p.get('tasks',[])) for p in valid_proposals if isinstance(p.get('tasks'),list)])
         features = max([4]+[len(p.get('features',[])) for p in valid_proposals if isinstance(p.get('features'),list)])
         checks = max([8,features*2+2]+[len(p.get('checks',[])) for p in valid_proposals if isinstance(p.get('checks'),list)])
-        estimate = 512 + len(PLAN_SCHEMA['required'])*40 + min(tasks,40)*320 + min(checks,80)*240 + min(features,40)*100
+        estimate = 512 + len(PLAN_SCHEMA['required'])*40 + min(tasks,40)*(640 if structured_tasks else 320) + min(checks,80)*240 + min(features,40)*100
         thinking = cap.thinking_budget_default if cap.supports_thinking_budget else 0
         # Conservative heuristic (about two UTF-8 bytes/token), not a tokenizer
         # guarantee or billing measurement. Reserve schema/message framing too.

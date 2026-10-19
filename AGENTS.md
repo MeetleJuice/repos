@@ -40,3 +40,5 @@ Read docs/status.md and the frozen dataset contract before changing the measured
 
 - If a generated response echoes a protected artifact → ignore only exact current snapshot text with explicit accounting; changed protected files must still fail atomically. Preserve original approved task data while supplying separate executable instructions and full merged-project character budgets.
 - If enforcing a provider timeout → distinguish socket-operation timeout, between-read elapsed checks and hard cancellation. Never promise a whole-job deadline from a socket timeout or leave background requests running after a caller timeout. Exclude explicit batch-only IDs from automatic synchronous routes.
+
+- If changing task decomposition → preserve original approved plans and source; version new task contracts explicitly. Validate earlier-only dependencies, safe bounded file scope and concrete declared outcomes before approval. Enforce changed-file scope before replacement; do not absorb missing features into a final catch-all task. Saved dependencies/criteria are not behavioral test evidence. Any post-approval task-scope change requires a new reviewed plan.

@@ -19,6 +19,7 @@ from typing import Any, Callable
 from .workflow import workflow_snapshot, delivery_guide
 from .model_status import ModelStatus
 from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
+from .tasks import task_packet, validate_task_response, task_document
 from .models import output_contract, ModelClient, ModelError
 from . import history, __version__
 from .reporting import OWNED, evidence_status, file_manifest
@@ -720,7 +721,7 @@ class Workbench:
         guide += "\n\nVerification evidence is in BUILD-REPORT.json after export. A passing report covers the executed checks; it is not a guarantee of every possible behavior.\n"
         guide += "\n## Frozen proposal\n\n```json\n" + json.dumps(plan, indent=2) + "\n```\n"
         (source / "PROJECT.md").write_text(guide, encoding="utf-8")
-        (source / "TASKS.md").write_text("# Build tasks\n\n" + "\n".join(f'{i+1}. {t["title"]}\n   {t["instructions"]}' for i, t in enumerate(plan["tasks"])), encoding="utf-8")
+        (source / "TASKS.md").write_text(task_document(plan), encoding="utf-8")
         (source / "CHECKS.json").write_text(json.dumps(plan["checks"], indent=2), encoding="utf-8")
         if plan.get("browser_checks"):
             (source / "BROWSER-CHECKS.json").write_text(json.dumps(plan["browser_checks"], indent=2), encoding="utf-8")
@@ -871,6 +872,7 @@ class Workbench:
                     if attempt and (not isinstance(response, dict) or response.get("edits")):
                         raise ValueError("Response recovery requires complete changed files, not more exact edits.")
                     response,ignored=remove_unchanged_owned_echoes(response,self.files(state["id"]))
+                    validate_task_response(response,self.files(state["id"]),payload.get("task_packet"))
                     self.apply(state, response, repair=repair)
                     if ignored:
                         state.setdefault("generation_stats",{}).setdefault("unchanged_owned_echoes",0)
@@ -1004,7 +1006,7 @@ class Workbench:
                 if not isinstance(revision, str) or len(revision) > 6000:
                     raise ValueError("Revision must be under 6000 characters.")
                 state["last_revision"] = revision
-                request = {"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"],
+                request = {"task_contract_version":1,"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"],
                            "existing_project": state.get("baseline_plan"), "change_request": state.get("change_request"),
                            "implementation_context": planning_context(self.context_files(state["id"]), (state.get("change_request") or "") + " " + revision) if state.get("baseline_plan") else None,
                            "baseline_evidence": {"parent_id": state.get("parent_id"), "note": "The baseline proposal lists required features. It does not prove the copied code implements them. Use current source and the reported bug."} if state.get("baseline_plan") else None,
@@ -1099,7 +1101,7 @@ class Workbench:
                 before_task = self.context_files(state["id"])
                 self.trace(state, "task_started", {"task":index+1, "title":task["title"]})
                 self.event(state, f'Task {index+1}: {task["title"]}')
-                self.generate_and_apply(state, {"proposal": state["plan"], "current_task": task, "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "frozen_tests": list(state.get("frozen_tests", {}))}, cancel)
+                self.generate_and_apply(state, {"proposal": state["plan"], "current_task": task, "task_packet":task_packet(state["plan"],index,state["next_task"]), "is_final_task": index == len(state["plan"]["tasks"]) - 1, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "frozen_tests": list(state.get("frozen_tests", {}))}, cancel)
                 remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
                 if remaining_repairs is None:
                     return
@@ -1108,7 +1110,7 @@ class Workbench:
                 state["next_task"] = index + 1
                 after_task = self.context_files(state["id"])
                 changed = sorted(name for name in set(before_task)|set(after_task) if before_task.get(name)!=after_task.get(name))
-                receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":fingerprint(before_task),"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False}
+                receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":fingerprint(before_task),"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False,"task_packet":task_packet(state["plan"],index,index)}
                 state["task_receipts"]=[r for r in state.get("task_receipts",[]) if r["task"]!=index+1]+[receipt]
                 self.trace(state, "task_saved", receipt)
                 if not changed:self.event(state,"Task saved with no source changes. This is not evidence that its requested behavior was implemented.")

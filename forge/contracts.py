@@ -9,6 +9,7 @@ from urllib.parse import urlsplit
 
 from .evidence import validate_evidence
 from .workflow import ownership_warnings
+from .tasks import MAX_TASKS, validate_tasks
 
 Plan = dict[str, Any]
 
@@ -37,12 +38,13 @@ def validate_structure(plan: dict[str, Any]) -> dict[str, Any]:
         if missing:
             raise ValueError(f"Every feature needs {label} coverage. Missing feature indexes: {sorted(missing)}.")
     tasks = plan.get("tasks")
-    if not isinstance(tasks, list) or not 1 <= len(tasks) <= 8:
-        raise ValueError("Proposal must contain 1–8 ordered tasks.")
+    if not isinstance(tasks, list) or not 1 <= len(tasks) <= MAX_TASKS:
+        raise ValueError("Proposal must contain 1–16 ordered tasks.")
     for task in tasks:
         if not isinstance(task, dict) or not all(isinstance(task.get(k), str) and 0 < len(task[k]) <= 6000 for k in ("title", "instructions")):
             raise ValueError("Each task needs a title and instructions.")
     coverage(tasks, "task")
+    validate_tasks(plan)
     checks = plan.get("checks")
     if not isinstance(checks, list) or not 1 <= len(checks) <= 15:
         raise ValueError("Proposal must contain 1–15 behavioral HTTP checks.")

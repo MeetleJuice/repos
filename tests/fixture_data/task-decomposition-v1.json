@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "baseline": "eda4cd9 / v0.19.0",
+  "provenance": "Synthetic decomposition invariants derived from supplied six-task Josh plan; not raw historical provider responses. Frozen after initial implementation, before full release validation.",
+  "cases": [
+    "four-file task rejected",
+    "forward/self dependency rejected",
+    "protected task file rejected",
+    "catch-all remaining-features task rejected",
+    "scope breach rejected atomically",
+    "focused correction finishes without changing approved plan",
+    "legacy proposal remains unchanged",
+    "structured task receipt persists across restart"
+  ],
+  "limits": {
+    "tasks": 16,
+    "files_per_task": 3,
+    "completion_criteria": 4,
+    "instructions_characters": 1800
+  }
+}

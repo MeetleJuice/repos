@@ -2,12 +2,13 @@
 INDEXES = {'type': 'array', 'items': {'type': 'integer'}}
 PLAN_SCHEMA = {
     'type': 'object',
-    'required': ['title', 'summary', 'features', 'out_of_scope', 'risks', 'tasks', 'checks', 'app_kind'],
+    'required': ['title', 'summary', 'features', 'out_of_scope', 'risks', 'tasks', 'checks', 'app_kind', 'task_contract_version'],
     'properties': {
+        'task_contract_version': {'type':'integer','enum':[1]},
         'title': {'type': 'string'}, 'summary': {'type': 'string'},
         **{key: {'type': 'array', 'items': {'type': 'string'}} for key in ['features', 'out_of_scope', 'risks']},
-        'tasks': {'type': 'array', 'items': {'type': 'object', 'required': ['title', 'instructions', 'feature_indexes'],
-                  'properties': {'title': {'type': 'string'}, 'instructions': {'type': 'string'}, 'feature_indexes': INDEXES, 'check_indexes': INDEXES}}},
+        'tasks': {'type': 'array', 'items': {'type': 'object', 'required': ['title', 'instructions', 'feature_indexes', 'outcome', 'files', 'depends_on', 'done_when'],
+                  'properties': {'title': {'type': 'string'}, 'instructions': {'type': 'string'}, 'outcome': {'type':'string'}, 'files': {'type':'array','items':{'type':'string'},'minItems':1,'maxItems':3}, 'depends_on': INDEXES, 'done_when': {'type':'array','items':{'type':'string'},'minItems':1,'maxItems':4}, 'feature_indexes': INDEXES, 'check_indexes': INDEXES}}},
         'checks': {'type': 'array', 'items': {'type': 'object', 'required': ['name', 'method', 'path', 'status', 'feature_indexes'],
                    'properties': {'name': {'type': 'string'}, 'method': {'type': 'string', 'enum': ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']},
                                   'path': {'type': 'string'}, 'status': {'type': 'integer'}, 'feature_indexes': INDEXES,

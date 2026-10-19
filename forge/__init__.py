@@ -1,5 +1,5 @@
 """Idea Foundry: a local idea-to-app workbench."""
 
-__version__ = "0.19.0"
+__version__ = "0.20.0"
 
-__release_notes__ = "Execution boundary reliability: explicit approved-task instructions and full snapshot budgets, unchanged protected-echo recovery, elapsed response-read guard, synchronous model filtering, modular activity/workflow UI and repeatable validation tooling. Frozen checks, approvals, keys and project data preserved."
+__release_notes__ = "Bounded task contracts: new planner schema includes outcomes, 1–3 editable files, earlier-task dependencies and completion criteria. Up to 16 focused tasks, dependency validation, atomic execution scope enforcement, explicit task packets and receipts. Remove the final-task catch-all instruction. Legacy approvals remain unchanged; tests and consent stay protected."

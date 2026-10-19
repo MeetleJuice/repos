@@ -226,6 +226,15 @@ function render() {
               t.check_indexes.map((n) => p.plan.checks[n]?.name || n).join(", ")
             : "");
         li.append(small);
+        const contract = document.createElement("small");
+        if (p.plan.task_contract_version === 1) {
+          contract.textContent = "Outcome: " + t.outcome + " · Files: " + t.files.join(", ") +
+            " · Needs: " + (t.depends_on.length ? t.depends_on.map(n => "Task " + (n+1)).join(", ") : "no earlier task") +
+            " · Done when: " + t.done_when.join("; ") + " · Criteria are declared, not verified.";
+        } else {
+          contract.textContent = "Legacy task: no approved file/dependency contract. Existing plan preserved.";
+        }
+        li.append(contract);
         return li;
       }),
     );

@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.19.0",
+  "version": "0.20.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.19.0.zip",
-  "sha256": "7969034da6e33127898732ea6ba7a0b9332ac6a27d11c2236fba9cf5846bd00c",
-  "notes": "Execution boundary reliability: explicit approved-task instructions and full snapshot budgets, unchanged protected-echo recovery, elapsed response-read guard, synchronous model filtering, modular activity/workflow UI and repeatable validation tooling. Frozen checks, approvals, keys and project data preserved."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.20.0.zip",
+  "sha256": "2dbf54d0853930718c720844354e01586fc72a8bd273fe1a82f9e8fe6e55818f",
+  "notes": "Bounded task contracts: new planner schema includes outcomes, 1\u20133 editable files, earlier-task dependencies and completion criteria. Up to 16 focused tasks, dependency validation, atomic execution scope enforcement, explicit task packets and receipts. Remove the final-task catch-all instruction. Legacy approvals remain unchanged; tests and consent stay protected."
 }

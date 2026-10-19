@@ -1,0 +1,20 @@
+[
+  {
+    "version": "0.19.0",
+    "scope": "synthetic provider replay, not live model evaluation",
+    "wide_cyclic_task": "accepted",
+    "status": "generated",
+    "outside_file_written": true,
+    "saved_tasks": 1,
+    "behavior_executed": false
+  },
+  {
+    "version": "0.20.0",
+    "scope": "synthetic provider replay, not live model evaluation",
+    "wide_cyclic_task": "rejected",
+    "status": "generated",
+    "outside_file_written": false,
+    "saved_tasks": 1,
+    "behavior_executed": false
+  }
+]

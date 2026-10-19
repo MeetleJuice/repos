@@ -1,0 +1,12 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/github/spec-kit/main/templates/tasks-template.md",
+    "sha256": "1e448e9153462e8c5b5a55231a54c756d870a82950d4dd9425a2bf5b7008a0d9",
+    "bytes": 9182
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/claude-code/main/plugins/feature-dev/README.md",
+    "sha256": "8dca1b27e026cab4b8bb8118709935b08fc27d2911efd9e1061b9836b534fbc1",
+    "bytes": 11697
+  }
+]
