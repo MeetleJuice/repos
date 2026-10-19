@@ -152,7 +152,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                 else:
                     self.json(bench.list_projects())
                 return
-            if path in {"/api/cloud/import", "/api/cloud/reload", "/api/cloud/check", "/api/cloud/select"} and post:
+            if path in {"/api/cloud/import", "/api/cloud/reload", "/api/cloud/check", "/api/cloud/select", "/api/cloud/automatic"} and post:
                 if any(thread.is_alive() for thread, _ in bench.jobs.values()):
                     raise ValueError("Finish or stop running jobs before changing cloud setup.")
                 if path.endswith('/import'):
@@ -165,6 +165,8 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.json(result); return
                 if path.endswith('/check'):
                     self.json(cloud.check()); return
+                if path.endswith('/automatic'):
+                    self.json(cloud.automatic(connection_info()['ollama'].get('models',[]))); return
                 local_model = body.get('local_model', '')
                 if local_model:
                     local = connection_info()['ollama']

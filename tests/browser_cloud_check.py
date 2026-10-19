@@ -30,7 +30,7 @@ def main():
                 page=browser.new_page(viewport={'width':1280,'height':1000});errors=[]
                 page.on('pageerror',lambda e:errors.append(str(e)))
                 page.goto(f'http://127.0.0.1:{server.server_port}')
-                page.locator('#connections-button').click()
+                page.locator('#connections-button').click();page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
                 expect(page.locator('#cloud-env-status')).to_contain_text('0/7 API keys')
                 content='\ufeffGEMINI_API_KEY=fixture-gemini\nGROQ_API_KEY=fixture-groq\nOPENROUTER_KEY=fixture-router\n'
                 page.locator('#cloud-env-file').set_input_files({'name':'.env.txt','mimeType':'text/plain','buffer':content.encode('utf-16le')})
@@ -76,7 +76,7 @@ def main():
                 info=page.request.get(f'http://127.0.0.1:{server.server_port}/api/connections',headers={'X-Foundry-Token':token}).text()
                 assert all(key not in info for key in KEYS.values())
                 before=bench.files(state['id']);calls=len(models.calls)
-                page.locator('#connections-button').click()
+                page.locator('#connections-button').click();page.locator('#cloud-advanced').evaluate('(e)=>e.open=true')
                 page.locator('#cloud-limit-groq').select_option('2048')
                 page.locator('#cloud-project').click()
                 expect(page.locator('#cloud-feedback')).to_contain_text('Cloud route applied')

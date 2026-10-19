@@ -178,7 +178,7 @@ window.addEventListener("DOMContentLoaded", () => {
         </select>
         <label for="${id}-fallback-model">Fallback model ID</label>
         <input id="${id}-fallback-model" disabled placeholder="Choose a provider first">
-        <p class="muted">Manual mode supports one fallback. Cloud-first mode supports seven cloud providers plus optional Ollama; arrange the route in Models. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
+        <p class="muted">Manual mode supports one fallback. Automatic setup discovers primary and alternate models across your providers and optional Ollama (up to 16 configurations). Manual routes remain available in Models. Cloud calls require your consent. Smaller contexts use less memory; they may not fit larger tasks.</p>`;
       details.append(controls);
       document
         .getElementById(id + "-model")

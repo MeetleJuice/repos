@@ -6,7 +6,7 @@ from typing import Any, TypedDict
 from .providers import PROVIDERS
 
 PROVIDER_NAMES = set(PROVIDERS)
-MAX_FALLBACKS = len(PROVIDERS) - 1
+MAX_FALLBACKS = 15
 
 
 class ModelSettings(TypedDict):
@@ -59,7 +59,7 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
     if 'fallbacks' in config:
         entries = config['fallbacks']
         if not allow_fallback or 'fallback' in config or not isinstance(entries, list) or not 1 <= len(entries) <= MAX_FALLBACKS:
-            raise ValueError('Choose either one legacy fallback or a flat list of one to seven fallbacks.')
+            raise ValueError('Choose either one legacy fallback or a flat list of one to fifteen fallbacks.')
         chain = [validate_config(entry, allow_fallback=False) for entry in entries]
         identities = [(provider, model.strip()), *((entry['provider'], entry['model']) for entry in chain)]
         if len(set(identities)) != len(identities):

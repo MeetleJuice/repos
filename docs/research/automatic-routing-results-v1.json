@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "version": "0.16.0",
+  "date": "2026-10-19",
+  "provenance": "Synthetic frozen replay of supplied failure classes; raw provider responses were unavailable.",
+  "before": {
+    "version": "0.15.0",
+    "status": "error",
+    "providers": [
+      "gemini",
+      "openrouter",
+      "gemini",
+      "openrouter"
+    ],
+    "approved": false,
+    "source_files": 0
+  },
+  "after": {
+    "version": "0.16.0",
+    "status": "proposed",
+    "providers": [
+      "gemini",
+      "openrouter",
+      "openrouter",
+      "nvidia"
+    ],
+    "approved": false,
+    "source_files": 0
+  },
+  "validation": {
+    "source_suite": {
+      "tests": 289,
+      "passed": true,
+      "seconds": 110.817
+    },
+    "strict_type_modules": 15,
+    "browser_workflows": {
+      "automatic_routing": true,
+      "seven_provider_setup": true,
+      "legacy_cloud": true,
+      "upgrade_history_export": true
+    },
+    "extracted_distribution": {
+      "tests": 289,
+      "seconds": 111.975,
+      "passed": true,
+      "browser_workflows": 4,
+      "browser_workflows_passed": true
+    }
+  },
+  "live_provider_generation": null,
+  "native_windows_run": null,
+  "quality_or_cost_improvement_measured": false
+}

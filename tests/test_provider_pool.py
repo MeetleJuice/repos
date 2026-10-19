@@ -75,7 +75,7 @@ class ProviderPoolTests(unittest.TestCase):
             self.assertFalse(next(c for c in chain if c['provider']=='requesty')['options']['structured_outputs'])
             saved=CloudSetup(d);self.assertEqual(saved.order,order);self.assertEqual(saved.timeouts['nvidia'],30)
             self.assertFalse(any(v in cloud.path.read_text() for v in ENV.values()))
-            with self.assertRaises(ValueError):validate_config({**profile['coder'],'fallbacks':profile['coder']['fallbacks']+[{'provider':'ollama','model':'extra'}]})
+            with self.assertRaises(ValueError):validate_config({**profile['coder'],'fallbacks':[{'provider':'ollama','model':'extra'+str(i)} for i in range(16)]})
 
     def test_invalid_orders_and_timeouts_are_rejected(self):
         with tempfile.TemporaryDirectory() as d:

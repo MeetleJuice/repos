@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "provenance": "Synthetic reproduction of user-reported 2026-10-19 Josh dashboard log; raw provider bodies were not supplied.",
+  "sequence": [
+    {
+      "provider": "gemini",
+      "category": "model"
+    },
+    {
+      "provider": "openrouter",
+      "response": {}
+    },
+    {
+      "provider": "openrouter",
+      "response": {}
+    },
+    {
+      "provider": "nvidia",
+      "response": "tests.fixtures.PLAN"
+    }
+  ],
+  "expected": {
+    "gemini_requests": 1,
+    "openrouter_requests": 2,
+    "nvidia_requests": 1,
+    "approval_required": true
+  }
+}

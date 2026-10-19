@@ -42,6 +42,7 @@ jobs:
       - run: python -m playwright install --with-deps chromium
       - run: python tests/browser_cloud_check.py
       - run: python tests/browser_provider_pool_check.py
+      - run: python tests/browser_automatic_routing_check.py
       - run: python tests/browser_arcade_check.py
       - run: python tests/browser_repair_check.py
       - run: python tests/browser_proposal_import_check.py

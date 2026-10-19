@@ -14,14 +14,14 @@ import threading
 import time
 import uuid
 import zipfile
-from typing import Any
+from typing import Any, Callable
 
-from .models import ModelClient, ModelError
+from .models import output_contract, ModelClient, ModelError
 from . import history, __version__
 from .reporting import OWNED, evidence_status, file_manifest
 from .handoffs import handoff_metrics
 from .capabilities import CapabilityRegistry
-from .contracts import validate_structure as validate_plan, require_consistent, review_plan, Review, Finding, starter_contracts
+from .contracts import validate_structure as validate_plan, require_consistent, review_plan, Review, Finding, ProposalError, starter_contracts
 from .planning import PlanningEngine
 from .routing import validate_config, uses_cloud, validate_options, truncation_fallback_allowed
 from .prompts import PLAN, CODE
@@ -205,7 +205,7 @@ class Workbench:
                     continue
         return sorted(states, key=lambda p: p["created"], reverse=True)
 
-    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True) -> dict[str, Any]:
+    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True, review_candidate: Callable[[dict[str, Any]], tuple[dict[str, Any], Review]] | None = None) -> dict[str, Any]:
         """Serialize requests, record the actual provider, and bound an explicit fallback."""
         previous = state["status"]
         if not self.inference_lock.acquire(blocking=False):
@@ -226,24 +226,34 @@ class Workbench:
             registry = CapabilityRegistry(self.root.parent / 'model-capabilities-v1.json')
             minimum_ceiling = state.get("planner_truncation_ceiling", 0) if role == "planner" else 0
             recoveries = {}
+            correction_prompts = {}
+            schema_retries = set()
             budget_failed = False
             for index, (selected, is_fallback) in enumerate(choices):
                 if cancel.is_set():
                     raise InterruptedError("Stopped before model inference.")
                 if selected["provider"] != "ollama" and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
+                identity = (selected["provider"], selected["model"])
+                rejected = state.get("job_model_rejections", {})
+                if rejected.get(selected["provider"] + "/" + selected["model"]):
+                    self.event(state, "Skipping model already rejected during this job: " + selected["provider"] + "/" + selected["model"] + ".")
+                    continue
+                if role == "planner" and state.get("job_inference_attempts", 0) >= 24:
+                    raise ModelError("This job reached its 24-attempt inference limit. Review model history before retrying.", "attempt_budget")
                 capability = registry.get(selected['provider'], selected['model'], selected.get('options',{}))
                 if minimum_ceiling and not truncation_fallback_allowed(minimum_ceiling, capability.max_output_tokens):
                     self.event(state, 'Skipped ' + selected['provider'] + '/' + selected['model'] + ': output ceiling ' + str(capability.max_output_tokens) + ' is smaller than truncated model ceiling ' + str(minimum_ceiling) + '.')
                     continue
                 recovery_mode, prefix = recoveries.get(index, ('initial', ''))
+                effective_prompt = correction_prompts.get(index, prompt)
                 identity = (selected["provider"], selected["model"])
                 if pool and self.provider_cooldowns.get(identity, 0) > time.monotonic():
                     failures.append(selected["provider"] + ": cooldown")
                     self.event(state, "Skipping " + selected["provider"] + " during its temporary rate-limit cooldown.")
                     continue
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
-                          "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, prompt),
+                          "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, effective_prompt),
                           "recovery_path": recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
                           "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated, "transport_attempted":None, "timeout_seconds":selected.get("options", {}).get("timeout_seconds",120)}
                 started = time.monotonic()
@@ -260,11 +270,11 @@ class Workbench:
                         if role in {'planner', 'coder'}:
                             try:
                                 reserve = registry.reserve if role == 'planner' else registry.reserve_builder
-                                budget = reserve(selected['provider'],selected['model'],client.options,system+prefix,prompt)
+                                budget = reserve(selected['provider'],selected['model'],client.options,output_contract(system)+prefix,effective_prompt)
                             except ValueError as exc:
                                 if role != 'planner': raise ModelError(str(exc),'output_budget') from None
                                 try:
-                                    budget = registry.reserve(selected['provider'],selected['model'],client.options,system+prefix,prompt,compact=True)
+                                    budget = registry.reserve(selected['provider'],selected['model'],client.options,output_contract(system)+prefix,effective_prompt,compact=True)
                                 except ValueError:
                                     raise ModelError(str(exc),'output_budget') from None
                                 if recovery_mode == 'initial':
@@ -280,7 +290,31 @@ class Workbench:
                                           estimated_required_output_tokens=budget.estimated_required_tokens,
                                           input_estimate_tokens=budget.input_estimate_tokens)
                             self.event(state, role.title()+' output reservation: '+str(budget.text_output_tokens)+' text + '+str(budget.thinking_budget)+' thinking tokens; recovery '+record['recovery_path']+'.')
-                    result = client.complete(system, prompt)
+                    state["job_inference_attempts"] = state.get("job_inference_attempts", 0) + 1
+                    result = client.complete(system, effective_prompt)
+                    if cancel.is_set(): raise InterruptedError("Stopped. Model output discarded.")
+                    if review_candidate is not None:
+                        result, review_result = review_candidate(result)
+                        record["proposal_valid"] = review_result.passed
+                        if not review_result.passed:
+                            record["review_codes"] = [f.code for f in review_result.findings if f.severity == "error"]
+                            record["failure_class"] = "schema_error"
+                            record["error_category"] = "schema_error"
+                            if identity not in schema_retries:
+                                schema_retries.add(identity)
+                                feedback = json.loads(prompt)
+                                feedback.update(previous_proposal=result,
+                                    validation_error="; ".join(f.path + ": " + f.message for f in review_result.findings if f.severity == "error"),
+                                    correction_instruction="Return one complete proposal object at the root, with all required fields. Correct the findings without dropping requirements or acceptance checks.")
+                                choices.insert(index+1, (selected, is_fallback))
+                                correction_prompts[index+1] = json.dumps(feedback)
+                                recoveries[index+1] = ("schema_correction", "")
+                                self.event(state, "Proposal failed deterministic review; one focused correction on " + selected["provider"] + "/" + selected["model"] + ".")
+                                continue
+                            state.setdefault("job_model_rejections", {})[selected["provider"] + "/" + selected["model"]] = "schema_error"
+                            failures.append(selected["provider"] + ": schema_error")
+                            self.event(state, "Proposal correction failed; advancing to the next model without restarting the route.")
+                            continue
                     record.update(success=True, **getattr(client, "last_usage", {}))
                     if pool and is_fallback:
                         self.event(state, "Response received from " + selected["provider"] + "/" + selected["model"] + ".")
@@ -297,6 +331,7 @@ class Workbench:
                             mode = 'continuation' if recovery_mode in {'initial','budget_compaction'} and partial else 'shortening'
                             choices.insert(index+1,(selected,is_fallback))
                             recoveries[index+1] = (mode,partial if mode == 'continuation' else '')
+                            correction_prompts[index+1] = effective_prompt
                             self.event(state,role.title()+' truncated_output recovery: '+mode+' on '+selected['provider']+'/'+selected['model']+'.')
                             continue
                         failures.append(selected['provider']+': truncated_output')
@@ -310,6 +345,16 @@ class Workbench:
                         failures.append(selected['provider']+': output_budget')
                         self.event(state,role.title()+' reservation refused before inference; trying the next configured model without lowering the required budget.')
                         continue
+                    if exc.category == "request" and selected.get("options", {}).get("structured_outputs", True) and recovery_mode != "json_compatibility":
+                        compatible = copy.deepcopy(selected)
+                        compatible.setdefault("options", {})["structured_outputs"] = False
+                        choices.insert(index+1, (compatible, is_fallback))
+                        recoveries[index+1] = ("json_compatibility", "")
+                        correction_prompts[index+1] = effective_prompt
+                        self.event(state, "Request rejected; retrying once without the optional native JSON parameter. Returned JSON and proposal validation remain required.")
+                        continue
+                    if exc.category in {"model", "auth", "configuration", "quota"}:
+                        state.setdefault("job_model_rejections", {})[selected["provider"] + "/" + selected["model"]] = exc.category
                     if exc.retry_after: record["retry_after_seconds"] = exc.retry_after
                     if pool:
                         if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model", "configuration", "format", "parse_error", "size"}:
@@ -913,6 +958,8 @@ class Workbench:
         # A rejected/no-op repair must not erase observations about unchanged source.
         retain_failures = action == "repair" or (action == "build" and any(value is False for value in (state.get("manual_results") or {}).get("results", [])))
         previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint", "verification_manifest")} if retain_failures else None
+        state["job_model_rejections"] = {}
+        state["job_inference_attempts"] = 0
         job_started = time.monotonic()
         initial_requests = history.totals_for(state)["requests"]
         initial_repairs = state.get("repair_count", 0)
@@ -943,7 +990,7 @@ class Workbench:
                     return candidate, require_consistent(candidate, state.get("starter"))
 
                 def report(candidate: dict[str, Any] | None, result: Review) -> None:
-                    if state.get('model_calls'):
+                    if state.get('model_calls') and not state['planner'].get('fallbacks'):
                         record = state['model_calls'][-1]
                         record['proposal_valid'] = result.passed
                         if not result.passed: record['failure_class'] = 'schema_error'
@@ -961,9 +1008,18 @@ class Workbench:
                     self.trace(state, "proposal_review", {"passed":result.passed, "findings":result.to_dict()["findings"]})
                     self.save(state)
 
+                def reviewed(candidate: dict[str, Any]) -> tuple[dict[str, Any], Review]:
+                    try:
+                        normalized, review_result = evaluate(candidate)
+                    except ValueError as exc:
+                        normalized = candidate
+                        review_result = exc.review if isinstance(exc, ProposalError) else Review((Finding("structure", "/", str(exc)),))
+                    report(normalized, review_result)
+                    return normalized, review_result
+
                 result = PlanningEngine().run(
                     request,
-                    lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=bool(state["planner"].get("fallbacks"))),
+                    lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=bool(state["planner"].get("fallbacks")), review_candidate=reviewed if state["planner"].get("fallbacks") else None),
                     evaluate, report, lambda message: self.event(state, message), cancel,
                     has_fallback=bool(state["planner"].get("fallback")))
                 state.update(plan=result.plan, title=result.plan["title"], status="proposed",

@@ -8,6 +8,7 @@ from typing import Any
 from .models import request_json, ModelError, PROVIDERS
 from .providers import CLOUD_ORDER, endpoint, key_for
 from .credentials import atomic_text
+from .routing import validate_config
 from .capabilities import CapabilityRegistry
 
 ORDER = CLOUD_ORDER
@@ -27,12 +28,15 @@ class CloudSetup:
         self.capability_lock = threading.Lock()
         self.selected: dict[str, str] = {}
         self.local_model = ''
+        self.automatic_routes: dict[str, dict[str, Any]] = {}
         self.order = list(ORDER)
         self.limits = {p:4096 if p == 'groq' else 8192 for p in ORDER}
         self.timeouts = {p:60 for p in ORDER}
         self.structured = {p:True for p in ORDER}
         try:
             saved = json.loads(self.path.read_text(encoding='utf-8'))
+            if saved.get('automatic_routes'):
+                self.automatic_routes = {role:dict(validate_config(saved['automatic_routes'][role])) for role in ('planner','coder')}
             self.limits.update({p:n for p,n in saved.get('limits',{}).items() if p in ORDER and type(n) is int and n in {1024,2048,4096,8192,16384}})
             self.timeouts.update({p:n for p,n in saved.get('timeouts',{}).items() if p in ORDER and type(n) is int and n in {15,30,60,120}})
             self.structured.update({p:n for p,n in saved.get('structured',{}).items() if p in ORDER and type(n) is bool})
@@ -119,12 +123,15 @@ class CloudSetup:
             if check.get('status') != 'catalogue_available' or model not in check.get('models',[]): raise ValueError('Check providers first and choose a model returned by that provider.')
             result[provider] = model
         if not result: raise ValueError('No checked cloud models selected.')
+        self.automatic_routes = {}
         self.selected=result; self.local_model=local_model.strip(); self.order=list(order)
         self.limits.update(limits); self.timeouts.update(timeouts); self.structured.update(structured)
         atomic_text(self.path,json.dumps({'models':result,'limits':self.limits,'local_model':self.local_model,'order':self.order,'timeouts':self.timeouts,'structured':self.structured},indent=2)+'\n')
         return {role:self.profile(role) for role in ('planner','coder')}
 
     def profile(self, role: str) -> dict[str, Any]:
+        if self.automatic_routes:
+            return self.automatic_routes[role]
         configs: list[dict[str, Any]] = []
         for provider in self.order:
             model=self.selected.get(provider)
@@ -135,3 +142,58 @@ class CloudSetup:
         if self.local_model:
             configs.append({'provider':'ollama','model':self.local_model,'options':{'num_ctx':16384,'num_predict':8192,'structured_outputs':True,'timeout_seconds':120}})
         return {**configs[0],**({'fallbacks':configs[1:]} if len(configs)>1 else {})}
+
+    @staticmethod
+    def rank(model: str, role: str) -> tuple[int, str]:
+        """Deterministic preference, not a measured quality or availability claim."""
+        name = model.lower()
+        score = 0
+        if any(word in name for word in ('coder', 'codestral', 'devstral', 'code-instruct')):
+            score += 45 if role == 'coder' else -5
+        if any(word in name for word in ('gemini', 'qwen', 'gpt-', 'claude', 'llama-3.3', 'deepseek')):
+            score += 25
+        if any(word in name for word in ('flash', 'mini', 'instruct', 'versatile')): score += 10
+        if ':free' in name: score += 12
+        if name == 'openrouter/free': score -= 40
+        if any(word in name for word in ('preview', 'experimental', 'thinking', 'reasoning')): score -= 8
+        if any(word in name for word in ('1b', '3b', '7b', '8b', 'nano')): score -= 15
+        return (-score, name)
+
+    def automatic(self, installed: list[str] | None = None) -> dict[str, Any]:
+        """Read catalogues, choose bounded explicit routes, persist no credentials.
+
+        Does not send prompts or prove generation access; execution/cloud consent stays separate.
+        """
+        self.check()
+        registry = CapabilityRegistry(self.path.parent/'model-capabilities-v1.json')
+        routes: dict[str, dict[str, Any]] = {}
+        local = [m for m in (installed or []) if isinstance(m,str) and re.fullmatch(MODEL_ID,m)
+                 and not any(t in m.lower() for t in ('embed','vl:','vision'))]
+        for role in ('planner','coder'):
+            primary: list[dict[str, Any]] = []
+            alternates: list[dict[str, Any]] = []
+            for provider in ORDER:
+                check = self.checked.get(provider,{})
+                if check.get('status') != 'catalogue_available': continue
+                candidates = sorted(check.get('models',[]), key=lambda m:self.rank(m,role))
+                candidates = [m for m in candidates if registry.get(provider,m).max_output_tokens >= 8192][:2]
+                configs = [{'provider':provider,'model':m,'options':{'num_ctx':32768,'num_predict':8192,
+                    'structured_outputs':True,'timeout_seconds':60}} for m in candidates]
+                if configs:
+                    primary.append(configs[0]); alternates.extend(configs[1:])
+            configs = primary + alternates
+            if local:
+                configs.append({'provider':'ollama','model':sorted(local,key=lambda m:self.rank(m,role))[0],
+                    'options':{'num_ctx':32768,'num_predict':8192,'structured_outputs':True,'timeout_seconds':120}})
+            if not configs: raise ValueError('No eligible models discovered. Check key status or start Ollama. Missing Cloudflare Account ID can be left unconfigured.')
+            routes[role] = dict(validate_config({**configs[0], **({'fallbacks':configs[1:]} if len(configs)>1 else {})}))
+        self.automatic_routes = routes
+        self.local_model = next((r["model"] for r in [routes["planner"], *routes["planner"].get("fallbacks",[])] if r["provider"]=="ollama"), "")
+        # The advanced cards show the first model for each provider; routes retain alternatives.
+        self.selected = {}
+        for entry in [routes['planner'], *routes['planner'].get('fallbacks',[])]:
+            if entry['provider'] != 'ollama': self.selected.setdefault(entry['provider'],entry['model'])
+        atomic_text(self.path,json.dumps({'models':self.selected,'automatic_routes':routes,
+            'limits':self.limits,'timeouts':self.timeouts,'structured':self.structured,
+            'order':self.order,'local_model':self.local_model},indent=2)+'\n')
+        return routes

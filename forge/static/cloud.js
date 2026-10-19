@@ -201,6 +201,9 @@ async function applyCloud(project) {
       cloudProviderOrder.map((p) => [p, $("cloud-json-" + p).checked]),
     ),
   });
+  await applyCloudProfile(profile, project, ident);
+}
+async function applyCloudProfile(profile, project, ident = current?.id) {
   if (project) {
     if (!ident || current?.id !== ident)
       throw new Error("Open the intended project and apply again.");
@@ -225,4 +228,16 @@ $("cloud-new").onclick = cloudHandle(() => applyCloud(false));
 $("cloud-project").onclick = cloudHandle(() => applyCloud(true));
 window.addEventListener("DOMContentLoaded", () => {
   if (lastConnectionInfo) renderCloudSetup(lastConnectionInfo);
+});
+
+$("cloud-auto").onclick = cloudHandle(async () => {
+  $("cloud-auto").disabled = true;
+  try {
+    $("cloud-feedback").textContent = "Discovering available models and preparing automatic planner and builder routes…";
+    const profile = await api("/api/cloud/automatic", {});
+    await applyCloudProfile(profile, false);
+    if (current && !activeStatuses.has(current.status)) await applyCloudProfile(profile, true);
+    await connections();
+    $("cloud-feedback").textContent = "Automatic routes ready for new projects" + (current ? " and this project" : "") + ". Model failures and invalid proposals advance through the route. Generation still requires cloud consent; paid models may incur charges. Catalogue access does not prove generation quota.";
+  } finally { $("cloud-auto").disabled = false; }
 });

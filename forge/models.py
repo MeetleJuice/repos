@@ -72,6 +72,11 @@ def extract_json(content: str) -> dict[str, Any]:
     return cast(dict[str, Any], result)
 
 
+def output_contract(system: str) -> str:
+    if system != PLAN: return system
+    return system + "\nAUTHORITATIVE ROOT OUTPUT CONTRACT (not a wrapper): " + json.dumps({"required":PLAN_SCHEMA["required"],"browser_behavior_evidence":"manual_checks or browser_checks"},separators=(",", ":")) + "\nReturn the proposal itself, never a proposal/plan wrapper, JSON schema or source files. Be concise; every feature needs task and acceptance coverage."
+
+
 class ModelClient:
     def __init__(self, provider: str, model: str, options: dict[str, Any] | None = None) -> None:
         if provider not in PROVIDERS:
@@ -101,6 +106,7 @@ class ModelClient:
         output = self.planner_budget.max_output_tokens if self.planner_budget else self.options['num_predict']
         self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None,'transport_attempted':False,'timeout_seconds':self.options['timeout_seconds']}
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
+        messages[0]["content"] = output_contract(system)
         if self.recovery_mode == "continuation":
             messages += [{"role":"assistant","content":self.continuation_prefix},
                          {"role":"user","content":"Continue exactly where the previous response was cut off, no recap. Return only the missing JSON suffix, without fences or repeating the prefix."}]

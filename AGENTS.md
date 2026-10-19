@@ -29,3 +29,5 @@ Use the existing checkout; do not create a worktree unless the user requests one
 ## Research and promotion
 
 Read docs/status.md and the frozen dataset contract before changing the measured handoff path. All eighteen cases are replay scenarios with labeled provenance, not independent historical model builds. No vector database, unbounded retry/tree search, hidden evaluator weakening, or autonomous source promotion. The next proposal lives in docs/research/harness-audit.json and requires a new reviewed measurement cycle.
+
+- If a pooled planner returns valid JSON with invalid proposal semantics → record schema_error, permit one focused correction per model, then advance without restarting failed models. Keep a bounded job-level attempt allowance and all existing approval/check gates. Automatic routes must use discovered IDs and disclose paid usage; catalogue success is not inference success.

@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.15.0",
+  "version": "0.16.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.15.0.zip",
-  "sha256": "5f9a800bd66fea0dee2c626665f5063ff52f965c846333268ddc589e75486981",
-  "notes": "Seven-provider cloud routing: Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty and Hugging Face, with optional Ollama. Private key aliases and Cloudflare Account ID setup; selectable order, socket timeouts and JSON-format settings; bounded failover and compact schema-complete planner budgeting. Existing evidence, approvals and project files are preserved."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.16.0.zip",
+  "sha256": "3a1c86dbfb0d620190d4149f44e4d3b8d0b6e9cdeb3d7e35d87a8a8e2a2baba0",
+  "notes": "Automatic model discovery and role-specific bounded routes with alternate models and optional Ollama. Proposal validation now participates in pool failover: one correction then advance without restarting failed models. Explicit output contracts, JSON-parameter compatibility retry and per-job planner attempt limits. Advanced choices retained; cloud and execution consent remain separate."
 }
