@@ -16,7 +16,7 @@ import uuid
 import zipfile
 from typing import Any, Callable
 
-from .workflow import workflow_snapshot, delivery_guide
+from .workflow import workflow_snapshot, delivery_guide, delivery_checklist
 from .model_status import ModelStatus
 from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
 from .tasks import task_packet, validate_task_response, task_document, existing_task_evidence
@@ -202,7 +202,7 @@ class Workbench:
             if (report.get("checks") or {}).get("passed") and not freshness["automated_evidence_current"]:
                 report["checks"] = {**report["checks"], "passed":False, "historical_passed":True, "evidence_current":False}
             snapshot = workflow_snapshot(state,files)
-            report.update(workflow=snapshot, task_receipts=snapshot["task_receipts"], delivery_guide=delivery_guide(state,snapshot), export_metadata_files=["BUILD-REPORT.json","RUN-HISTORY.json",".foundry/DELIVERY.md"])
+            report.update(workflow=snapshot, task_receipts=snapshot["task_receipts"], delivery_guide=delivery_guide(state,snapshot), work_checklist=delivery_checklist(state,snapshot), export_metadata_files=["BUILD-REPORT.json","RUN-HISTORY.json",".foundry/DELIVERY.md",".foundry/WORK-CHECKLIST.md"])
             report["manifest_scope"] = "UTF-8 project entries only; export_metadata_files are metadata and excluded from this file manifest."
             return files, history.redact(report), journal
 
@@ -262,6 +262,8 @@ class Workbench:
                     continue
                 if role == "planner" and state.get("job_inference_attempts", 0) >= 24:
                     raise ModelError("This job reached its 24-attempt inference limit. Review model history before retrying.", "attempt_budget")
+                if state.get("job_max_model_calls") is not None and state.get("job_inference_attempts",0)>=state["job_max_model_calls"]:
+                    raise ModelError("This run reached its model invocation allowance. Saved files were kept. Review the journal and resume with an appropriate allowance; no further model was called.", "attempt_budget")
                 capability = registry.get(selected['provider'], selected['model'], selected.get('options',{}))
                 if minimum_ceiling and not truncation_fallback_allowed(minimum_ceiling, capability.max_output_tokens):
                     self.event(state, 'Skipped ' + selected['provider'] + '/' + selected['model'] + ': output ceiling ' + str(capability.max_output_tokens) + ' is smaller than truncated model ceiling ' + str(minimum_ceiling) + '.')
@@ -579,8 +581,9 @@ class Workbench:
                 raise ValueError("Approve the proposal first.")
             if action == "plan" and state["approved"]:
                 raise ValueError("An approved proposal is frozen. Create another project for a new scope.")
-            if any(uses_cloud(state[role]) for role in ("planner", "coder")) and options.get("cloud_consent") is not True:
-                raise ValueError("Explicit cloud consent is required for the configured primary/fallback models.")
+            active_role="planner" if action=="plan" else "coder"
+            if uses_cloud(state[active_role]) and options.get("cloud_consent") is not True:
+                raise ValueError("Explicit cloud consent is required for this stage's configured primary/fallback models.")
             state["job_cloud_consent"] = options.get("cloud_consent") is True
             mode = options.get("runtime", "docker")
             if type(options.get("execute", False)) is not bool:
@@ -592,6 +595,9 @@ class Workbench:
                 raise ValueError("Explicit execution consent is required.")
             if state["status"] == "verified" and not state.get("frozen_tests"):
                 state["frozen_tests"] = {name: hashlib.sha256(text.encode()).hexdigest() for name, text in self.context_files(ident).items() if Path(name).name.startswith("test_") and name.endswith(".py")}
+            max_calls=options.get("max_model_calls",64)
+            if type(max_calls) is not int or not 1<=max_calls<=128:
+                raise ValueError("Model invocation allowance must be an integer from 1 to 128.")
             attempts = options.get("repairs", 2)
             if type(attempts) is not int or not 0 <= attempts <= 3:
                 raise ValueError("Repair limit must be between 0 and 3.")
@@ -615,7 +621,7 @@ class Workbench:
             state["error"] = None
             state["active_run_id"] = uuid.uuid4().hex
             self.trace(state, "job_started", {"action":action, "execute":execute, "runtime":mode,
-                       "repair_budget":attempts, "cloud_consent":state["job_cloud_consent"], "next_task":state.get("next_task", 0)})
+                       "repair_budget":attempts, "max_model_calls":max_calls, "cloud_consent":state["job_cloud_consent"], "next_task":state.get("next_task", 0)})
             self.save(state)
             cancel = threading.Event()
             thread = threading.Thread(target=self._job, args=(state, action, options, cancel), daemon=True)
@@ -867,9 +873,9 @@ class Workbench:
                 raise ValueError(name + ': HTML contains double-escaped markup. Return real text, not an encoded string.')
             targets.append((target, content))
         if sum(len(v) for v in (current | files).values()) > 70000:
-            raise ValueError("Project exceeds the 70,000-character total file limit. Return smaller changed files or exact edits; reduce repetition without dropping approved features.")
+            raise ValueError("Project exceeds the 70,000-character merged total file limit. Smaller patches alone cannot reduce this total. No files were replaced. Review the existing file budget without dropping approved features.")
         if sum(len(v) for k, v in (current | files).items() if k.lower() not in OWNED) > SOURCE_LIMIT:
-            raise ValueError("Implementation exceeds the 36,000-character source limit (applies to cloud and local builds). Use smaller changed files or exact edits and remove repetition without dropping approved features.")
+            raise ValueError("Implementation exceeds the 36,000-character merged source limit (cloud and local). Smaller patches do not reduce stored project size. No files were replaced. Review scope or explicitly reduce existing source without dropping approved behavior; changing approved scope requires a new proposal.")
         # All names and contents are validated before any file is written.
         if any(path.is_symlink() for path in root.rglob("*")):
             raise ValueError("Remove symbolic links from this project before model file updates.")
@@ -1067,6 +1073,7 @@ class Workbench:
         previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint", "verification_manifest")} if retain_failures else None
         state["job_model_rejections"] = {}
         state["job_inference_attempts"] = 0
+        state["job_max_model_calls"] = options.get("max_model_calls",64)
         job_started = time.monotonic()
         initial_requests = history.totals_for(state)["requests"]
         initial_repairs = state.get("repair_count", 0)

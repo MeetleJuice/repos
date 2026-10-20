@@ -23,7 +23,7 @@ def main():
     run(['-m','unittest','discover','-q'])
     if args.types:run(['-m','mypy','--strict',*['forge/'+name+'.py' for name in TYPED]])
     if args.browser:
-        for name in ('workflow_overview','task_contract','hybrid_execution','delivery_control','model_studio','model_activity','automatic_routing','proposal_import','upgrade','arcade'):
+        for name in ('workflow_overview','task_contract','hybrid_execution','delivery_control','orchestration','model_studio','model_activity','automatic_routing','proposal_import','upgrade','arcade'):
             run(['tests/browser_'+name+'_check.py'])
     if args.package:
         run(['package.py'])

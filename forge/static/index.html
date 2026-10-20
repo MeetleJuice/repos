@@ -362,6 +362,7 @@
               <details id="task-board" open>
                 <summary>Task readiness &amp; evidence</summary>
                 <p id="task-board-summary" class="muted">Review a proposal to see task readiness.</p>
+                <p id="orchestration-progress" class="muted" role="status"></p>
                 <ol id="task-board-list"></ol>
                 <p id="resume-warning" role="status"></p>
                 <button id="adopt-resume" class="quiet" hidden>Keep current files &amp; retry unfinished task</button>
@@ -398,6 +399,7 @@
                 Requires Docker Desktop and the python:3.12-slim image. No host
                 API keys are passed into the container.
               </p>
+              <label for="max-model-calls">Model invocation allowance per run</label><select id="max-model-calls"><option>16</option><option>32</option><option selected>64</option><option>128</option></select><p class="muted">Includes coding, source retrieval and repair. Planning also retains its 24-attempt ceiling. This is not a money or whole-job time limit.</p>
               <label for="repairs">Maximum repairs per run</label
               ><select id="repairs">
                 <option>0</option>
@@ -650,6 +652,7 @@ Generated files will appear here after approval.</pre
       </div>
       <p class="studio-lead">A clear route from idea to working files. Choose where the work happens; your saved projects stay intact.</p>
       <div class="studio-presets" aria-label="Quick model setup">
+        <button id="preset-orchestrated" type="button"><span class="preset-symbol" aria-hidden="true">◎</span><strong>Cloud plans. Your computer builds.</strong><small>Try cloud providers in order for planning, then local fallback. Coding stays on installed local models. No generation starts during setup.</small></button>
         <button id="preset-local" type="button"><span class="preset-symbol" aria-hidden="true">⌂</span><strong>Just this computer</strong><small>Cloud quota used up? Use installed Ollama models. No cloud fallback.</small></button>
         <button id="preset-hybrid" type="button"><span class="preset-symbol" aria-hidden="true">✦</span><strong>A little of both</strong><small>Cloud plans, local code first. Cloud fallbacks still require consent.</small></button>
       </div>
@@ -658,6 +661,7 @@ Generated files will appear here after approval.</pre
         <h3 id="cloud-setup-title">Customize automatic setup</h3>
         <label for="routing-mode">Automatic routing mode</label>
         <select id="routing-mode">
+          <option value="orchestrated">Orchestrated · cloud-first planner, local-only builder</option>
           <option value="hybrid">Hybrid · cloud planner, local coder first</option>
           <option value="cloud_first">Cloud first · local fallback last</option>
           <option value="local_first">Local first · cloud fallback</option>

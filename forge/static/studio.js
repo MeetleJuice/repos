@@ -103,12 +103,13 @@ function refreshStudio() {
   const hasLocal = (lastConnectionInfo?.providers?.ollama?.models || []).some(m => !/embed|vision|vl:/i.test(m));
   $("studio-route-warning").textContent = lastConnectionInfo && !hasLocal
     ? "For local-only work, start Ollama with an installed text/chat or coding model, then Check again."
-    : localOnly ? "Local only uses up to two installed models in sequence. Installed does not prove model capacity or GPU fit." : "Out of cloud quota? Just this computer applies a local-only route to new projects and the open idle project.";
+    : localOnly ? "Local-only automatic setup chooses up to two installed models per role, tried in sequence. Installed does not prove model capacity or GPU fit." : !cloudModel(profile.coder) ? "Planning can use cloud providers; coding has no cloud fallback. Local model preference is not a measured quality ranking. Cloud consent and execution approval stay separate." : "Out of cloud quota? Just this computer applies a local-only route to new projects and the open idle project.";
 }
 $("studio-settings").onclick = () => $("connections-button").click();
 $("studio-local").onclick = cloudHandle(async () => {$("connections").showModal(); await setupAutomaticModels("local_only");});
 $("preset-local").onclick = cloudHandle(() => setupAutomaticModels("local_only"));
 $("preset-hybrid").onclick = cloudHandle(() => setupAutomaticModels("hybrid"));
+$("preset-orchestrated").onclick = cloudHandle(() => setupAutomaticModels("orchestrated"));
 $("studio-accent").onchange = () => {studioPreferences.accent = $("studio-accent").value; saveStudioPreferences();};
 async function setStudioSounds(enabled) {
   studioPreferences.sounds = enabled; saveStudioPreferences();

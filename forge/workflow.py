@@ -49,6 +49,7 @@ def workflow_snapshot(state: dict[str, Any], files: dict[str, str]) -> dict[str,
             {'id':'generation','name':'3 · Build & recovery','state':f'{saved}/{tasks} tasks saved','detail':f"{len(receipts)} task change receipts available. Static checks do not prove behavior.",'action':'build'},
             {'id':'verification','name':'4 · Verification','state':'Accepted' if fresh['accepted_current'] else 'Manual review' if fresh['automated_evidence_current'] else 'Not currently verified','detail':f"Manual: {passed} passed, {failed} failed, {manual_total-passed-failed} pending. Automated evidence: {'current' if fresh['automated_evidence_current'] else 'absent or stale'}.",'action':'build'},
             {'id':'delivery','name':'5 · Workspace & delivery','state':'Verified snapshot' if fresh['accepted_current'] else 'Unverified snapshot','detail':f'{len(files)} project files. Export includes a readable handoff guide and source-bound evidence.','action':'files'}],
+        'model_budget':{'used':state.get('job_inference_attempts'),'limit':state.get('job_max_model_calls'),'meaning':'Model complete() invocations in the latest run, including recovery and retrieval. Not provider transports, billed tokens, money or a hard wall-clock deadline.'},
         'task_board':task_board(state,files),'next_step':next_step,'coverage':coverage(plan),'ownership_warnings':ownership_warnings(plan),
         'task_receipts':receipts,'receipt_coverage':{'available':len(receipts),'saved_tasks':saved,'meaning':'Receipts exist only for tasks saved after this feature was introduced; no legacy changes are inferred.'},
         'evidence':fresh,'manual':{'required':manual_total,'passed':passed,'failed':failed,'pending':manual_total-passed-failed,'observations_current':observations_current},
@@ -69,3 +70,31 @@ def delivery_guide(state: dict[str, Any], snapshot: dict[str, Any]) -> str:
         'A ZIP can contain unfinished or unverified files. Downloading it does not make it verified. Manual observations and automated evidence refer to their recorded source snapshot.',
         'Read README.md, PROJECT.md, MANUAL-CHECKS.md when present, and APP-GUIDE.md if generated. BUILD-REPORT.json and RUN-HISTORY.json provide detailed evidence and history.',
         'The .foundry folder contains export-only metadata; it is not app source or a test result. Keep the previous working folder until this version is tested.',''])
+
+
+def delivery_checklist(state: dict[str,Any], snapshot: dict[str,Any]) -> str:
+    """Export-only checklist: saved source and acceptance stay separate."""
+    def mark(value: bool) -> str:return '[x]' if value else '[ ]'
+    fresh=snapshot['evidence'];rows=snapshot['task_board']['tasks'];budget=snapshot['model_budget']
+    lines=['# Work checklist — '+str(state.get('title','Generated app')),'',
+           'Source SHA-256: '+fresh['current_source_sha256'],
+           'This checklist describes the exported snapshot. Saved source is not proof of behavior.','',
+           '- '+mark(bool(state.get('approved')))+' Proposal approval recorded',
+           '- '+mark(state.get('next_task',0)>=len((state.get('plan') or {}).get('tasks',[])) and bool(rows))+' All task source saved',
+           '- '+mark(fresh['automated_evidence_current'])+' Current automated checks passed',
+           '- '+mark(fresh['accepted_current'])+' Current overall acceptance complete','',
+           '## Sequential tasks']
+    for row in rows:
+        lines+=['',str(row['task'])+'. '+row['title']+' — '+row['state'],
+                'Outcome: '+row['outcome'],'Editable files: '+(', '.join(row['files']) or 'Legacy task scope'),
+                'Declared criteria (not individually verified):']
+        lines+=['- '+criterion for criterion in row['criteria']]
+        lines+=['Related approved checks (feature overlap, not execution evidence): '+('; '.join(c['kind']+' #'+str(c['number'])+' '+c['name'] for c in row['related_checks']) or 'None mapped')]
+    lines+=['','## Model and verification boundaries',
+            'Latest run: '+str(budget['used'] if budget['used'] is not None else 'unknown')+' / '+str(budget['limit'] if budget['limit'] is not None else 'allowance not recorded')+' model invocations. '+budget['meaning'],
+            'Planner: '+str(state.get('planner',{}).get('provider',''))+'/'+str(state.get('planner',{}).get('model','')),
+            'Builder: '+str(state.get('coder',{}).get('provider',''))+'/'+str(state.get('coder',{}).get('model','')),
+            'Model rank is a preference heuristic, not a best-performance benchmark.',
+            'Cloud consent, execution approval and manual acceptance remain separate.','',
+            'Next step: '+snapshot['next_step'],'']
+    return '\n'.join(lines)

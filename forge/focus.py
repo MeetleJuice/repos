@@ -5,6 +5,7 @@ import copy
 import re
 from pathlib import PurePosixPath
 from typing import Any
+from urllib.parse import unquote, urlsplit
 from .execution import file_hashes
 
 
@@ -12,22 +13,54 @@ class ContextRequestError(ValueError):
     pass
 
 
+def _local_reference(name: str, reference: str) -> str | None:
+    """Normalize a literal project reference without reading outside the manifest."""
+    try:
+        url=urlsplit(reference)
+    except ValueError:
+        return None
+    if url.scheme or url.netloc or "\\" in reference:return None
+    path=unquote(url.path)
+    if not path or chr(92) in path:return None
+    parts=[] if path.startswith('/') else list(PurePosixPath(name).parent.parts)
+    for part in path.split('/'):
+        if part in {'','.'}:continue
+        if part=='..':
+            if not parts:return None
+            parts.pop()
+        else:parts.append(part)
+    return '/'.join(parts) or None
+
+
 def dependencies(name: str, text: str, files: dict[str,str]) -> set[str]:
-    result=set()
+    result: set[str]=set()
+    def module(parts: list[str]) -> None:
+        if not parts:return
+        path='/'.join(parts)
+        for candidate in [path+'.py',path+'/__init__.py',*['/'.join(parts[:i])+'/__init__.py' for i in range(1,len(parts))]]:
+            if candidate in files:result.add(candidate)
     if name.endswith('.py'):
         try:
             for node in ast.walk(ast.parse(text)):
-                modules=[n.name for n in node.names] if isinstance(node,ast.Import) else [node.module or ''] if isinstance(node,ast.ImportFrom) else []
-                for module in modules:
-                    for candidate in [module.replace('.','/')+'.py',module.replace('.','/')+'/__init__.py']:
-                        if candidate in files:result.add(candidate)
+                if isinstance(node,ast.Import):
+                    for alias in node.names:module(alias.name.split('.'))
+                elif isinstance(node,ast.ImportFrom):
+                    parent=list(PurePosixPath(name).parent.parts)
+                    if node.level>len(parent):continue
+                    base=parent[:len(parent)-node.level+1] if node.level else []
+                    base+=node.module.split('.') if node.module else []
+                    module(base)
+                    for alias in node.names:
+                        if alias.name!='*':module(base+alias.name.split('.'))
         except (SyntaxError,ValueError):pass
-    for ref in re.findall(r'''(?:src|href)=["']([^"'#?]+)|(?:from\s*|import\s*)["']([^"']+)["']''',text):
-        path=next((p for p in ref if p),'')
-        if '://' in path or path.startswith('//'):continue
-        candidate=str(PurePosixPath(name).parent/path).removeprefix('./')
-        if candidate in files:result.add(candidate)
-        if path.lstrip('/') in files:result.add(path.lstrip('/'))
+    references=re.findall(r'''(?:src|href)\s*=\s*["']([^"']+)|(?:from\s*|import\s*(?:\(\s*)?|require\(\s*)["']([^"']+)|url\(\s*["']?([^\s)"']+)''',text)
+    for group in references:
+        reference=next((p for p in group if p),'')
+        candidate=_local_reference(name,reference)
+        if not candidate:continue
+        options=[candidate]
+        if not PurePosixPath(candidate).suffix:options.extend([candidate+'.js',candidate+'/index.js'])
+        result.update(p for p in options if p in files)
     return result
 
 

@@ -245,7 +245,7 @@ async function setupAutomaticModels(mode) {
   if (studioSetupRunning) return;
   studioSetupRunning = true;
   const ident = current?.id;
-  for (const id of ["cloud-auto", "preset-local", "preset-hybrid", "studio-local"]) $(id).disabled = true;
+  for (const id of ["cloud-auto", "preset-local", "preset-hybrid", "preset-orchestrated", "studio-local"]) $(id).disabled = true;
   try {
     $("cloud-feedback").textContent = mode === "local_only"
       ? "Finding installed Ollama models. No cloud catalogue or generation requests…"
@@ -260,12 +260,12 @@ async function setupAutomaticModels(mode) {
     await connections();
     const scope = applied ? " and this project" : "";
     $("cloud-feedback").textContent = "Automatic routes ready for new projects" + scope + ". " +
-      (mode === "local_only" ? "Local only: no cloud fallback or cloud generation. Context limits still apply." : "Cloud generation still requires consent; paid models may incur charges. Catalogue access does not prove quota.") +
+      (mode === "local_only" ? "Local only: no cloud fallback or cloud generation. Context limits still apply." : mode === "orchestrated" ? (cloudModel(profile.planner) ? "Cloud providers plan in order before local fallback. Coding is local only. Cloud planning requires consent; paid models may incur charges. A hanging request must time out first. Local ranking is a preference, not a benchmark." : "No eligible cloud planning routes were found; planning and coding are local only. Review provider status if you expected cloud planning. Local ranking is a preference, not a benchmark.") : "Cloud generation still requires consent; paid models may incur charges. Catalogue access does not prove quota.") +
       (ident && !applied ? " The open project was not changed; apply again while it is idle." : "");
     if (typeof refreshStudio === "function") refreshStudio();
   } finally {
     studioSetupRunning = false;
-    for (const id of ["cloud-auto", "preset-local", "preset-hybrid", "studio-local"]) $(id).disabled = false;
+    for (const id of ["cloud-auto", "preset-local", "preset-hybrid", "preset-orchestrated", "studio-local"]) $(id).disabled = false;
   }
 }
 $("cloud-auto").onclick = cloudHandle(() => setupAutomaticModels($("routing-mode").value));

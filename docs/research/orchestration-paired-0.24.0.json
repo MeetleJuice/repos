@@ -1,0 +1,70 @@
+{
+  "baseline_sha256": "b2094a2743b51ca3c144963d21110fc8c2c390df71d7aa73042ff8acdca21f06",
+  "baseline": {
+    "version": "0.23.0",
+    "scope": "Deterministic controller replay. No provider, GPU, token-cost or generated-product-quality measurement.",
+    "hybrid": {
+      "planner": [
+        "gemini/fixture-gemini",
+        "ollama/qwen3.5:9b",
+        "groq/fixture-groq"
+      ],
+      "coder": [
+        "ollama/qwen2.5-coder:7b",
+        "gemini/fixture-gemini",
+        "groq/fixture-groq"
+      ]
+    },
+    "orchestrated": {
+      "error": "Unknown automatic routing mode."
+    },
+    "python_relative_dependencies": [],
+    "js_relative_dependencies": [],
+    "local_build_without_unused_cloud_consent": {
+      "error": "Explicit cloud consent is required for the configured primary/fallback models.",
+      "app_executed": false
+    }
+  },
+  "candidate": {
+    "version": "0.24.0",
+    "scope": "Deterministic controller replay. No provider, GPU, token-cost or generated-product-quality measurement.",
+    "hybrid": {
+      "planner": [
+        "gemini/fixture-gemini",
+        "ollama/qwen3.5:9b",
+        "groq/fixture-groq"
+      ],
+      "coder": [
+        "ollama/qwen2.5-coder:7b",
+        "gemini/fixture-gemini",
+        "groq/fixture-groq"
+      ]
+    },
+    "orchestrated": {
+      "planner": [
+        "gemini/fixture-gemini",
+        "groq/fixture-groq",
+        "ollama/qwen3.5:9b",
+        "ollama/qwen2.5-coder:7b"
+      ],
+      "coder": [
+        "ollama/qwen2.5-coder:7b",
+        "ollama/qwen3.5:9b"
+      ]
+    },
+    "python_relative_dependencies": [
+      "pkg/storage.py"
+    ],
+    "js_relative_dependencies": [
+      "ui/storage.js"
+    ],
+    "local_build_without_unused_cloud_consent": {
+      "status": "generated",
+      "providers": [
+        "gemini",
+        "ollama"
+      ],
+      "app_executed": false
+    }
+  }
+}

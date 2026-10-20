@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "baseline": "9edba9c / v0.23.0",
+  "provenance": "Synthetic controller scenarios frozen before implementation; relative-import cases reproduce the research probes. No live inference or best-model claim.",
+  "cases": [
+    "orchestrated planner cloud providers before local fallback",
+    "provider primary failure advances to secondary without sleeping",
+    "all configured external failures reach local planning",
+    "orchestrated coder route contains only installed local text models",
+    "missing local coder fails setup before cloud discovery and preserves profiles",
+    "existing modes and projects retain routes until explicit apply",
+    "whole-job invocation allowance applies to coding, retrieval and repair as well as planning",
+    "task checklist distinguishes saved source, related declared checks and current acceptance",
+    "package includes source-bound human-readable work checklist",
+    "Python relative imports, imported submodules and safe parent JS/CSS paths resolve",
+    "project-root escapes and remote URLs excluded",
+    "merged source cap diagnostic distinguishes patch size from stored source"
+  ]
+}

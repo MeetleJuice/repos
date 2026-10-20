@@ -222,6 +222,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                         archive.writestr("generated-app/BUILD-REPORT.json", json.dumps(report, indent=2))
                         archive.writestr("generated-app/RUN-HISTORY.json", json.dumps(journal, indent=2))
                         archive.writestr("generated-app/.foundry/DELIVERY.md", report["delivery_guide"])
+                        archive.writestr("generated-app/.foundry/WORK-CHECKLIST.md", report["work_checklist"])
                     self.send_bytes(200, stream.getvalue(), "application/zip", "generated-app.zip")
             elif post and action == "manual":
                 self.json(bench.record_manual(ident, body["results"], body.get("notes")))
@@ -245,16 +246,17 @@ def make_server(port=8765, workbench=None, credentials=None):
                 self.cloud_consent(state["planner"], state["coder"], body)
                 self.json(bench.fork(ident, body["request"], body.get("cloud_consent") is True), 201)
             elif post and action in {"plan", "build", "repair"}:
-                self.cloud_consent(state["planner"], state["coder"], body)
+                self.cloud_consent(state["planner"], state["coder"], body, "planner" if action=="plan" else "coder")
                 bench.start(ident, action, body)
                 self.json(bench.load(ident), 202)
             else:
                 self.json({"error": "Not found."}, 404)
 
         @staticmethod
-        def cloud_consent(planner, coder, body):
+        def cloud_consent(planner, coder, body, role=None):
             planner, coder = validate_config(planner), validate_config(coder)
-            if any(uses_cloud(c) for c in (planner, coder)) and body.get("cloud_consent") is not True:
+            configs=(planner,) if role=="planner" else (coder,) if role=="coder" else (planner,coder)
+            if any(uses_cloud(c) for c in configs) and body.get("cloud_consent") is not True:
                 raise ValueError("Confirm that you allow sending this project's content to the selected cloud providers. API usage may cost money.")
 
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)

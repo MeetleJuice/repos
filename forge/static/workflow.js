@@ -18,6 +18,7 @@ async function refreshWorkflow(id) {
     workflowSignature = signature;
     $("workflow-summary").textContent = data.next_step;
     const board=data.task_board;
+    if (data.model_budget) $("orchestration-progress").textContent="Latest run: "+(data.model_budget.used ?? "unknown")+" / "+(data.model_budget.limit ?? "allowance not recorded")+" model invocations. "+data.next_step+". Source saves and related checks are not completion proof.";
     if (board) {
       $("task-board-summary").textContent="Context: "+(board.context_policy==="focused_v1"?"approved focused packets with bounded source reads":"full source")+". "+board.meaning;
       $("resume-warning").textContent=board.resume_problem || (board.candidate_waiting?"A saved task candidate is ready for inspection on resume.":"");
@@ -27,8 +28,13 @@ async function refreshWorkflow(id) {
       for (const task of board.tasks) {
         const li=document.createElement("li"),title=document.createElement("strong"),detail=document.createElement("small");
         title.textContent=task.title+" — "+task.state;
-        detail.textContent=(task.files.length?"Files: "+task.files.join(", ")+". ":"")+(task.blocked_by.length?"Needs saved tasks "+task.blocked_by.join(", ")+". ":"")+(task.milestone_current?"Current approved HTTP prefix passed. ":task.milestone_evidence?"Historical milestone evidence; current checks may be pending. ":"")+"Declared criteria: "+(task.criteria.join("; ")||"legacy plan");
-        li.append(title,detail);$("task-board-list").append(li);
+        detail.textContent=(task.files.length?"Files: "+task.files.join(", ")+". ":"")+(task.blocked_by.length?"Needs saved tasks "+task.blocked_by.join(", ")+". ":"")+(task.milestone_current?"Current approved HTTP prefix passed. ":task.milestone_evidence?"Historical milestone evidence; current checks may be pending. ":"");
+        const outcome=document.createElement("p");outcome.textContent="Outcome: "+task.outcome;
+        const label=document.createElement("small");label.textContent="Declared completion criteria · not individually verified";
+        const criteria=document.createElement("ul");criteria.className="task-criteria";
+        for (const criterion of task.criteria) {const item=document.createElement("li");item.textContent=criterion;criteria.append(item);}
+        const checks=document.createElement("small");checks.textContent="Related approved checks (feature overlap): "+(task.related_checks.map(c=>(c.kind==="checks"?"HTTP":c.kind==="browser_checks"?"Browser":"Manual")+" #"+c.number+" "+c.name).join("; ")||"none mapped");
+        li.append(title,outcome,detail,label,criteria,checks);$("task-board-list").append(li);
       }
     }
     $("workflow-categories").replaceChildren();

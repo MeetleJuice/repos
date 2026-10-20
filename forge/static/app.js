@@ -338,9 +338,7 @@ function render() {
   );
   $("model-label").textContent =
     `Planner: ${routeLabel(p.planner)} · Builder: ${routeLabel(p.coder)}`;
-  document.querySelector(".project-cloud").hidden = ![p.planner, p.coder].some(
-    cloudModel,
-  );
+  document.querySelector(".project-cloud").hidden = !cloudModel(p.approved ? p.coder : p.planner);
   $("test-badge").textContent = p.checks?.historical_passed
     ? "Evidence stale"
     : p.checks
@@ -456,6 +454,7 @@ async function job(action, options) {
     $("execution-consent").checked = false;
   current = await api(`/api/projects/${current.id}/${action}`, {
     ...options,
+    max_model_calls: Number($("max-model-calls").value),
     cloud_consent: cloudConsent(),
   });
   render();

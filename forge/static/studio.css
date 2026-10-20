@@ -49,3 +49,10 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,s
 /* Repair inherited light surfaces that made pale text unreadable. */
 .improve-panel,.execution-box {background:var(--paper);color:var(--ink);border-color:var(--line);}
 .improve-panel {box-shadow:0 10px 30px #00000012;}
+
+#preset-orchestrated {grid-column:1/-1;border-color:var(--studio-accent);}
+#task-board-list > li {padding:14px 4px;}
+#task-board-list > li > p {font-size:12px;color:var(--ink);margin:7px 0;}
+#task-board-list .task-criteria {padding-left:20px;margin:6px 0 10px;list-style:circle;}
+#task-board-list .task-criteria li {font-size:12px;border:0;padding:3px 0;color:#c6d6e5;}
+#orchestration-progress {padding:9px;border-left:2px solid var(--studio-accent);background:#142331;}

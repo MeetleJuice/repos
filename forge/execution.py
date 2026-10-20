@@ -71,7 +71,11 @@ def task_board(state: dict[str,Any], files: dict[str,str]) -> dict[str,Any]:
         if saved and fresh['automated_evidence_current']:state_name='Included in current automated run · review manual checks'
         if saved and fresh['accepted_current']:state_name='Included in accepted app snapshot'
         milestone=receipt.get('milestone_evidence')
-        rows.append({'task':index+1,'title':task['title'],'state':state_name,'blocked_by':blocked,'files':task.get('files',[]),
+        features=set(task.get('feature_indexes',[]))
+        related=[{'kind':kind,'number':i+1,'name':check['name']} for kind in ('checks','browser_checks','manual_checks')
+                 for i,check in enumerate(plan.get(kind,[])) if features.intersection(check.get('feature_indexes',[]))]
+        rows.append({'task':index+1,'title':task['title'],'outcome':task.get('outcome',task['title']),'state':state_name,'blocked_by':blocked,'files':task.get('files',[]),
+                     'related_checks':related,'related_checks_meaning':'Related by declared feature coverage; not per-criterion execution proof.',
                      'check_indexes':task.get('check_indexes',[]),'source_changed':receipt.get('source_changed'),
                      'milestone_evidence':milestone,'milestone_current':bool(milestone and milestone.get('passed') and milestone.get('source_sha256')==fresh['current_source_sha256']),
                      'interfaces':task.get('interfaces',[]),'criteria':task.get('done_when',[])})

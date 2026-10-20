@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.23.0",
+  "version": "0.24.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.23.0.zip",
-  "sha256": "b2094a2743b51ca3c144963d21110fc8c2c390df71d7aa73042ff8acdca21f06",
-  "notes": "Model studio: one-click local-only and hybrid presets, separate applied route previews for new and current projects, up to two sequential local-only models, clearer setup feedback, fresh-browser restoration of manual defaults, expandable key/technical settings, blue/violet/mint accents, optional user-controlled completion cues and reduced-motion support. No automatic route migration, cloud consent or verification changes."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.24.0.zip",
+  "sha256": "b13f37a54e9752b7dc8ca3fdaf32ed26ddd4edc4eb5600889430ccc77ec327dc",
+  "notes": "Orchestrated delivery: cloud providers plan in order before local fallback; coding stays local. Explicit new preset preserves existing modes. Shared per-run model invocation allowance, expanded task checklist with declared check links, source-bound export work checklist, safe relative-import context resolution and accurate merged-cap diagnostics. No best-model benchmark, instant-timeout or universal completion claim; approvals and frozen checks preserved."
 }

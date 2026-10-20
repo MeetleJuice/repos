@@ -1,0 +1,40 @@
+{
+  "note": "Reused primary-source snapshots from the 2026-10-19 research-only review. No live provider or agent framework was run. Sources are guidance, not Foundry performance benchmarks.",
+  "sources": [
+    {
+      "name": "aider-repomap",
+      "url": "https://raw.githubusercontent.com/Aider-AI/aider/main/aider/repomap.py",
+      "sha256": "a5d4befe70445114b9f62da47b0eeb2a5384f9e84a0c083c77a4b339caf61ecd",
+      "bytes": 27306,
+      "retrieved_utc": "2026-10-19"
+    },
+    {
+      "name": "mini-swe-agent",
+      "url": "https://raw.githubusercontent.com/SWE-agent/mini-swe-agent/main/README.md",
+      "sha256": "9982d90b7566f2f3fa5e9811b475d5e8e2a84e2df80cf3f1e4be6e820b129835",
+      "bytes": 11106,
+      "retrieved_utc": "2026-10-19"
+    },
+    {
+      "name": "playwright-actionability",
+      "url": "https://raw.githubusercontent.com/microsoft/playwright/main/docs/src/actionability.md",
+      "sha256": "461cf8141ebb28ef8867faf79d1d51a9c872d6cc3a19ddcdebfe777dbf19ca9c",
+      "bytes": 6933,
+      "retrieved_utc": "2026-10-19"
+    },
+    {
+      "name": "ollama-faq",
+      "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/faq.mdx",
+      "sha256": "e3630684676a21219abc7cb6c17db53993412c194ba9c108c8dbae2f30318e0c",
+      "bytes": 18143,
+      "retrieved_utc": "2026-10-19"
+    },
+    {
+      "name": "langgraph-persistence-current",
+      "url": "https://raw.githubusercontent.com/langchain-ai/docs/main/src/oss/langgraph/persistence.mdx",
+      "bytes": 4927,
+      "sha256": "0d33a9d4c828ecfe9db28a8217ebe860a7b1ed14be0a76854104f67a78ff001a",
+      "retrieved_utc": "2026-10-19"
+    }
+  ]
+}

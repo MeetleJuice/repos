@@ -1,10 +1,20 @@
-# Idea Foundry 0.23.0
+# Idea Foundry 0.24.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.24.0 orchestrated planning and local delivery
+
+Open **Models → Cloud plans. Your computer builds.** to explicitly configure cloud-first planning and local-only coding. Eligible cloud providers are tried in saved order (Gemini, then Groq by default), with installed local planning fallbacks after the cloud route. The builder uses up to two installed local text/coding models sequentially; it has no cloud fallback in this mode. Existing routing modes and projects stay unchanged until you apply setup. No setup generation runs, and cloud planning still requires consent.
+
+Local rank is a preference heuristic, not a best-performance benchmark. Start Ollama first; if no eligible local model is installed, setup stops before cloud discovery and keeps existing routes. Provider errors advance without a deliberate sleep; hanging requests must time out first. Truncation/output limits still determine whether a fallback is eligible.
+
+Approve the proposal, then use **Build, test & repair** after choosing a runtime and granting execution approval. The task board lists each outcome, editable files, declared criteria and related approved checks; those links are not per-criterion proof. A shared model-invocation allowance covers coding, source retrieval and repairs within the run; the existing planner ceiling and 0–3 repair cap remain. Stage-aware consent lets a local-only build run without authorizing an unused cloud planner.
+
+Generated-app ZIPs now include `.foundry/WORK-CHECKLIST.md`, tied to the exported source and acceptance evidence. Relative Python package imports and parent-relative JS/CSS references now resolve in focused context; the merged-source cap remains 36,000 characters and now explains why smaller patches cannot bypass it. [Detailed behavior, evidence and limits](docs/orchestration-0.24.0.md).
 
 ## 0.23.0 a calmer model studio
 
