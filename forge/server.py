@@ -271,6 +271,7 @@ def make_server(port=8765, workbench=None, credentials=None):
             if any(uses_cloud(c) for c in configs) and body.get("cloud_consent") is not True:
                 raise ValueError("Confirm that you allow sending this project's content to the selected cloud providers. API usage may cost money.")
 
+    from .dashboard import register; Handler = register(Handler)
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.daemon_threads = True
     server.workbench = bench

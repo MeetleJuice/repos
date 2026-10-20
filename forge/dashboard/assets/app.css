@@ -1,0 +1,644 @@
+@scope (.ifd-shell) {
+/* this gets exported as style.css and can be used for the default theming */
+/* these are the necessary styles for React/Svelte Flow, they get used by base.css and style.css */
+.react-flow {
+  direction: ltr;
+
+  --xy-edge-stroke-default: #b1b1b7;
+  --xy-edge-stroke-width-default: 1;
+  --xy-edge-stroke-selected-default: #555;
+
+  --xy-connectionline-stroke-default: #b1b1b7;
+  --xy-connectionline-stroke-width-default: 1;
+
+  --xy-attribution-background-color-default: rgba(255, 255, 255, 0.5);
+
+  --xy-minimap-background-color-default: #fff;
+  --xy-minimap-mask-background-color-default: rgba(240, 240, 240, 0.6);
+  --xy-minimap-mask-stroke-color-default: transparent;
+  --xy-minimap-mask-stroke-width-default: 1;
+  --xy-minimap-node-background-color-default: #e2e2e2;
+  --xy-minimap-node-stroke-color-default: transparent;
+  --xy-minimap-node-stroke-width-default: 2;
+
+  --xy-background-color-default: transparent;
+  --xy-background-pattern-dots-color-default: #91919a;
+  --xy-background-pattern-lines-color-default: #eee;
+  --xy-background-pattern-cross-color-default: #e2e2e2;
+  background-color: var(--xy-background-color, var(--xy-background-color-default));
+  --xy-node-color-default: inherit;
+  --xy-node-border-default: 1px solid #1a192b;
+  --xy-node-background-color-default: #fff;
+  --xy-node-group-background-color-default: rgba(240, 240, 240, 0.25);
+  --xy-node-boxshadow-hover-default: 0 1px 4px 1px rgba(0, 0, 0, 0.08);
+  --xy-node-boxshadow-selected-default: 0 0 0 0.5px #1a192b;
+  --xy-node-border-radius-default: 3px;
+
+  --xy-handle-background-color-default: #1a192b;
+  --xy-handle-border-color-default: #fff;
+
+  --xy-selection-background-color-default: rgba(0, 89, 220, 0.08);
+  --xy-selection-border-default: 1px dotted rgba(0, 89, 220, 0.8);
+
+  --xy-controls-button-background-color-default: #fefefe;
+  --xy-controls-button-background-color-hover-default: #f4f4f4;
+  --xy-controls-button-color-default: inherit;
+  --xy-controls-button-color-hover-default: inherit;
+  --xy-controls-button-border-color-default: #eee;
+  --xy-controls-box-shadow-default: 0 0 2px 1px rgba(0, 0, 0, 0.08);
+
+  --xy-edge-label-background-color-default: #ffffff;
+  --xy-edge-label-color-default: inherit;
+  --xy-resize-background-color-default: #3367d9;
+}
+.react-flow.dark {
+  --xy-edge-stroke-default: #3e3e3e;
+  --xy-edge-stroke-width-default: 1;
+  --xy-edge-stroke-selected-default: #727272;
+
+  --xy-connectionline-stroke-default: #b1b1b7;
+  --xy-connectionline-stroke-width-default: 1;
+
+  --xy-attribution-background-color-default: rgba(150, 150, 150, 0.25);
+
+  --xy-minimap-background-color-default: #141414;
+  --xy-minimap-mask-background-color-default: rgba(60, 60, 60, 0.6);
+  --xy-minimap-mask-stroke-color-default: transparent;
+  --xy-minimap-mask-stroke-width-default: 1;
+  --xy-minimap-node-background-color-default: #2b2b2b;
+  --xy-minimap-node-stroke-color-default: transparent;
+  --xy-minimap-node-stroke-width-default: 2;
+
+  --xy-background-color-default: #141414;
+  --xy-background-pattern-dots-color-default: #555;
+  --xy-background-pattern-lines-color-default: #333;
+  --xy-background-pattern-cross-color-default: #333;
+  --xy-node-color-default: #f8f8f8;
+  --xy-node-border-default: 1px solid #3c3c3c;
+  --xy-node-background-color-default: #1e1e1e;
+  --xy-node-group-background-color-default: rgba(240, 240, 240, 0.25);
+  --xy-node-boxshadow-hover-default: 0 1px 4px 1px rgba(255, 255, 255, 0.08);
+  --xy-node-boxshadow-selected-default: 0 0 0 0.5px #999;
+
+  --xy-handle-background-color-default: #bebebe;
+  --xy-handle-border-color-default: #1e1e1e;
+
+  --xy-selection-background-color-default: rgba(200, 200, 220, 0.08);
+  --xy-selection-border-default: 1px dotted rgba(200, 200, 220, 0.8);
+
+  --xy-controls-button-background-color-default: #2b2b2b;
+  --xy-controls-button-background-color-hover-default: #3e3e3e;
+  --xy-controls-button-color-default: #f8f8f8;
+  --xy-controls-button-color-hover-default: #fff;
+  --xy-controls-button-border-color-default: #5b5b5b;
+  --xy-controls-box-shadow-default: 0 0 2px 1px rgba(0, 0, 0, 0.08);
+
+  --xy-edge-label-background-color-default: #141414;
+  --xy-edge-label-color-default: #f8f8f8;
+}
+.react-flow__background {
+  background-color: var(--xy-background-color-props, var(--xy-background-color, var(--xy-background-color-default)));
+  pointer-events: none;
+  z-index: -1;
+}
+.react-flow__container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+.react-flow__pane {
+  z-index: 1;
+  touch-action: none;
+}
+.react-flow__pane.draggable {
+    cursor: grab;
+  }
+.react-flow__pane.dragging {
+    cursor: grabbing;
+  }
+.react-flow__pane.selection {
+    cursor: pointer;
+  }
+.react-flow__viewport {
+  transform-origin: 0 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.react-flow__renderer {
+  z-index: 4;
+}
+.react-flow__selection {
+  z-index: 6;
+}
+.react-flow__nodesselection-rect:focus,
+.react-flow__nodesselection-rect:focus-visible {
+  outline: none;
+}
+.react-flow__edge-path {
+  stroke: var(--xy-edge-stroke, var(--xy-edge-stroke-default));
+  stroke-width: var(--xy-edge-stroke-width, var(--xy-edge-stroke-width-default));
+  fill: none;
+}
+.react-flow__connection-path {
+  stroke: var(--xy-connectionline-stroke, var(--xy-connectionline-stroke-default));
+  stroke-width: var(--xy-connectionline-stroke-width, var(--xy-connectionline-stroke-width-default));
+  fill: none;
+}
+.react-flow .react-flow__edges {
+  position: absolute;
+}
+.react-flow .react-flow__edges svg {
+    overflow: visible;
+    position: absolute;
+    pointer-events: none;
+  }
+.react-flow__edge {
+  pointer-events: visibleStroke;
+}
+.react-flow__edge.selectable {
+    cursor: pointer;
+  }
+.react-flow__edge.animated path {
+    stroke-dasharray: 5;
+    animation: dashdraw 0.5s linear infinite;
+  }
+.react-flow__edge.animated path.react-flow__edge-interaction {
+    stroke-dasharray: none;
+    animation: none;
+  }
+.react-flow__edge.inactive {
+    pointer-events: none;
+  }
+.react-flow__edge.selected,
+  .react-flow__edge:focus,
+  .react-flow__edge:focus-visible {
+    outline: none;
+  }
+.react-flow__edge.selected .react-flow__edge-path,
+  .react-flow__edge.selectable:focus .react-flow__edge-path,
+  .react-flow__edge.selectable:focus-visible .react-flow__edge-path {
+    stroke: var(--xy-edge-stroke-selected, var(--xy-edge-stroke-selected-default));
+  }
+.react-flow__edge-textwrapper {
+    pointer-events: all;
+  }
+.react-flow__edge .react-flow__edge-text {
+    pointer-events: none;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none;
+  }
+/* Arrowhead marker styles - use CSS custom properties as default */
+.react-flow__arrowhead polyline {
+  stroke: var(--xy-edge-stroke, var(--xy-edge-stroke-default));
+}
+.react-flow__arrowhead polyline.arrowclosed {
+  fill: var(--xy-edge-stroke, var(--xy-edge-stroke-default));
+}
+.react-flow__connection {
+  pointer-events: none;
+}
+.react-flow__connection .animated {
+    stroke-dasharray: 5;
+    animation: dashdraw 0.5s linear infinite;
+  }
+svg.react-flow__connectionline {
+  z-index: 1001;
+  overflow: visible;
+  position: absolute;
+}
+.react-flow__nodes {
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+.react-flow__node {
+  position: absolute;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  pointer-events: all;
+  transform-origin: 0 0;
+  box-sizing: border-box;
+  cursor: default;
+}
+.react-flow__node.selectable {
+    cursor: pointer;
+  }
+.react-flow__node.draggable {
+    cursor: grab;
+    pointer-events: all;
+  }
+.react-flow__node.draggable.dragging {
+      cursor: grabbing;
+    }
+.react-flow__nodesselection {
+  z-index: 3;
+  transform-origin: left top;
+  pointer-events: none;
+}
+.react-flow__nodesselection-rect {
+    position: absolute;
+    pointer-events: all;
+    cursor: grab;
+  }
+.react-flow__handle {
+  position: absolute;
+  pointer-events: none;
+  min-width: 5px;
+  min-height: 5px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--xy-handle-background-color, var(--xy-handle-background-color-default));
+  border: 1px solid var(--xy-handle-border-color, var(--xy-handle-border-color-default));
+  border-radius: 100%;
+}
+.react-flow__handle.connectingfrom {
+    pointer-events: all;
+  }
+.react-flow__handle.connectionindicator {
+    pointer-events: all;
+    cursor: crosshair;
+  }
+.react-flow__handle-bottom {
+    top: auto;
+    left: 50%;
+    bottom: 0;
+    transform: translate(-50%, 50%);
+  }
+.react-flow__handle-top {
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+.react-flow__handle-left {
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+  }
+.react-flow__handle-right {
+    top: 50%;
+    right: 0;
+    transform: translate(50%, -50%);
+  }
+.react-flow__edgeupdater {
+  cursor: move;
+  pointer-events: all;
+}
+.react-flow__pane.selection .react-flow__panel {
+  pointer-events: none;
+}
+.react-flow__panel {
+  position: absolute;
+  z-index: 5;
+  margin: 15px;
+}
+.react-flow__panel.top {
+    top: 0;
+  }
+.react-flow__panel.bottom {
+    bottom: 0;
+  }
+.react-flow__panel.top.center, .react-flow__panel.bottom.center {
+      left: 50%;
+      transform: translateX(-15px) translateX(-50%);
+    }
+.react-flow__panel.left {
+    left: 0;
+  }
+.react-flow__panel.right {
+    right: 0;
+  }
+.react-flow__panel.left.center, .react-flow__panel.right.center {
+      top: 50%;
+      transform: translateY(-15px) translateY(-50%);
+    }
+.react-flow__attribution {
+  font-size: 10px;
+  background: var(--xy-attribution-background-color, var(--xy-attribution-background-color-default));
+  padding: 2px 3px;
+  margin: 0;
+}
+.react-flow__attribution a {
+    text-decoration: none;
+    color: #999;
+  }
+@keyframes dashdraw {
+  from {
+    stroke-dashoffset: 10;
+  }
+}
+.react-flow__edgelabel-renderer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  left: 0;
+  top: 0;
+}
+.react-flow__viewport-portal {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+.react-flow__minimap {
+  background: var(
+    --xy-minimap-background-color-props,
+    var(--xy-minimap-background-color, var(--xy-minimap-background-color-default))
+  );
+}
+.react-flow__minimap-svg {
+    display: block;
+  }
+.react-flow__minimap-mask {
+    fill: var(
+      --xy-minimap-mask-background-color-props,
+      var(--xy-minimap-mask-background-color, var(--xy-minimap-mask-background-color-default))
+    );
+    stroke: var(
+      --xy-minimap-mask-stroke-color-props,
+      var(--xy-minimap-mask-stroke-color, var(--xy-minimap-mask-stroke-color-default))
+    );
+    stroke-width: var(
+      --xy-minimap-mask-stroke-width-props,
+      var(--xy-minimap-mask-stroke-width, var(--xy-minimap-mask-stroke-width-default))
+    );
+  }
+.react-flow__minimap-node {
+    fill: var(
+      --xy-minimap-node-background-color-props,
+      var(--xy-minimap-node-background-color, var(--xy-minimap-node-background-color-default))
+    );
+    stroke: var(
+      --xy-minimap-node-stroke-color-props,
+      var(--xy-minimap-node-stroke-color, var(--xy-minimap-node-stroke-color-default))
+    );
+    stroke-width: var(
+      --xy-minimap-node-stroke-width-props,
+      var(--xy-minimap-node-stroke-width, var(--xy-minimap-node-stroke-width-default))
+    );
+  }
+.react-flow__background-pattern.dots {
+    fill: var(
+      --xy-background-pattern-color-props,
+      var(--xy-background-pattern-color, var(--xy-background-pattern-dots-color-default))
+    );
+  }
+.react-flow__background-pattern.lines {
+    stroke: var(
+      --xy-background-pattern-color-props,
+      var(--xy-background-pattern-color, var(--xy-background-pattern-lines-color-default))
+    );
+  }
+.react-flow__background-pattern.cross {
+    stroke: var(
+      --xy-background-pattern-color-props,
+      var(--xy-background-pattern-color, var(--xy-background-pattern-cross-color-default))
+    );
+  }
+.react-flow__controls {
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--xy-controls-box-shadow, var(--xy-controls-box-shadow-default));
+}
+.react-flow__controls.horizontal {
+    flex-direction: row;
+  }
+.react-flow__controls-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 26px;
+    width: 26px;
+    padding: 4px;
+    border: none;
+    background: var(--xy-controls-button-background-color, var(--xy-controls-button-background-color-default));
+    border-bottom: 1px solid
+      var(
+        --xy-controls-button-border-color-props,
+        var(--xy-controls-button-border-color, var(--xy-controls-button-border-color-default))
+      );
+    color: var(
+      --xy-controls-button-color-props,
+      var(--xy-controls-button-color, var(--xy-controls-button-color-default))
+    );
+    cursor: pointer;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none;
+  }
+.react-flow__controls-button svg {
+      width: 100%;
+      max-width: 12px;
+      max-height: 12px;
+      fill: currentColor;
+    }
+.react-flow__edge.updating .react-flow__edge-path {
+      stroke: #777;
+    }
+.react-flow__edge-text {
+    font-size: 10px;
+  }
+.react-flow__node.selectable:focus,
+  .react-flow__node.selectable:focus-visible {
+    outline: none;
+  }
+.react-flow__node-input,
+.react-flow__node-default,
+.react-flow__node-output,
+.react-flow__node-group {
+  padding: 10px;
+  border-radius: var(--xy-node-border-radius, var(--xy-node-border-radius-default));
+  width: 150px;
+  font-size: 12px;
+  color: var(--xy-node-color, var(--xy-node-color-default));
+  text-align: center;
+  border: var(--xy-node-border, var(--xy-node-border-default));
+  background-color: var(--xy-node-background-color, var(--xy-node-background-color-default));
+}
+.react-flow__node-input.selectable:hover, .react-flow__node-default.selectable:hover, .react-flow__node-output.selectable:hover, .react-flow__node-group.selectable:hover {
+      box-shadow: var(--xy-node-boxshadow-hover, var(--xy-node-boxshadow-hover-default));
+    }
+.react-flow__node-input.selectable.selected,
+    .react-flow__node-input.selectable:focus,
+    .react-flow__node-input.selectable:focus-visible,
+    .react-flow__node-default.selectable.selected,
+    .react-flow__node-default.selectable:focus,
+    .react-flow__node-default.selectable:focus-visible,
+    .react-flow__node-output.selectable.selected,
+    .react-flow__node-output.selectable:focus,
+    .react-flow__node-output.selectable:focus-visible,
+    .react-flow__node-group.selectable.selected,
+    .react-flow__node-group.selectable:focus,
+    .react-flow__node-group.selectable:focus-visible {
+      box-shadow: var(--xy-node-boxshadow-selected, var(--xy-node-boxshadow-selected-default));
+    }
+.react-flow__node-group {
+  background-color: var(--xy-node-group-background-color, var(--xy-node-group-background-color-default));
+}
+.react-flow__nodesselection-rect,
+.react-flow__selection {
+  background: var(--xy-selection-background-color, var(--xy-selection-background-color-default));
+  border: var(--xy-selection-border, var(--xy-selection-border-default));
+}
+.react-flow__nodesselection-rect:focus,
+  .react-flow__nodesselection-rect:focus-visible,
+  .react-flow__selection:focus,
+  .react-flow__selection:focus-visible {
+    outline: none;
+  }
+.react-flow__controls-button:hover {
+      background: var(
+        --xy-controls-button-background-color-hover-props,
+        var(--xy-controls-button-background-color-hover, var(--xy-controls-button-background-color-hover-default))
+      );
+      color: var(
+        --xy-controls-button-color-hover-props,
+        var(--xy-controls-button-color-hover, var(--xy-controls-button-color-hover-default))
+      );
+    }
+.react-flow__controls-button:disabled {
+      pointer-events: none;
+    }
+.react-flow__controls-button:disabled svg {
+        fill-opacity: 0.4;
+      }
+.react-flow__controls-button:last-child {
+    border-bottom: none;
+  }
+.react-flow__controls.horizontal .react-flow__controls-button {
+    border-bottom: none;
+    border-right: 1px solid
+      var(
+        --xy-controls-button-border-color-props,
+        var(--xy-controls-button-border-color, var(--xy-controls-button-border-color-default))
+      );
+  }
+.react-flow__controls.horizontal .react-flow__controls-button:last-child {
+    border-right: none;
+  }
+.react-flow__resize-control {
+  position: absolute;
+}
+.react-flow__resize-control.left,
+.react-flow__resize-control.right {
+  cursor: ew-resize;
+}
+.react-flow__resize-control.top,
+.react-flow__resize-control.bottom {
+  cursor: ns-resize;
+}
+.react-flow__resize-control.top.left,
+.react-flow__resize-control.bottom.right {
+  cursor: nwse-resize;
+}
+.react-flow__resize-control.bottom.left,
+.react-flow__resize-control.top.right {
+  cursor: nesw-resize;
+}
+/* handle styles */
+.react-flow__resize-control.handle {
+  width: 5px;
+  height: 5px;
+  border: 1px solid #fff;
+  border-radius: 1px;
+  background-color: var(--xy-resize-background-color, var(--xy-resize-background-color-default));
+  translate: -50% -50%;
+}
+.react-flow__resize-control.handle.left {
+  left: 0;
+  top: 50%;
+}
+.react-flow__resize-control.handle.right {
+  left: 100%;
+  top: 50%;
+}
+.react-flow__resize-control.handle.top {
+  left: 50%;
+  top: 0;
+}
+.react-flow__resize-control.handle.bottom {
+  left: 50%;
+  top: 100%;
+}
+.react-flow__resize-control.handle.top.left {
+  left: 0;
+}
+.react-flow__resize-control.handle.bottom.left {
+  left: 0;
+}
+.react-flow__resize-control.handle.top.right {
+  left: 100%;
+}
+.react-flow__resize-control.handle.bottom.right {
+  left: 100%;
+}
+/* line styles */
+.react-flow__resize-control.line {
+  border-color: var(--xy-resize-background-color, var(--xy-resize-background-color-default));
+  border-width: 0;
+  border-style: solid;
+}
+.react-flow__resize-control.line.left,
+.react-flow__resize-control.line.right {
+  width: 1px;
+  transform: translate(-50%, 0);
+  top: 0;
+  height: 100%;
+}
+.react-flow__resize-control.line.left {
+  left: 0;
+  border-left-width: 1px;
+}
+.react-flow__resize-control.line.right {
+  left: 100%;
+  border-right-width: 1px;
+}
+.react-flow__resize-control.line.top,
+.react-flow__resize-control.line.bottom {
+  height: 1px;
+  transform: translate(0, -50%);
+  left: 0;
+  width: 100%;
+}
+.react-flow__resize-control.line.top {
+  top: 0;
+  border-top-width: 1px;
+}
+.react-flow__resize-control.line.bottom {
+  border-bottom-width: 1px;
+  top: 100%;
+}
+.react-flow__edge-textbg {
+  fill: var(--xy-edge-label-background-color, var(--xy-edge-label-background-color-default));
+}
+.react-flow__edge-text {
+  fill: var(--xy-edge-label-color, var(--xy-edge-label-color-default));
+}
+
+}
+.ifd-document{margin:0;background:#080e17}
+.ifd-shell{--ifd-bg:#080e17;--ifd-panel:#101b29;--ifd-border:#243448;--ifd-muted:#91a5bb;--ifd-cyan:#68def5;--ifd-green:#71e0ac;--ifd-red:#ff8190;position:fixed;inset:0;display:flex;flex-direction:column;background:var(--ifd-bg);color:#e5eef8;font:13px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden;color-scheme:dark}
+.ifd-shell *{box-sizing:border-box}.ifd-shell button,.ifd-shell input,.ifd-shell select{font:inherit}.ifd-shell button,.ifd-shell select{cursor:pointer}.ifd-shell button:disabled,.ifd-shell select:disabled{cursor:default;opacity:.42}.ifd-shell button,.ifd-shell select,.ifd-shell input{border:1px solid var(--ifd-border);border-radius:8px;background:#142232;color:inherit;min-height:36px;padding:7px 10px}.ifd-shell button:hover:not(:disabled){border-color:#6495ae;background:#1a3042}.ifd-shell :focus-visible{outline:2px solid var(--ifd-cyan);outline-offset:3px}.ifd-shell a{color:var(--ifd-cyan);text-decoration:none}.ifd-shell h1,.ifd-shell h2,.ifd-shell p{margin:0}.ifd-shell .ifd-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.ifd-shell .ifd-header{height:76px;flex-shrink:0;display:flex;align-items:center;gap:45px;padding:0 28px;border-bottom:1px solid var(--ifd-border);background:#0b131f}.ifd-shell .ifd-brand{display:flex;align-items:center;gap:12px;color:#eff8ff;font-size:21px;font-weight:750;letter-spacing:-.8px}.ifd-shell .ifd-brand img{width:43px;height:43px;border-radius:11px}.ifd-shell .ifd-brand small{display:block;font-size:8px;letter-spacing:2px;color:var(--ifd-muted);font-weight:600}.ifd-shell nav{display:flex;height:100%;align-items:center;gap:26px;font-size:12px}.ifd-shell nav a{color:var(--ifd-muted)}.ifd-shell nav [aria-current]{height:100%;display:flex;align-items:center;border-bottom:2px solid var(--ifd-cyan)}.ifd-shell nav a span{font-size:16px;margin-left:5px}.ifd-shell .ifd-private{margin-left:auto;text-align:right;color:#acbdd0;font-size:11px}.ifd-shell .ifd-private>span{display:inline-block;width:6px;height:6px;background:var(--ifd-green);border-radius:50%;margin-right:7px}.ifd-shell .ifd-private b{display:block;font:9px ui-monospace,monospace;letter-spacing:2px;color:#647b94;margin-top:4px}
+.ifd-shell .ifd-command{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 19px;gap:18px;background:radial-gradient(ellipse at 65% 0,#12334666,transparent 65%)}.ifd-shell .ifd-eyebrow{font-size:9px;letter-spacing:2.4px;color:var(--ifd-cyan);font-weight:650}.ifd-shell h1{font-size:clamp(22px,2.4vw,34px);line-height:1.3;letter-spacing:-1.1px;margin:5px 0}.ifd-shell h1 em{font-style:normal;color:#8db4c8;font-weight:400}.ifd-shell .ifd-command p{font-size:12px;color:var(--ifd-muted)}.ifd-shell .ifd-mode{display:flex;padding:4px;gap:4px;background:#101c2a;border:1px solid var(--ifd-border);border-radius:11px;flex-shrink:0}.ifd-shell .ifd-mode button{background:transparent;border-color:transparent;font-size:11px;white-space:nowrap}.ifd-shell .ifd-mode [aria-pressed=true]{color:var(--ifd-cyan);background:#1b3747;border-color:#335969}
+.ifd-shell .ifd-evidence{display:flex;align-items:center;gap:15px;padding:10px 28px;border-top:1px solid #1b2a3c;border-bottom:1px solid #26364a;background:#101c2a;flex-shrink:0}.ifd-shell .ifd-source{font:9px ui-monospace,monospace;letter-spacing:.5px;border:1px solid #48626f;background:#233646;color:#b3d9e8;padding:4px 7px;border-radius:4px;white-space:nowrap}.ifd-shell .ifd-source-live{color:#91efd0;border-color:#286453;background:#12392f}.ifd-shell .ifd-evidence p{font-size:10px;color:#a9bacd;max-width:900px}.ifd-shell .ifd-evidence a{font-size:10px;white-space:nowrap;margin-left:auto}
+.ifd-shell .ifd-workspace{display:grid;grid-template-columns:245px minmax(0,1fr) 260px;flex:1;min-height:0}.ifd-shell .ifd-library,.ifd-shell .ifd-inspector{background:#0d1723;min-width:0;min-height:0;padding:19px 16px;display:flex;flex-direction:column}.ifd-shell .ifd-library{border-right:1px solid var(--ifd-border)}.ifd-shell .ifd-inspector{border-left:1px solid var(--ifd-border);overflow:auto}.ifd-shell .ifd-section-heading{display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:1.5px;font-weight:700;color:#a9bbcd;margin-bottom:16px}.ifd-shell .ifd-section-heading b{font:10px ui-monospace,monospace;background:#1e2f42;padding:1px 6px;border-radius:4px;color:var(--ifd-cyan)}.ifd-shell .ifd-section-heading button{min-height:24px;padding:0 6px;font-size:18px;background:transparent;border:0;color:#a5b3c5}.ifd-shell .ifd-search{display:flex;align-items:center;background:#132132;border:1px solid var(--ifd-border);border-radius:8px;padding:0 8px;gap:5px}.ifd-shell .ifd-search span{font-size:22px;color:var(--ifd-muted)}.ifd-shell .ifd-search input{border:0;background:none;width:100%;min-width:0;padding:8px 1px;font-size:10px}.ifd-shell kbd{font:10px ui-monospace,monospace;border:1px solid #45576b;padding:0 4px;border-radius:3px;color:var(--ifd-muted)}.ifd-shell .ifd-filter-label{color:#8096ad;font-size:10px;margin:15px 0 5px}.ifd-shell #ifd-category{width:100%;font-size:11px;min-height:32px}.ifd-shell .ifd-library-list{overflow:auto;flex:1;margin:12px -8px 0;min-height:50px;scrollbar-width:thin}.ifd-shell .ifd-library-list button{display:flex;align-items:flex-start;text-align:left;width:100%;padding:10px 8px;gap:9px;background:transparent;border:1px solid transparent;font-size:11px;overflow-wrap:anywhere}.ifd-shell .ifd-library-list button>span{min-width:0}.ifd-shell .ifd-library-list small{display:block;font-size:9px;margin-top:3px;color:#8398b0;word-break:break-word}.ifd-shell .ifd-library-list .ifd-dot{margin-top:5px;flex-shrink:0}.ifd-shell .ifd-library-list .ifd-library-selected{background:#163044;border-color:#2d5971}.ifd-shell .ifd-baseline{border-top:1px solid #233448;padding-top:13px;margin-top:12px}.ifd-shell .ifd-baseline strong{font-size:11px;color:#a7c1d7}.ifd-shell .ifd-baseline p{font-size:9px;color:#7e94ac;margin-top:5px;line-height:1.8}
+.ifd-shell .ifd-stage{display:flex;flex-direction:column;min-height:0;min-width:0}.ifd-shell .ifd-toolbar{display:flex;align-items:center;gap:7px;padding:12px 14px 7px;flex-wrap:wrap;background:#0e1926}.ifd-shell .ifd-toolbar select{min-width:0;flex:1;max-width:450px;font-size:11px;width:180px}.ifd-shell .ifd-toolbar button{font-size:11px;white-space:nowrap}.ifd-shell .ifd-toolbar .ifd-play{color:#061821;background:var(--ifd-cyan);border-color:var(--ifd-cyan);font-weight:700}.ifd-shell .ifd-toolbar .ifd-play:hover:not(:disabled){background:#9aecff}.ifd-shell .ifd-toolbar .ifd-icon-button{width:36px;padding:5px}.ifd-shell .ifd-stop{color:#bdc9d7}.ifd-shell .ifd-view-options{display:flex;align-items:center;flex-wrap:wrap;gap:16px;padding:3px 15px 10px;border-bottom:1px solid var(--ifd-border);font-size:10px;color:#96acc0;background:#0e1926}.ifd-shell .ifd-view-options label{display:flex;align-items:center;gap:5px}.ifd-shell .ifd-view-options input{accent-color:var(--ifd-cyan);min-height:0;padding:0;margin:0;width:12px;height:12px}.ifd-shell .ifd-view-options select{font-size:10px;min-height:24px;padding:1px 4px;border:0;background:none}.ifd-shell .ifd-view-options>span{margin-left:auto;font:9px ui-monospace,monospace}.ifd-shell .ifd-observed-status{font-size:11px;color:var(--ifd-green);max-width:120px;overflow:hidden}
+.ifd-shell .ifd-canvas{position:relative;flex:1;min-height:220px;background:radial-gradient(ellipse at 50% 35%,#14273866,transparent 70%),#09121e}.ifd-shell .react-flow{background:transparent}.ifd-shell .ifd-layout-loading{position:absolute;inset:0;display:grid;place-content:center;color:#9cb5c9;font:12px ui-monospace,monospace}.ifd-shell .ifd-node{width:260px;height:108px;border:1px solid #3a5066;border-radius:11px;background:linear-gradient(140deg,#182a3c,#111e2c);padding:12px 14px;box-shadow:0 5px 15px #0003;color:#dbe9f7}.ifd-shell .ifd-node-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.ifd-shell .ifd-kind{text-transform:uppercase;font:8px ui-monospace,monospace;letter-spacing:.7px;color:#a5bed2;border:1px solid #38526a;border-radius:4px;padding:1px 5px;display:inline-block}.ifd-shell .ifd-kind-api{color:#a5c2ff;border-color:#3d527d}.ifd-shell .ifd-kind-state{color:#e9c78e;border-color:#6b563a}.ifd-shell .ifd-kind-lifecycle{color:#ceb6f2;border-color:#574571}.ifd-shell .ifd-node-status{font:8px ui-monospace,monospace;text-transform:uppercase;color:#95a9bd}.ifd-shell .ifd-node strong{display:block;font:600 12px ui-monospace,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.5}.ifd-shell .ifd-node small{display:block;font:9px ui-monospace,monospace;color:#8fa8c0;margin-top:7px}.ifd-shell .react-flow__node.selected .ifd-node{outline:2px solid #dceefe;outline-offset:4px}.ifd-shell .react-flow__handle{width:7px;height:7px;background:#526f86;border:2px solid #0d1723}.ifd-shell .ifd-running{border-color:var(--ifd-cyan);background:linear-gradient(135deg,#183c4c,#132a3c);animation:ifd-pulse 1.5s ease-in-out infinite}.ifd-shell .ifd-running .ifd-node-status{color:var(--ifd-cyan)}.ifd-shell .ifd-completed{border-color:#5eb88d;background:linear-gradient(135deg,#163b32,#112a27)}.ifd-shell .ifd-completed .ifd-node-status{color:var(--ifd-green)}.ifd-shell .ifd-failed{border-color:var(--ifd-red);background:linear-gradient(135deg,#3c222e,#281b2b)}.ifd-shell .ifd-failed .ifd-node-status{color:var(--ifd-red)}.ifd-shell .ifd-edge{stroke:#3d536b;stroke-width:1.4;fill:none}.ifd-shell .ifd-edge-running{stroke:var(--ifd-cyan);stroke-width:2.5;stroke-dasharray:7 6;animation:ifd-flow .7s linear infinite;filter:drop-shadow(0 0 3px #53cfe9aa)}.ifd-shell .ifd-edge-completed{stroke:#68c99b;stroke-width:1.8}.ifd-shell .ifd-edge-failed{stroke:var(--ifd-red);stroke-width:2}.ifd-shell .react-flow__controls{background:#152536;border:1px solid #3b4e65;border-radius:7px;overflow:hidden;box-shadow:0 3px 15px #0005;bottom:66px;left:7px}.ifd-shell .react-flow__controls-button{min-height:29px;border:0;border-bottom:1px solid #2c4055;border-radius:0;background:#142436;fill:#dbe8f5}.ifd-shell .react-flow__controls-button:hover{background:#23415a}.ifd-shell .react-flow__minimap{background:#0c1724;border:1px solid #2b4057;border-radius:7px;bottom:65px;right:4px;width:135px;height:90px}.ifd-shell .react-flow__minimap svg{width:135px;height:90px}.ifd-shell .react-flow__attribution{background:#122131bb;font-size:8px;bottom:0}.ifd-shell .react-flow__attribution a{color:#8098b1}.ifd-shell .ifd-legend{position:absolute;bottom:30px;left:14px;right:14px;display:flex;gap:13px;flex-wrap:wrap;pointer-events:none;font-size:9px;color:#9fb3c7}.ifd-shell .ifd-legend span{display:flex;align-items:center;gap:5px}.ifd-shell .ifd-legend small{font-size:8px;flex-basis:100%;color:#8195ad}.ifd-shell .ifd-map-stamp{position:absolute;top:13px;left:15px;pointer-events:none;font:8px ui-monospace,monospace;letter-spacing:1.4px;color:#718ca7}.ifd-shell .ifd-map-stamp span{display:block;font-size:7px;letter-spacing:1px;color:#4e6983;margin-top:3px}.ifd-shell .ifd-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#738ba4}.ifd-shell .ifd-dot-running{background:var(--ifd-cyan);box-shadow:0 0 8px #68def599}.ifd-shell .ifd-dot-completed{background:var(--ifd-green)}.ifd-shell .ifd-dot-failed{background:var(--ifd-red)}
+.ifd-shell .ifd-timeline{height:150px;flex-shrink:0;background:#0d1724;border-top:1px solid var(--ifd-border);padding:13px 16px}.ifd-shell .ifd-timeline-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.ifd-shell .ifd-timeline-heading>span{font-size:9px;letter-spacing:1.3px;white-space:nowrap;color:#a0b4c8}.ifd-shell .ifd-timeline-heading b{font:7px ui-monospace,monospace;padding:2px 4px;border:1px solid #3b5269;letter-spacing:.6px;margin-left:6px;color:#7c98b3}.ifd-shell .ifd-timeline-heading strong{font:10px ui-monospace,monospace;color:var(--ifd-cyan);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}.ifd-shell .ifd-events{height:95px;overflow:auto;scrollbar-width:thin}.ifd-shell .ifd-events>p{color:#8199b2;font-size:11px;margin-top:15px}.ifd-shell .ifd-events button{width:100%;min-height:25px;display:flex;align-items:center;gap:9px;text-align:left;border:0;background:transparent;padding:3px 0;font:10px ui-monospace,monospace}.ifd-shell .ifd-events button>span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ifd-shell .ifd-events time{color:#748da7;font-size:9px}.ifd-shell .ifd-events small{color:#8ca1b8;font-size:8px}
+.ifd-shell .ifd-inspector>.ifd-kind{align-self:flex-start;margin-top:5px}.ifd-shell .ifd-inspector h2{font-size:17px;letter-spacing:-.4px;overflow-wrap:anywhere;margin:12px 0;color:#d8eaf8;line-height:1.4}.ifd-shell .ifd-inspector p{font-size:11px;color:#96abc0;line-height:1.8}.ifd-shell .ifd-source-card{background:#08131f;border:1px solid var(--ifd-border);border-radius:8px;padding:12px;margin:20px 0 12px}.ifd-shell .ifd-source-card small{font-size:8px;letter-spacing:1px;color:#7692ae;display:block}.ifd-shell .ifd-source-card strong{display:block;font:10px ui-monospace,monospace;color:#b6d2e8;overflow-wrap:anywhere;margin-top:7px}.ifd-shell .ifd-source-card pre{font:10px/1.8 ui-monospace,monospace;color:var(--ifd-cyan);overflow:auto;border-top:1px solid #21354a;padding-top:12px;margin:13px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}.ifd-shell .ifd-inspector dl{margin:5px 0 25px;font-size:10px}.ifd-shell .ifd-inspector dt{color:#718da9;margin-top:13px;font-size:9px}.ifd-shell .ifd-inspector dd{margin:2px 0;color:#c0d2e3}.ifd-shell .ifd-empty-inspector{padding:40px 8px;text-align:center}.ifd-shell .ifd-empty-inspector>span{font-size:47px;color:#426780;display:block}.ifd-shell .ifd-empty-inspector h2{font-size:15px}.ifd-shell .ifd-inspector-note{border:1px solid #304759;background:#112432;padding:12px;border-radius:8px;margin-top:auto}.ifd-shell .ifd-inspector-note b{font-size:10px;color:#a4cde3}.ifd-shell .ifd-inspector-note p{font-size:9px;margin-top:5px}.ifd-shell .ifd-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 20px;border-top:1px solid var(--ifd-border);font:8px ui-monospace,monospace;color:#7590aa;flex-shrink:0}.ifd-shell .ifd-footer>span:first-child{display:flex;align-items:center;gap:7px}.ifd-shell .ifd-footer .ifd-dot{width:5px;height:5px;margin-left:5px}.ifd-shell .ifd-error{position:absolute;bottom:48px;left:50%;transform:translateX(-50%);z-index:20;background:#3b1e2a;border:1px solid #ad6077;border-radius:10px;padding:15px 18px;box-shadow:0 10px 40px #0009;display:flex;align-items:center;gap:15px;width:min(90%,800px);font-size:11px}.ifd-shell .ifd-error strong{color:#ffb1be;white-space:nowrap}.ifd-shell .ifd-error span{overflow-wrap:anywhere}.ifd-shell .ifd-error button{margin-left:auto;background:#582e3b;border-color:#8e5060;min-height:30px}
+@keyframes ifd-pulse{0%,100%{box-shadow:0 0 5px #68def544,0 0 20px #68def522}50%{box-shadow:0 0 13px #68def599,0 0 30px #68def544}}@keyframes ifd-flow{to{stroke-dashoffset:-26}}
+@media(min-width:1600px){.ifd-shell .ifd-workspace{grid-template-columns:265px minmax(0,1fr) 280px}.ifd-shell .ifd-command{padding-top:26px;padding-bottom:24px}}
+@media(max-width:1200px){.ifd-shell .ifd-workspace{grid-template-columns:205px minmax(0,1fr)}.ifd-shell .ifd-inspector{display:none}.ifd-shell .ifd-inspector-open{display:flex;position:absolute;right:12px;top:210px;bottom:45px;width:280px;border:1px solid #41617b;border-radius:12px;z-index:12;box-shadow:0 10px 80px #000c}.ifd-shell .ifd-header{gap:26px}.ifd-shell .ifd-private b{display:none}.ifd-shell .ifd-evidence{gap:10px}.ifd-shell .ifd-evidence a{display:none}}
+@media(max-width:760px){.ifd-shell{position:relative;min-height:100dvh;overflow:visible}.ifd-shell .ifd-header{height:61px;padding:0 16px;gap:15px}.ifd-shell .ifd-brand{font-size:17px}.ifd-shell .ifd-brand img{width:35px;height:35px}.ifd-shell .ifd-brand small{font-size:6px;letter-spacing:1.3px}.ifd-shell nav{margin-left:auto;gap:14px;font-size:10px}.ifd-shell .ifd-private{display:none}.ifd-shell .ifd-command{padding:19px 16px 15px;align-items:flex-start;flex-direction:column;gap:13px}.ifd-shell h1{font-size:27px}.ifd-shell .ifd-command p{font-size:10px}.ifd-shell .ifd-mode{width:100%}.ifd-shell .ifd-mode button{flex:1;font-size:10px}.ifd-shell .ifd-evidence{padding:10px 16px;align-items:flex-start;flex-direction:column;gap:6px}.ifd-shell .ifd-evidence p{font-size:9px}.ifd-shell .ifd-workspace{display:flex;flex-direction:column;min-height:0;flex:none}.ifd-shell .ifd-library{order:2;border-right:0;border-top:1px solid var(--ifd-border);padding:17px 16px;max-height:330px}.ifd-shell .ifd-library-list{min-height:90px;max-height:120px}.ifd-shell .ifd-baseline{display:none}.ifd-shell .ifd-filter-label{margin-top:8px}.ifd-shell .ifd-section-heading{margin-bottom:8px}.ifd-shell .ifd-stage{order:1}.ifd-shell .ifd-canvas{height:440px;flex:none;min-height:0}.ifd-shell .ifd-toolbar{padding:12px 12px 8px}.ifd-shell .ifd-toolbar select{max-width:none;flex-basis:100%;width:100%}.ifd-shell .ifd-toolbar .ifd-play{flex:1}.ifd-shell .ifd-view-options{gap:10px;padding:3px 12px 10px;font-size:9px}.ifd-shell .ifd-view-options>span{display:none}.ifd-shell .ifd-timeline{height:140px;padding:10px 12px}.ifd-shell .ifd-timeline-heading{align-items:flex-start;flex-direction:column;gap:5px}.ifd-shell .ifd-events{height:80px}.ifd-shell .ifd-events small{display:none}.ifd-shell .ifd-timeline-heading strong{max-width:100%}.ifd-shell .ifd-inspector-open{position:fixed;inset:12px;width:auto;z-index:30;max-height:calc(100dvh - 24px)}.ifd-shell .ifd-footer{flex-wrap:wrap;padding:12px;gap:8px}.ifd-shell .ifd-footer>span:nth-child(2){display:none}.ifd-shell .ifd-error{position:fixed;bottom:20px;flex-wrap:wrap;padding:12px}.ifd-shell .ifd-error strong{white-space:normal}.ifd-shell .ifd-legend{gap:9px;font-size:8px}.ifd-shell .react-flow__minimap{width:105px;height:70px}.ifd-shell .react-flow__minimap svg{width:105px;height:70px}}
+@media(prefers-reduced-motion:reduce){.ifd-shell *,.ifd-shell *::before,.ifd-shell *::after{animation:none!important;transition:none!important}.ifd-shell .ifd-running{box-shadow:0 0 9px #68def588}}

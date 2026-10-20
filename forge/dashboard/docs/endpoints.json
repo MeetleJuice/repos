@@ -1,0 +1,372 @@
+[
+  [
+    "GET",
+    "/api/projects",
+    "listProjects()",
+    "Workbench.list_projects()",
+    "app.js",
+    "workspace list / browser bootstrap",
+    "listProjects()",
+    "Workbench & session"
+  ],
+  [
+    "POST",
+    "/api/projects",
+    "#idea-form submit",
+    "Workbench.create()",
+    "app.js",
+    "idea-form.onsubmit / create-standard-game",
+    "openProject()",
+    "Planning & approval"
+  ],
+  [
+    "GET",
+    "/api/projects/{id}",
+    "openProject() / polling interval",
+    "Workbench.present()",
+    "app.js",
+    "openProject / 1800 ms polling",
+    "render()",
+    "Workbench & session"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/plan",
+    "#revise / #plan-guided / Retry proposal",
+    "Workbench.start()",
+    "app.js",
+    "job('plan')",
+    "render()",
+    "Planning & approval"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/proposal",
+    "#save-proposal-edits",
+    "Workbench.save_proposal()",
+    "app.js",
+    "saveReviewedProposal()",
+    "render()",
+    "Planning & approval"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/review",
+    "#review-proposal-button / editor debounce",
+    "Workbench.review_proposal()",
+    "planning.js",
+    "reviewEditor()",
+    "renderProposalReview()",
+    "Planning & approval"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/starter-plan",
+    "#recover-standard-game",
+    "Workbench.load_starter_plan()",
+    "app.js",
+    "recover-standard-game.onclick",
+    "render()",
+    "Planning & approval"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/approve",
+    "#approve",
+    "Workbench.approve()",
+    "app.js",
+    "approve.onclick",
+    "render()",
+    "Planning & approval"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/build",
+    "#generate / #verify",
+    "Workbench.start()",
+    "app.js",
+    "job('build'); execution flag distinguishes generation/verification",
+    "render()",
+    "Build & verification"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/repair",
+    "#repair-manual / #repair-retest",
+    "Workbench.start()",
+    "app.js",
+    "repairManual() → job('repair')",
+    "render()",
+    "Build & verification"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/stop",
+    "#stop / #live-local-stop",
+    "Workbench.stop()",
+    "app.js",
+    "stop.onclick; scoped live stop in activity.js",
+    "render()",
+    "Delivery & recovery"
+  ],
+  [
+    "GET",
+    "/api/projects/{id}/workflow",
+    "refreshWorkflow()",
+    "Workbench.workflow()",
+    "workflow.js",
+    "render() → refreshWorkflow()",
+    "refreshWorkflow()",
+    "Workbench & session"
+  ],
+  [
+    "GET",
+    "/api/projects/{id}/history",
+    "#refresh-history / history-details toggle",
+    "Workbench.history()",
+    "app.js",
+    "loadHistory(); download-history reuses same endpoint",
+    "loadHistory()",
+    "Delivery & recovery"
+  ],
+  [
+    "GET",
+    "/api/projects/{id}/files",
+    "#refresh-files / Project files tab",
+    "Workbench.files()",
+    "app.js",
+    "loadFiles()",
+    "loadFiles()",
+    "Delivery & recovery"
+  ],
+  [
+    "GET",
+    "/api/projects/{id}/download",
+    "#download",
+    "Workbench.export_snapshot()",
+    "app.js",
+    "download.onclick → fetch / Blob",
+    "URL.createObjectURL()",
+    "Delivery & recovery"
+  ],
+  [
+    "GET",
+    "/api/projects/{id}/diff",
+    "#review-diff",
+    "Workbench.diff()",
+    "app.js",
+    "review-diff.onclick",
+    "#diff-list.replaceChildren()",
+    "Delivery & recovery"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/manual",
+    "#save-manual",
+    "Workbench.record_manual()",
+    "app.js",
+    "save-manual.onclick",
+    "render()",
+    "Build & verification"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/restore",
+    "checkpoint Restore button",
+    "Workbench.restore()",
+    "app.js",
+    "render() creates restore callback",
+    "render()",
+    "Delivery & recovery"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/models",
+    "#model-form / applyCloud()",
+    "Workbench.configure_models()",
+    "app.js",
+    "model-form.onsubmit; cloud.js applyCloud",
+    "render()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/change",
+    "#request-change",
+    "Workbench.fork()",
+    "app.js",
+    "request-change.onclick",
+    "openProject()",
+    "Delivery & recovery"
+  ],
+  [
+    "POST",
+    "/api/projects/{id}/resume-baseline",
+    "#adopt-resume",
+    "Workbench.adopt_resume_baseline()",
+    "workflow.js",
+    "explicit source adoption confirmation",
+    "openProject()",
+    "Delivery & recovery"
+  ],
+  [
+    "GET",
+    "/api/connections",
+    "#connections-button / Check again / bootstrap",
+    "connection_info()",
+    "app.js",
+    "connections()",
+    "refreshStudio()",
+    "Models & routing"
+  ],
+  [
+    "GET",
+    "/api/model-status",
+    "refreshModelStatus() interval",
+    "ModelStatus.snapshot()",
+    "activity.js",
+    "1000 ms poll; skips hidden page",
+    "refreshModelStatus()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/cloud/import",
+    "#cloud-env-file change",
+    "CredentialStore.import_text()",
+    "cloud.js",
+    "file import; values stay private",
+    "connections()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/cloud/reload",
+    "#cloud-reload",
+    "CredentialStore.reload()",
+    "cloud.js",
+    "cloud-reload.onclick",
+    "connections()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/cloud/check",
+    "#cloud-check",
+    "CloudSetup.check()",
+    "cloud.js",
+    "cloud-check.onclick; catalogue only",
+    "connections()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/cloud/select",
+    "#cloud-new / #cloud-project",
+    "CloudSetup.select()",
+    "cloud.js",
+    "applyCloud()",
+    "connections()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/cloud/automatic",
+    "#cloud-auto / #preset-local",
+    "CloudSetup.automatic()",
+    "cloud.js",
+    "setupAutomaticModels()",
+    "connections()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/local/setup",
+    "#compatible-apply",
+    "CloudSetup.local_runtime()",
+    "cloud.js",
+    "explicit loopback-compatible setup",
+    "connections()",
+    "Models & routing"
+  ],
+  [
+    "POST",
+    "/api/local/calibrate",
+    "#calibrate-local",
+    "Workbench.calibrate_local()",
+    "cloud.js",
+    "two fixed local response checks",
+    "connections()",
+    "Models & routing"
+  ],
+  [
+    "GET",
+    "/api/info",
+    "#workspace-button / #update-button",
+    "Handler.api(): /api/info",
+    "app.js",
+    "workspaceInfo(); updates.js update-button",
+    "workspaceInfo()",
+    "Workbench & session"
+  ],
+  [
+    "GET",
+    "/api/insights",
+    "#workspace-button",
+    "Workbench.insights()",
+    "app.js",
+    "workspaceInfo()",
+    "workspaceInfo()",
+    "Workbench & session"
+  ],
+  [
+    "GET",
+    "/api/backup",
+    "#backup-workspace",
+    "Workbench.backup()",
+    "app.js",
+    "saveDownload(); direct fetch",
+    "saveDownload()",
+    "Delivery & recovery"
+  ],
+  [
+    "GET",
+    "/api/updates",
+    "bootstrap / update dialog interval",
+    "UpdateManager.status()",
+    "updates.js",
+    "pollUpdate(); 1200 ms while dialog open",
+    "renderUpdate()",
+    "Delivery & recovery"
+  ],
+  [
+    "POST",
+    "/api/updates/check",
+    "#check-update",
+    "UpdateManager.check()",
+    "updates.js",
+    "check-update.onclick",
+    "renderUpdate()",
+    "Delivery & recovery"
+  ],
+  [
+    "POST",
+    "/api/updates/install",
+    "#install-update",
+    "UpdateManager.install()",
+    "updates.js",
+    "install-update.onclick; supervised installation",
+    "renderUpdate()",
+    "Delivery & recovery"
+  ],
+  [
+    "GET",
+    "/health",
+    "reconnect() / #update-button",
+    "Handler.dispatch(): /health",
+    "updates.js",
+    "fetch /health; reconnect max attempts",
+    "reconnect()",
+    "Delivery & recovery"
+  ]
+]
