@@ -1,10 +1,16 @@
-# Idea Foundry 0.26.0
+# Idea Foundry 0.26.1
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.26.1 automatic local backups
+
+Local-only Ollama projects now prepare a per-run backup chain from detected text/coding models, keeping your saved primary first. You do not have to enter backup IDs. Up to six automatic choices run sequentially; embeddings and known vision-only selections are excluded. Open Foundry with Ollama running; existing unapproved projects can use Retry proposal or Resume planning, and approved projects can resume generation. If Ollama was started later, use **Models → Check again** to refresh detection.
+
+Cooldowns now apply to a particular local model rather than all Ollama models. After transport/invalid-JSON failure, the next eligible local model is tried without deliberate sleep. Rejected code responses can advance beyond the second builder, with no rejected files applied. The visible current/last run route distinguishes automatic backups from your unchanged saved preferences. Shared output budgets, frozen checks, approval and execution/cloud consent remain enforced. A hanging request must still time out, and available models do not guarantee that every project can complete. [Exact behavior and regression evidence](docs/local-failover-0.26.1.md).
 
 ## 0.26.0 smaller planning steps and useful failure explanations
 

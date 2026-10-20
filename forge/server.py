@@ -152,6 +152,8 @@ def make_server(port=8765, workbench=None, credentials=None):
             if path == "/api/projects":
                 if post:
                     self.cloud_consent(body.get("planner", {}), body.get("coder", {}), body)
+                    if not bench.installed_ollama_models and body.get('planner',{}).get('provider')=='ollama':
+                        bench.installed_ollama_models=list(connection_info().get('ollama',{}).get('models',[]))
                     self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True, body.get("use_reviewed_plan", False), body.get('plan_mode','single'), body.get('local_timeout')), 201)
                 else:
                     self.json(bench.list_projects())
@@ -171,6 +173,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.json(cloud.check()); return
                 if path.endswith('/automatic'):
                     local_info.update(connection_info()['ollama'])
+                    bench.installed_ollama_models=list(local_info.get('models',[]))
                     self.json(cloud.automatic(local_info.get('models',[]),bench.model_status.avoid,body.get('mode','cloud_first'))); return
                 local_model = body.get('local_model', '')
                 if local_model:
@@ -188,6 +191,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                 runtime = runtime_diagnostics()
                 provider_info = connection_info()
                 local_info.update(provider_info.get("ollama",{}))
+                bench.installed_ollama_models=list(local_info.get('models',[]))
                 local_info['compatible']=provider_info.get('local',{})
                 self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "saved_routes":cloud.saved_profiles(), "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured, "local_calibration":read_calibration(bench.root.parent/"local-calibration-v1.json")})
                 return
@@ -253,6 +257,8 @@ def make_server(port=8765, workbench=None, credentials=None):
                 self.json(bench.fork(ident, body["request"], body.get("cloud_consent") is True), 201)
             elif post and action in {"plan", "build", "repair"}:
                 self.cloud_consent(state["planner"], state["coder"], body, "planner" if action=="plan" else "coder")
+                if not bench.installed_ollama_models and state['planner' if action=='plan' else 'coder']['provider']=='ollama':
+                    bench.installed_ollama_models=list(connection_info().get('ollama',{}).get('models',[]))
                 bench.start(ident, action, body)
                 self.json(bench.load(ident), 202)
             else:

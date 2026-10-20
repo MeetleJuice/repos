@@ -21,6 +21,7 @@ from .model_status import ModelStatus
 from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
 from .tasks import task_packet, validate_task_response, task_document, existing_task_evidence
 from .circuit import TransportCircuit
+from .cloud import local_failover_route
 from .execution import resume_problem, begin_task, candidate_saved, finish_task, finish_gate, seal_checkpoint, file_hashes, plan_hash
 from .focus import prepare_context, retrieve_context, ContextRequestError
 from .calibration import calibrate
@@ -74,6 +75,7 @@ class Workbench:
         self.inference_lock = threading.Lock()
         self.provider_cooldowns = {}
         self.transport_circuit = TransportCircuit()
+        self.installed_ollama_models = []
         self.model_status = ModelStatus()
         self.jobs = {}
         self.warnings = []
@@ -233,7 +235,7 @@ class Workbench:
                 if cancel.is_set():
                     raise InterruptedError("Stopped while waiting for a model.")
         try:
-            config = state[role]
+            config = state.get('run_model_routes',{}).get(role,state[role]) if state.get('active_run_id') else state[role]
             pool = bool(config.get("fallbacks"))
             choices = [(config["fallback"], True)] if fallback and config.get("fallback") else [(config, False)]
             if not fallback and allow_fallback and config.get("fallback"):
@@ -256,8 +258,9 @@ class Workbench:
                 if uses_cloud({'provider':selected['provider']}) and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
                 identity = (selected["provider"], selected["model"])
-                if pool and self.transport_circuit.remaining(selected['provider'])>0:
-                    self.event(state,'Skipping '+selected['provider']+' during its temporary transport/service circuit cooldown; no request sent.')
+                circuit_key=selected['provider']+'/'+selected['model'] if selected['provider'] in {'ollama','local'} else selected['provider']
+                if pool and self.transport_circuit.remaining(circuit_key)>0:
+                    self.event(state,'Skipping '+circuit_key+' during its temporary transport/service circuit cooldown; no request sent.')
                     failures.append(selected['provider']+': temporary transport/service circuit cooldown (no request sent)')
                     continue
                 rejected = state.get("job_model_rejections", {})
@@ -336,7 +339,7 @@ class Workbench:
                         client.cancel_event=cancel
                         client.stream_progress=self.model_status.progress
                     result = client.complete(system, effective_prompt)
-                    self.transport_circuit.success(selected["provider"])
+                    self.transport_circuit.success(circuit_key)
                     if cancel.is_set(): raise InterruptedError("Stopped. Model output discarded.")
                     if role=='planner':
                         record['response_sha256']=hashlib.sha256(json.dumps(result,sort_keys=True).encode()).hexdigest()
@@ -372,10 +375,12 @@ class Workbench:
                 except ModelError as exc:
                     record['error_detail']=history.redact(str(exc)[:1200])
                     if exc.transport_kind:record['transport_kind']=exc.transport_kind
-                    if exc.category in {'transport','provider'}:self.transport_circuit.failure(selected['provider'])
-                    elif exc.category not in {'output_budget','configuration'}:self.transport_circuit.success(selected['provider'])
+                    if exc.category in {'transport','provider'}:self.transport_circuit.failure(circuit_key)
+                    elif exc.category not in {'output_budget','configuration'}:self.transport_circuit.success(circuit_key)
                     if exc.http_status is not None:record["http_status"]=exc.http_status
                     category = 'truncated_output' if exc.category in {'truncated','truncated_output'} else exc.category
+                    if pool and selected['provider'] in {'ollama','local'} and category in {'transport','provider','format','parse_error','size'}:
+                        state.setdefault('job_model_rejections',{})[selected['provider']+'/'+selected['model']]=category
                     record['error_category'] = category
                     record['failure_class'] = category if category in {'truncated_output','parse_error','schema_error','output_budget','configuration'} else 'parse_error' if category == 'format' else 'provider_unavailable' if category in {'auth','rate_limit','provider','transport','quota','request','model','configuration'} else category
                     if category == 'truncated_output' or (role in {'planner', 'coder'} and recovery_mode == 'continuation' and category in {'format','parse_error','output_budget'}):
@@ -652,6 +657,7 @@ class Workbench:
             state["status"] = "planning" if action == "plan" else "building"
             state["error"] = None
             state["active_run_id"] = uuid.uuid4().hex
+            state['run_model_routes']={role:local_failover_route(state[role],list(self.installed_ollama_models),role) for role in ('planner','coder')}
             self.trace(state, "job_started", {"action":action, "execute":execute, "runtime":mode,
                        "repair_budget":attempts, "max_model_calls":max_calls, "cloud_consent":state["job_cloud_consent"], "next_task":state.get("next_task", 0)})
             self.save(state)
@@ -935,10 +941,13 @@ class Workbench:
         self.event(state, str(response.get("summary", "Source files updated."))[:2000], origin="model_report")
 
     def generate_and_apply(self, state, payload, cancel, repair=False):
-        """One bounded correction for malformed code responses; rejected files never land."""
+        """Bounded response recovery; pooled local models can advance without writes."""
         state.pop("last_task_support",None)
         payload = prepare_context(generation_contract(payload,self.files(state["id"])),self.context_files(state["id"]))
-        for attempt in range(2):
+        route=state.get('run_model_routes',{}).get('coder',state['coder']) if state.get('active_run_id') else state['coder']
+        chain=[route,*route.get('fallbacks',[])]
+        response_attempts=max(2,len(chain)) if all(entry['provider']=='ollama' for entry in chain) else 2
+        for attempt in range(response_attempts):
             try:
                 response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel)
                 for _ in range(3):
@@ -986,14 +995,15 @@ class Workbench:
                         provider,model=record["provider"],record["model"]
                         self.model_status.reject(provider,model)
                         self.trace(state,"code_response_rejected",{"provider":provider,"model":model,"reason":str(exc),"files_replaced":False})
-                        if state["coder"].get("fallbacks"):
+                        if route.get("fallbacks"):
                             state.setdefault("job_model_rejections",{})[provider+"/"+model]="response_rejected"
-                    if attempt:
+                    if attempt+1==response_attempts:
                         raise
                     error = str(exc)
             if cancel.is_set():
                 raise InterruptedError("Stopped before response correction.")
-            self.event(state, "Code response rejected before file replacement; requesting one focused correction: " + error)
+            recovery_message="trying the next eligible local model" if route.get('fallbacks') and all(entry['provider']=='ollama' for entry in chain) else "requesting one focused correction"
+            self.event(state, "Code response rejected before file replacement; "+recovery_message+": " + error)
             stats = state.setdefault("generation_stats", {})
             stats["rejected_responses"] = stats.get("rejected_responses", 0) + 1
             payload = {**payload, "response_validation_error": error, "response_mode": "complete_files",
@@ -1116,7 +1126,11 @@ class Workbench:
         initial_requests = history.totals_for(state)["requests"]
         initial_repairs = state.get("repair_count", 0)
         try:
+            for role,route in state.get('run_model_routes',{}).items():
+                if route!=state[role]:
+                    self.event(state,'Automatic local backups for '+role+': '+' → '.join(entry['model'] for entry in [route,*route.get('fallbacks',[])])+'. Saved primary and preferences kept; detected models are not proven GPU fits.')
             if action == "plan":
+                planner_route=state.get('run_model_routes',{}).get('planner',state['planner'])
                 state.pop("planner_truncation_ceiling", None)
                 prior_model_records = list(state.get("model_calls", []))
                 self.event(state, "Planning with " + state["planner"]["provider"] + "/" + state["planner"]["model"])
@@ -1143,7 +1157,7 @@ class Workbench:
                     return candidate, require_consistent(candidate, state.get("starter"))
 
                 def report(candidate: dict[str, Any] | None, result: Review) -> None:
-                    if state.get('model_calls') and not state['planner'].get('fallbacks'):
+                    if state.get('model_calls') and not planner_route.get('fallbacks'):
                         record = state['model_calls'][-1]
                         record['proposal_valid'] = result.passed
                         if not result.passed: record['failure_class'] = 'schema_error'
@@ -1191,12 +1205,12 @@ class Workbench:
                 else:
                     result = PlanningEngine().run(
                         request,
-                        lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=bool(state["planner"].get("fallbacks")), review_candidate=reviewed if state["planner"].get("fallbacks") else None),
+                        lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=bool(planner_route.get("fallbacks")), review_candidate=reviewed if planner_route.get("fallbacks") else None),
                         evaluate, report, lambda message: self.event(state, message), cancel,
-                        has_fallback=bool(state["planner"].get("fallback")))
+                        has_fallback=bool(planner_route.get("fallback")))
                 state.update(plan=result.plan, title=result.plan["title"], status="proposed",
                              plan_review=result.review.to_dict(),
-                             planning_stats={"mode":mode,"attempts": result.attempts, "fallback_used": result.fallback_used or any(record.get("fallback") for record in state.get("model_calls", []) if id(record) not in {id(old) for old in prior_model_records})})
+                             planning_stats={"mode":mode,"attempts": state.get('job_inference_attempts',result.attempts), "fallback_used": result.fallback_used or any(record.get("fallback") for record in state.get("model_calls", []) if id(record) not in {id(old) for old in prior_model_records})})
                 self.event(state, "Proposal ready. Consistency review passed; no generated code has run. Review the scope and acceptance checks before approval.")
                 return
             problem=resume_problem(state,self.context_files(state['id']))

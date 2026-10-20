@@ -219,7 +219,7 @@ class CloudSetup:
                 ranked_local = sorted(set(local), key=lambda m:((self.rank(m,role)[0]-100 if role=='coder' and 'coder' in m.lower() else self.rank(m,role)[0]),m))
                 local_configs = [{'provider':'ollama','model':model,
                     'options':{'num_ctx':32768,'num_predict':8192,'structured_outputs':True,'timeout_seconds':120}}
-                    for model in ranked_local[:2 if mode in {'local_only','orchestrated'} else 1]]
+                    for model in ranked_local[:min(6 if mode in {'local_only','orchestrated'} else 1,16-len(configs))]]
                 position=0 if mode in {'local_first','local_only'} or (mode=='hybrid' and role=='coder') else min(1,len(configs)) if mode=='hybrid' else len(configs)
                 if mode == 'orchestrated':position = len(configs)
                 configs[position:position] = local_configs
@@ -238,3 +238,26 @@ class CloudSetup:
             'limits':self.limits,'timeouts':self.timeouts,'structured':self.structured,
             'order':self.order,'local_model':self.local_model},indent=2)+'\n')
         return routes
+
+
+def local_failover_route(config: dict[str,Any], installed: list[str], role: str) -> dict[str,Any]:
+    """Keep saved choices first; add only detected Ollama text models, at most six total.
+
+    This produces a per-run route, never a persisted preference or model-quality claim.
+    Mixed/cloud routes and external local runtimes retain their explicit routing.
+    """
+    import copy
+    result=copy.deepcopy(config)
+    entries=[result,*result.get('fallbacks',[]),*([result['fallback']] if result.get('fallback') else [])]
+    if any(entry['provider']!='ollama' for entry in entries):return result
+    names={entry['model'] for entry in entries}
+    candidates=[model for model in installed if isinstance(model,str) and re.fullmatch(MODEL_ID,model)
+                and all(part not in {'','.','..'} for part in model.split('/'))
+                and not any(word in model.lower() for word in ('embed','vl:','vision'))]
+    ranked=sorted(set(candidates),key=lambda model:CloudSetup.rank(model,role))
+    additions=[{'provider':'ollama','model':model,'options':copy.deepcopy(result.get('options',{}))}
+               for model in ranked if model not in names][:max(0,6-len(entries))]
+    if additions or result.get('fallback'):
+        result.pop('fallback',None)
+        result['fallbacks']=[*entries[1:],*additions]
+    return result

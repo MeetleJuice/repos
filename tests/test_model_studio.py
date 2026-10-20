@@ -24,8 +24,8 @@ class ModelStudioTests(unittest.TestCase):
             for config in routes.values():
                 validate_config(config);self.assertFalse(uses_cloud(config))
                 entries=[config,*config.get('fallbacks',[])]
-                self.assertEqual(len(entries),2)
-                self.assertEqual(len({c['model'] for c in entries}),2)
+                self.assertEqual(len(entries),3)
+                self.assertEqual(len({c['model'] for c in entries}),3)
                 self.assertFalse(any('embed' in c['model'] or 'vl:' in c['model'] for c in entries))
             self.assertEqual(routes['coder']['model'],'qwen2.5-coder:7b')
             restored=CloudSetup(temp)

@@ -176,6 +176,9 @@ function render() {
   if (typeof refreshStudio === "function") refreshStudio();
   if (typeof observeStudioJob === "function") observeStudioJob(p);
   refreshWorkflow(p.id);
+  const localRoutes = Object.entries(p.run_model_routes || {}).filter(([, route]) => route.provider === "ollama" && (route.fallbacks || []).every(entry => entry.provider === "ollama"));
+  $("local-failover-status").hidden = localRoutes.length === 0;
+  $("local-failover-status").textContent = `${busy ? "This run" : "Last run"} · local backups: ` + localRoutes.map(([role, route]) => `${role === "coder" ? "Builder" : "Planner"}: ${[route, ...(route.fallbacks || [])].map(entry => entry.model).join(" → ")}`).join(" · ") + ". Saved model preferences are unchanged. Missing backups? Start Ollama and use Models → Check again.";
   renderPlanningProgress(p, busy);
   $("breadcrumb").textContent = p.title;
   $("project-title").textContent = p.title;
