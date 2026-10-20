@@ -62,6 +62,8 @@
         </div>
       </header>
       <div id="notice" role="status" hidden></div>
+      <section id="update-ready-banner" class="runtime-readiness" hidden aria-label="Update ready"><p id="update-ready-message" role="status"></p><button id="update-ready-open" type="button">Open Update</button><button id="update-ready-dismiss" type="button" class="quiet">Dismiss</button></section>
+      <section id="live-local" class="runtime-readiness" hidden aria-label="Live local response"><p id="live-local-label" role="status"></p><details><summary>Partial response · unvalidated</summary><pre id="live-local-preview"></pre></details><button id="live-local-stop" type="button" class="quiet">Stop this job</button><p class="muted">Partial output is not saved code. Stop is cooperative; a blocked read must return or time out first.</p></section>
       <section id="studio-strip" aria-label="Applied model routes">
         <div><span class="eyebrow">YOUR MODEL STUDIO</span><strong id="studio-route-title">Checking your setup…</strong><p id="studio-route-note">Your saved routes stay in place until you apply a change.</p></div>
         <div class="studio-strip-actions"><button id="studio-local" class="secondary" type="button">Use only this PC</button><button id="studio-settings" class="quiet" type="button">Manage models →</button></div>
@@ -140,6 +142,7 @@
               <label for="planner-provider">Provider</label
               ><select id="planner-provider">
                 <option value="ollama">Ollama · local</option>
+                <option value="local">LM Studio / llama.cpp · local</option>
                 <option value="groq">Groq</option>
                 <option value="openrouter">OpenRouter</option>
                 <option value="gemini">Gemini</option>
@@ -160,6 +163,7 @@
               <label for="coder-provider">Provider</label
               ><select id="coder-provider">
                 <option value="ollama">Ollama · local</option>
+                <option value="local">LM Studio / llama.cpp · local</option>
                 <option value="groq">Groq</option>
                 <option value="openrouter">OpenRouter</option>
                 <option value="gemini">Gemini</option>
@@ -177,6 +181,7 @@
             </fieldset>
           </div>
           <datalist id="ollama-models"></datalist>
+          <datalist id="local-models"></datalist>
           <label class="check-line cloud-option" hidden
             ><input type="checkbox" id="create-cloud" />I allow sending this
             idea and project files to my selected primary or fallback cloud
@@ -400,6 +405,7 @@
                 API keys are passed into the container.
               </p>
               <label for="max-model-calls">Model invocation allowance per run</label><select id="max-model-calls"><option>16</option><option>32</option><option selected>64</option><option>128</option></select><p class="muted">Includes coding, source retrieval and repair. Planning also retains its 24-attempt ceiling. This is not a money or whole-job time limit.</p>
+              <label class="check-line"><input id="stream-local" type="checkbox">Show live local responses on the next run</label>
               <label for="repairs">Maximum repairs per run</label
               ><select id="repairs">
                 <option>0</option>
@@ -610,6 +616,7 @@ Generated files will appear here after approval.</pre
             <label for="project-planner-provider">Provider</label
             ><select id="project-planner-provider">
               <option value="ollama">Ollama · local</option>
+              <option value="local">LM Studio / llama.cpp · local</option>
               <option value="groq">Groq</option>
               <option value="openrouter">OpenRouter</option>
               <option value="gemini">Gemini</option>
@@ -625,6 +632,7 @@ Generated files will appear here after approval.</pre
             <label for="project-coder-provider">Provider</label
             ><select id="project-coder-provider">
               <option value="ollama">Ollama · local</option>
+              <option value="local">LM Studio / llama.cpp · local</option>
               <option value="groq">Groq</option>
               <option value="openrouter">OpenRouter</option>
               <option value="gemini">Gemini</option>
@@ -658,6 +666,7 @@ Generated files will appear here after approval.</pre
       </div>
       <section class="studio-routes" aria-labelledby="studio-applied-title"><h3 id="studio-applied-title">Applied routes</h3><p id="studio-scope" class="muted"></p><div id="studio-route-cards"></div><p id="studio-route-warning" role="status"></p></section>
       <section aria-labelledby="cloud-setup-title">
+        <details id="compatible-runtime"><summary>Use LM Studio or llama.cpp locally</summary><p>Start its OpenAI-compatible server. Default: http://127.0.0.1:1234/v1. For another local port, import LOCAL_API_URL in your .env. Models must be loaded with enough context; Foundry's budget does not resize an external server.</p><label for="compatible-planner">Local server planner</label><select id="compatible-planner"></select><label for="compatible-coder">Local server builder</label><select id="compatible-coder"></select><button id="compatible-apply" type="button" disabled>Use this local server</button><p class="muted">Applies to new projects and the open idle project. No cloud fallback, cloud discovery or generation runs during setup.</p></details>
         <h3 id="cloud-setup-title">Customize automatic setup</h3>
         <label for="routing-mode">Automatic routing mode</label>
         <select id="routing-mode">

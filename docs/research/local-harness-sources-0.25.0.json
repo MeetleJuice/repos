@@ -1,0 +1,67 @@
+[
+  {
+    "name": "ollama-context",
+    "url": "https://docs.ollama.com/context-length",
+    "error": "URLError"
+  },
+  {
+    "name": "ollama-structured",
+    "url": "https://docs.ollama.com/capabilities/structured-outputs",
+    "error": "URLError"
+  },
+  {
+    "name": "lm-studio-openai",
+    "url": "https://lmstudio.ai/docs/developer/openai-compat",
+    "error": "URLError"
+  },
+  {
+    "name": "lm-studio-streaming",
+    "url": "https://lmstudio.ai/docs/developer/openai-compat/chat-completions",
+    "error": "URLError"
+  },
+  {
+    "name": "mini-swe",
+    "url": "https://raw.githubusercontent.com/SWE-agent/mini-swe-agent/main/src/minisweagent/agents/default.py",
+    "bytes": 8043,
+    "sha256": "e8ef8aa365942d739c2ec5cb0879f60f377d2dc2de8ec670aaedf3bafb45a4c2",
+    "retrieved": "2026-10-20"
+  },
+  {
+    "name": "reduced-motion",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion",
+    "error": "URLError"
+  },
+  {
+    "name": "ollama-api",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "bytes": 54614,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5",
+    "retrieved": "2026-10-20"
+  },
+  {
+    "name": "ollama-faq",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/faq.mdx",
+    "bytes": 18143,
+    "sha256": "e3630684676a21219abc7cb6c17db53993412c194ba9c108c8dbae2f30318e0c",
+    "retrieved": "2026-10-20"
+  },
+  {
+    "name": "llama-server",
+    "url": "https://raw.githubusercontent.com/ggml-org/llama.cpp/master/tools/server/README.md",
+    "bytes": 119661,
+    "sha256": "714c067bdbc49bde2735810fbff83eb2933b12c57d50f0012b61fcecb75a6a37",
+    "retrieved": "2026-10-20"
+  },
+  {
+    "name": "lm-studio",
+    "url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-python/main/README.md",
+    "bytes": 7888,
+    "sha256": "915b3215f04238366f6978d12219d579030b349f008e1d0e757f08f339fc87a7",
+    "retrieved": "2026-10-20"
+  },
+  {
+    "name": "mdn-motion",
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/css/@media/prefers-reduced-motion/index.md",
+    "error": "HTTPError"
+  }
+]

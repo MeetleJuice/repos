@@ -17,6 +17,7 @@ let current = null,
   polling = false;
 const defaults = {
   ollama: "qwen3.5:9b",
+  local: "",
   groq: "",
   cloudflare: "",
   nvidia: "",
@@ -455,6 +456,7 @@ async function job(action, options) {
   current = await api(`/api/projects/${current.id}/${action}`, {
     ...options,
     max_model_calls: Number($("max-model-calls").value),
+    stream_local: $("stream-local").checked,
     cloud_consent: cloudConsent(),
   });
   render();
@@ -517,10 +519,10 @@ async function connections() {
     strong.textContent = name;
     const text = document.createElement("p");
     text.textContent =
-      name === "ollama"
+      ["ollama", "local"].includes(name)
         ? p.connected
           ? "Connected · " + p.models.join(", ")
-          : "Not connected. Start Ollama, then check again."
+          : name === "local" ? "Not connected. Start LM Studio's local server (port 1234), or configure LOCAL_API_URL for llama.cpp, then Check again." : "Not connected. Start Ollama, then check again."
         : p.configured
           ? info.cloud?.[name]?.status === "catalogue_available"
             ? "API key present · model catalogue access confirmed. Generation quota is checked when you run a job."
@@ -536,6 +538,15 @@ async function connections() {
         o.value = m;
         $("ollama-models").append(o);
       }
+    if (name === "local") {
+      $("local-models").replaceChildren(...(p.models || []).map(m => new Option(m,m)));
+      for (const role of ["planner", "coder"]) {
+        const select=$("compatible-"+role), previous=select.value;
+        select.replaceChildren(...(p.models || []).filter(m=>!m.toLowerCase().includes("embed")).map(m=>new Option(m,m)));
+        if ([...select.options].some(o=>o.value===previous)) select.value=previous;
+      }
+      $("compatible-apply").disabled=!p.connected || !$("compatible-planner").options.length;
+    }
   }
   const d = document.createElement("p");
   d.className = "muted";
@@ -555,6 +566,7 @@ async function connections() {
       : info.browser?.detail ||
         "Not installed. Explicit manual checks still work.");
   $("connection-list").append(browserStatus);
+  for (const prefix of ["", "project-"]) for (const role of ["planner", "coder"]) refreshModelChoices(prefix+role);
 }
 $("idea-form").onsubmit = handle(async () => {
   const models = selectedModels();

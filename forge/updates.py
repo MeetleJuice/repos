@@ -161,9 +161,13 @@ class UpdateManager:
             with self.lock:
                 self.release = release
                 self.state.update(status='available' if available else 'current', message=f"Version {release['version']} is available." if available else 'You have the latest published version.')
+                self.state['completion_event'] = {'type':'update_ready','version':release['version'],
+                    'requires_user_action':True,'message':'Version '+release['version']+' is ready. Press the Update button in the app to apply changes.'} if available else None
+            if available:print(self.state['completion_event']['message'],flush=True)
         except Exception as exc:
             with self.lock:
                 self.release = None
+                self.state['completion_event'] = None
                 self.state.update(status='error', message=f'Could not check for updates: {exc}. Your current installation is unchanged.')
         return self.status()
 

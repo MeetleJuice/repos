@@ -80,7 +80,7 @@ function studioRouteCard(title, profile) {
     const line = document.createElement("div"), name = document.createElement("strong"), primary = document.createElement("p"), fallbacks = document.createElement("small");
     name.textContent = label;
     const config = profile[role];
-    primary.textContent = config?.model ? `${config.provider === "ollama" ? "This PC" : config.provider} · ${config.model}` : "Choose a model";
+    primary.textContent = config?.model ? `${["ollama","local"].includes(config.provider) ? "This PC · "+config.provider : config.provider} · ${config.model}` : "Choose a model";
     const alternatives = config?.fallbacks || (config?.fallback ? [config.fallback] : []);
     fallbacks.textContent = alternatives.length ? "Then: " + alternatives.map(c => `${c.provider === "ollama" ? "This PC" : c.provider} / ${c.model}`).join(" → ") : "No fallback configured";
     line.append(name, primary, fallbacks); card.append(line);

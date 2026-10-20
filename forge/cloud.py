@@ -144,6 +144,18 @@ class CloudSetup:
                 return {}
         return {}
 
+    def local_runtime(self, planner: str, coder: str, installed: list[str]) -> dict[str, Any]:
+        """Explicit local-compatible setup, independent of cloud discovery."""
+        if any(not isinstance(model,str) or model not in installed for model in (planner,coder)):
+            raise ValueError('Start the local OpenAI-compatible server and choose models from its catalogue.')
+        routes={role:dict(validate_config({'provider':'local','model':model,'options':{
+            'num_ctx':32768,'num_predict':8192 if role=='planner' else 4096,'structured_outputs':True,'timeout_seconds':120}}))
+            for role,model in [('planner',planner),('coder',coder)]}
+        atomic_text(self.path,json.dumps({'mode':'local_only','automatic_routes':routes,'models':{},'order':self.order,
+            'limits':self.limits,'timeouts':self.timeouts,'structured':self.structured,'local_model':self.local_model},indent=2)+'\n')
+        self.mode='local_only';self.automatic_routes=routes;self.selected={}
+        return routes
+
     def profile(self, role: str) -> dict[str, Any]:
         if self.automatic_routes:
             return self.automatic_routes[role]

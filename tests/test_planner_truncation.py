@@ -28,6 +28,38 @@ def native(response):
 class PlannerTruncationTests(unittest.TestCase):
     def setUp(self):self.fixture=json.loads(FIXTURE.read_text())
 
+    def test_manual_ollama_planner_floor_reaches_inference_without_changing_builder_cap(self):
+        options={'num_ctx':32768,'num_predict':4096,'structured_outputs':True,'timeout_seconds':120}
+        registry=CapabilityRegistry()
+        budget=registry.reserve('ollama','qwen2.5:7b',options,SYSTEM,'{}')
+        self.assertGreaterEqual(budget.text_output_tokens,8192)
+        self.assertEqual(registry.reserve_builder('ollama','qwen2.5-coder:7b',options,'Code','{}').text_output_tokens,4096)
+        response={'message':{'content':json.dumps(self.fixture['expected_plan'])},'done_reason':'stop','eval_count':100}
+        with tempfile.TemporaryDirectory() as directory:
+            bench=Workbench(Path(directory)/'projects');state=state_for(bench)
+            state['planner']={'provider':'ollama','model':'qwen2.5:7b','options':options}
+            with patch('forge.models.request_json',return_value=response) as request:
+                result=bench.call_model(state,'planner',SYSTEM,'{}',threading.Event())
+            self.assertEqual(result,self.fixture['expected_plan'])
+            sent=request.call_args.args[1]['options']['num_predict']
+            self.assertGreaterEqual(sent,8192)
+            self.assertEqual(state['model_calls'][-1]['requested_max_output_tokens'],sent)
+            self.assertGreaterEqual(state['model_calls'][-1]['max_output_ceiling'],sent)
+            self.assertEqual(state['planner']['options'],options)
+
+    def test_manual_ollama_planner_still_rejects_insufficient_context(self):
+        registry=CapabilityRegistry()
+        with self.assertRaisesRegex(ValueError,'context'):
+            registry.reserve('ollama','qwen2.5:7b',{'num_ctx':8192,'num_predict':4096},SYSTEM,'{}',compact=True)
+        with tempfile.TemporaryDirectory() as directory:
+            bench=Workbench(Path(directory)/'projects');state=state_for(bench)
+            state['planner']={'provider':'ollama','model':'qwen2.5:7b','options':{'num_ctx':8192,'num_predict':4096}}
+            with patch('forge.models.request_json') as request, self.assertRaises(ModelError):
+                bench.call_model(state,'planner',SYSTEM,'{}',threading.Event())
+            request.assert_not_called()
+            self.assertIs(state['model_calls'][-1]['transport_attempted'],False)
+            self.assertTrue(any('context is 8192' in event['message'] for event in state['events']))
+
     def run_route(self,responses,cancel=None,larger_fallback=False):
         with tempfile.TemporaryDirectory() as directory,patch.dict(os.environ,{'GEMINI_API_KEY':'fixture','OPENROUTER_API_KEY':'fixture'}):
             bench=Workbench(Path(directory)/"projects");state=state_for(bench)

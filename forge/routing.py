@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
-from .providers import PROVIDERS
+from .providers import PROVIDERS, LOCAL_PROVIDERS
 
 PROVIDER_NAMES = set(PROVIDERS)
 MAX_FALLBACKS = 15
@@ -51,7 +51,7 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
     provider, model = config.get('provider'), config.get('model')
     if provider not in PROVIDER_NAMES or not isinstance(model, str) or not model.strip() or len(model) > 200:
         raise ValueError('Choose a supported provider and a nonempty model name.')
-    if provider == 'ollama' and 'embed' in model.lower():
+    if provider in LOCAL_PROVIDERS and 'embed' in model.lower():
         raise ValueError('Embedding models cannot generate apps. Choose a chat/coding model.')
     result: ModelConfig = {'provider': provider, 'model': model.strip()}
     if 'options' in config:
@@ -76,7 +76,7 @@ def validate_config(config: Any, allow_fallback: bool = True) -> ModelConfig:
 
 
 def uses_cloud(config: dict[str, Any]) -> bool:
-    return config.get('provider', 'ollama') != 'ollama' or bool(config.get('fallback') and uses_cloud(config['fallback'])) or any(uses_cloud(entry) for entry in config.get('fallbacks', []))
+    return config.get('provider', 'ollama') not in LOCAL_PROVIDERS or bool(config.get('fallback') and uses_cloud(config['fallback'])) or any(uses_cloud(entry) for entry in config.get('fallbacks', []))
 
 
 def truncation_fallback_allowed(current_ceiling: int, candidate_ceiling: int) -> bool:

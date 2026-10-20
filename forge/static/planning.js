@@ -5,6 +5,18 @@ let reviewedProposal = null;
 let proposalReviewTimer = null;
 let proposalReviewSequence = 0;
 
+function refreshModelChoices(id) {
+  const select=document.getElementById(id+"-choice");
+  if (!select) return;
+  const provider=document.getElementById(id+"-provider").value;
+  const models=lastConnectionInfo?.providers?.[provider]?.models || lastConnectionInfo?.cloud?.[provider]?.models || [];
+  const currentModel=document.getElementById(id+"-model").value;
+  select.replaceChildren(new Option(models.length ? "Type an ID above, or choose here…" : "Check model connections to discover choices", ""));
+  for (const model of models) if (!model.toLowerCase().includes("embed")) select.add(new Option(model,model));
+  select.disabled=select.options.length===1;
+  if ([...select.options].some(option=>option.value===currentModel)) select.value=currentModel;
+}
+
 function modelConfig(role, prefix = "") {
   const id = prefix + role;
   const config = {
@@ -34,7 +46,7 @@ function modelConfig(role, prefix = "") {
 
 function cloudModel(config) {
   return (
-    config.provider !== "ollama" ||
+    !["ollama", "local"].includes(config.provider) ||
     !!(config.fallback && cloudModel(config.fallback)) ||
     (config.fallbacks || []).some(cloudModel)
   );
@@ -43,13 +55,17 @@ function cloudModel(config) {
 function fillModelSettings(role, prefix, config) {
   const id = prefix + role;
   routePools[id] = config.fallbacks || [];
+  document.getElementById(id + "-model").setAttribute("list", config.provider === "local" ? "local-models" : "ollama-models");
+  refreshModelChoices(id);
   showPool(id);
   const context = document.getElementById(id + "-context");
   if (!context) return;
   context.value = config.options?.num_ctx || 16384;
   context.dispatchEvent(new Event("change"));
   document.getElementById(id + "-output").value =
-    config.options?.num_predict || Math.min(8192, Number(context.value) / 2);
+    role === "planner"
+      ? Math.max(8192, config.options?.num_predict || 8192)
+      : config.options?.num_predict || Math.min(8192, Number(context.value) / 2);
   document.getElementById(id + "-timeout").value =
     config.options?.timeout_seconds || 120;
   document.getElementById(id + "-structured").checked =
@@ -150,8 +166,26 @@ async function reviewEditor() {
 
 window.addEventListener("DOMContentLoaded", () => {
   for (const prefix of ["", "project-"]) {
+    document.getElementById(prefix ? "model-form" : "idea-form").addEventListener("submit", (event) => {
+      const planner = modelConfig("planner", prefix);
+      if (["ollama", "local"].includes(planner.provider) && planner.options.num_ctx <= 8192) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        notice("Local planning needs at least 8192 output tokens plus room for the prompt. Choose local context 16384 or 32768 in Planner output settings, if your RAM/VRAM permits. Larger prompts may still need more room.");
+      }
+    }, true);
     for (const role of ["planner", "coder"]) {
       const id = prefix + role;
+      document.getElementById(id + "-provider").addEventListener("change", () => {
+        document.getElementById(id + "-model").setAttribute("list", document.getElementById(id + "-provider").value === "local" ? "local-models" : "ollama-models");
+        refreshModelChoices(id);
+      });
+      const choice=document.createElement("select");choice.id=id+"-choice";
+      choice.setAttribute("aria-label",(role==="planner"?"Planner":"Builder")+" discovered models");
+      choice.title="Choose a discovered model, or type a model ID in the editable box above.";
+      document.getElementById(id+"-model").after(choice);
+      choice.onchange=()=>{if (choice.value) {document.getElementById(id+"-model").value=choice.value;if (!prefix) updateCloud();}};
+      refreshModelChoices(id);
       const details = document.createElement("details");
       details.className = "model-advanced";
       const summary = document.createElement("summary");
@@ -161,9 +195,10 @@ window.addEventListener("DOMContentLoaded", () => {
       const controls = document.createElement("div");
       controls.className = "model-settings";
       controls.innerHTML = `
-        <label for="${id}-context">Ollama context (uses RAM/VRAM)</label>
+        <label for="${id}-context">Local context budget (uses RAM/VRAM)</label>
         <select id="${id}-context"><option>4096</option><option>8192</option><option selected>16384</option><option>32768</option></select>
         <label for="${id}-output">${role === "planner" ? "Planner output floor (automatic minimum 8192)" : "Maximum output tokens"}</label><select id="${id}-output"></select>
+        ${role === "planner" ? '<p class="muted">Planning reserves at least 8192 output tokens plus prompt space. Local context must fit both; larger contexts use more RAM/VRAM. The floor is not an output ceiling.</p>' : ''}
         <label class="check-line"><input id="${id}-structured" type="checkbox" checked>Request native JSON format / Ollama schema</label>
         <p id="${id}-pool-label" class="muted"></p><button type="button" id="${id}-clear-pool" hidden>Use manual model settings</button>
         <label for="${id}-timeout">Request socket timeout</label>
@@ -172,6 +207,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <select id="${id}-fallback-provider">
           <option value="">None · use primary only</option>
           <option value="ollama">Ollama</option>
+          <option value="local">LM Studio / llama.cpp · local</option>
           <option value="groq">Groq</option>
           <option value="gemini">Gemini</option>
           <option value="openrouter">OpenRouter</option><option value="cloudflare">Cloudflare Workers AI</option><option value="nvidia">NVIDIA NIM</option><option value="requesty">Requesty</option><option value="huggingface">Hugging Face</option>
@@ -190,6 +226,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const previous = Number(output.value);
         output.replaceChildren();
         for (const size of [1024, 2048, 4096, 8192, 16384]) {
+          if (role === "planner" && size < 8192) continue;
           if (size >= Number(context.value)) continue;
           const option = document.createElement("option");
           option.value = size;
@@ -197,9 +234,9 @@ window.addEventListener("DOMContentLoaded", () => {
           output.append(option);
         }
         output.value =
-          previous && previous < Number(context.value)
+          previous && previous < Number(context.value) && (role !== "planner" || previous >= 8192)
             ? previous
-            : Math.min(8192, Number(context.value) / 2);
+            : role === "planner" ? 8192 : Math.min(8192, Number(context.value) / 2);
       };
       context.dispatchEvent(new Event("change"));
       document.getElementById(id + "-clear-pool").onclick = () => {

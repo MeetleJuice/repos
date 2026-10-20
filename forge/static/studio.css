@@ -56,3 +56,10 @@ button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,s
 #task-board-list .task-criteria {padding-left:20px;margin:6px 0 10px;list-style:circle;}
 #task-board-list .task-criteria li {font-size:12px;border:0;padding:3px 0;color:#c6d6e5;}
 #orchestration-progress {padding:9px;border-left:2px solid var(--studio-accent);background:#142331;}
+#live-local,#update-ready-banner {margin:14px 0;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);}
+#live-local-preview {white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;font-size:12px;}
+#compatible-runtime {padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:16px;}
+#compatible-runtime select {width:100%;margin:6px 0 12px;}
+#compatible-runtime p {line-height:1.6;}
+#update-ready-banner button {margin:4px;transition:background-color 180ms ease-out;}
+@media(prefers-reduced-motion:reduce) {#update-ready-banner button {transition:none;}}

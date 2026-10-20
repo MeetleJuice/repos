@@ -1,10 +1,22 @@
-# Idea Foundry 0.24.0
+# Idea Foundry 0.25.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.25.0 local harness and clearer completion
+
+Ollama remains available. For an additional local backend, start LM Studio's OpenAI-compatible server, then open **Models → Use LM Studio or llama.cpp locally**, choose its discovered planner/builder models and apply. The default endpoint is `http://127.0.0.1:1234/v1`; import `LOCAL_API_URL=http://127.0.0.1:8080/v1` for a llama.cpp server on port 8080. An optional `LOCAL_API_KEY` stays private. Endpoints must be loopback HTTP `/v1`; redirects and HTTP proxies are refused. This explicit setup changes defaults and the open idle project, makes no cloud requests, and does not load models or resize a running external server's context.
+
+Manual planner output is now correctly a **floor**, with a minimum of 8192 tokens, rather than an accidental smaller output ceiling. Context must fit both prompt and reserved output. Larger contexts consume more RAM/VRAM; no installed model or discovered catalogue proves capacity or GPU fitness. Existing saved settings remain readable; impossible configurations fail before inference with budget details.
+
+Each saved task now has a finish gate that rereads its approved task and reconciles plan, cursor, source and allowed files before advancement. This is static consistency evidence, not proof of the declared behavior. Three identical model invocations in a run are allowed; another identical invocation is stopped before inference. Changed-context requests and explicit new runs remain available; existing overall call/repair limits still apply.
+
+Enable **Show live local responses on the next run** under Build & results for optional Ollama/local-server streaming. A quiet expandable panel shows up to 2000 characters of unvalidated output, kept only in memory. Partial output never becomes source. Stop affects the selected streaming project's job and remains cooperative: a blocked read must return or time out first. Cloud streaming and background cancellation workers are not added.
+
+After **Update → Check for updates**, a newer published release emits a structured readiness event, terminal message and dismissible banner. Installation still requires your action. [Architecture, research decisions and limits](docs/local-harness-0.25.0.md); [phased plan](PLANS.md); [project goals](GOALS.md); [task contract guidance](PROMPTS.md).
 
 ## 0.24.0 orchestrated planning and local delivery
 

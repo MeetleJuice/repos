@@ -86,8 +86,9 @@ class BuildOperationTests(unittest.TestCase):
         with patch.dict(os.environ,{'GEMINI_API_KEY':'fixture-secret'},clear=True):
             status=ModelStatus();status.finish('gemini','good','responded')
             snap=status.snapshot({}, {'connected':True,'models':['qwen3.5:9b','nomic-embed-text:latest','fixture-secret']})
-            self.assertEqual(len(snap['items']),9)
-            self.assertEqual(snap['items'][-1]['state'],'embedding')
+            self.assertEqual(len(snap['items']),10)
+            self.assertEqual(next(i for i in snap['items'] if i['id']=='ollama/nomic-embed-text:latest')['state'],'embedding')
+            self.assertEqual(next(i for i in snap['items'] if i['id']=='local')['state'],'not_checked')
             self.assertNotIn('fixture-secret',json.dumps(snap))
             self.assertEqual(next(i for i in snap['items'] if i['id']=='gemini')['state'],'responded')
 

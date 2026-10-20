@@ -21,7 +21,7 @@ from .model_status import ModelStatus
 from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
 from .tasks import task_packet, validate_task_response, task_document, existing_task_evidence
 from .circuit import TransportCircuit
-from .execution import resume_problem, begin_task, candidate_saved, finish_task, seal_checkpoint, file_hashes, plan_hash
+from .execution import resume_problem, begin_task, candidate_saved, finish_task, finish_gate, seal_checkpoint, file_hashes, plan_hash
 from .focus import prepare_context, retrieve_context, ContextRequestError
 from .calibration import calibrate
 from .models import output_contract, ModelClient, ModelError
@@ -249,7 +249,7 @@ class Workbench:
             for index, (selected, is_fallback) in enumerate(choices):
                 if cancel.is_set():
                     raise InterruptedError("Stopped before model inference.")
-                if selected["provider"] != "ollama" and not state.get("job_cloud_consent"):
+                if uses_cloud({'provider':selected['provider']}) and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
                 identity = (selected["provider"], selected["model"])
                 if pool and self.transport_circuit.remaining(selected['provider'])>0:
@@ -264,7 +264,7 @@ class Workbench:
                     raise ModelError("This job reached its 24-attempt inference limit. Review model history before retrying.", "attempt_budget")
                 if state.get("job_max_model_calls") is not None and state.get("job_inference_attempts",0)>=state["job_max_model_calls"]:
                     raise ModelError("This run reached its model invocation allowance. Saved files were kept. Review the journal and resume with an appropriate allowance; no further model was called.", "attempt_budget")
-                capability = registry.get(selected['provider'], selected['model'], selected.get('options',{}))
+                capability = registry.get(selected['provider'], selected['model'], selected.get('options',{}), role=role)
                 if minimum_ceiling and not truncation_fallback_allowed(minimum_ceiling, capability.max_output_tokens):
                     self.event(state, 'Skipped ' + selected['provider'] + '/' + selected['model'] + ': output ceiling ' + str(capability.max_output_tokens) + ' is smaller than truncated model ceiling ' + str(minimum_ceiling) + '.')
                     continue
@@ -319,7 +319,18 @@ class Workbench:
                                           input_estimate_tokens=budget.input_estimate_tokens)
                             self.event(state, role.title()+' output reservation: '+str(budget.text_output_tokens)+' text + '+str(budget.thinking_budget)+' thinking tokens; recovery '+record['recovery_path']+'.')
                     state["job_inference_attempts"] = state.get("job_inference_attempts", 0) + 1
-                    self.model_status.start(selected["provider"], selected["model"], role)
+                    if state.get('job_max_model_calls') is not None:
+                        signature=hashlib.sha256(json.dumps([role,selected['provider'],selected['model'],system,effective_prompt,recovery_mode,prefix],ensure_ascii=True).encode()).hexdigest()
+                        counts=state.setdefault('job_call_signatures',{})
+                        if counts.get(signature,0)>=3:
+                            state['job_inference_attempts']-=1
+                            self.event(state,'Repeated identical model request stopped before inference. Review the task/context rather than repeating the same call.')
+                            raise ModelError('Repeated identical request reached the three-call run limit. Saved files were kept; review and resume with new evidence.','loop_detected')
+                        counts[signature]=counts.get(signature,0)+1
+                    self.model_status.start(selected["provider"], selected["model"], role, state['id'])
+                    if isinstance(client,ModelClient) and selected['provider'] in {'ollama','local'} and state.get('job_stream_local'):
+                        client.cancel_event=cancel
+                        client.stream_progress=self.model_status.progress
                     result = client.complete(system, effective_prompt)
                     self.transport_circuit.success(selected["provider"])
                     if cancel.is_set(): raise InterruptedError("Stopped. Model output discarded.")
@@ -376,7 +387,7 @@ class Workbench:
                     if category == 'output_budget':
                         budget_failed = True
                         failures.append(selected['provider']+': output_budget')
-                        self.event(state,role.title()+' reservation refused before inference; trying the next configured model without lowering the required budget.')
+                        self.event(state,role.title()+' reservation refused before inference: '+str(exc)+' Trying the next configured model without lowering the required budget.')
                         continue
                     if exc.category == "request" and selected.get("options", {}).get("structured_outputs", True) and recovery_mode != "json_compatibility":
                         compatible = copy.deepcopy(selected)
@@ -575,6 +586,9 @@ class Workbench:
             if existing and existing[0].is_alive():
                 raise ValueError("A job is already running for this project.")
             options = dict(options)
+            if type(options.get('stream_local',False)) is not bool:raise ValueError('Local streaming setting must be a JSON boolean.')
+            state['job_stream_local']=options.get('stream_local',False)
+            state['job_call_signatures']={}
             if action not in {"plan", "build", "repair"}:
                 raise ValueError("Unknown job action.")
             if action in {"build", "repair"} and not state["approved"]:
@@ -1194,6 +1208,8 @@ class Workbench:
                 remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
                 if remaining_repairs is None:
                     return
+                gate=finish_gate(state,index,self.context_files(state['id']))
+                self.trace(state,'task_finish_gate',gate)
                 state["status"] = "building"
                 state.setdefault("milestones", []).append({"task": index + 1, "title": task["title"], "syntax_passed": True, "behavior_verified": False, "time": self.now()})
                 state["next_task"] = index + 1
@@ -1201,6 +1217,7 @@ class Workbench:
                 before_manifest=state['pending_task']['before_files'];after_manifest=file_hashes(after_task)
                 changed=sorted(n for n in set(before_manifest)|set(after_manifest) if before_manifest.get(n)!=after_manifest.get(n))
                 receipt={"task":index+1,"title":task["title"],"time":self.now(),"before_sha256":state["pending_task"]["before_sha256"],"after_sha256":fingerprint(after_task),"changed_files":changed,"source_changed":bool(changed),"syntax_passed":True,"behavior_verified":False,"task_packet":task_packet(state["plan"],index,index),"source_support":state.get("last_task_support"),"disposition":"source_changed" if changed else "existing_source_supported" if state.get("last_task_support") else "no_change"}
+                receipt['finish_gate']=gate
                 state["task_receipts"]=[r for r in state.get("task_receipts",[]) if r["task"]!=index+1]+[receipt]
                 finish_task(state,after_task)
                 self.trace(state, "task_saved", receipt)

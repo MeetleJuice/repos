@@ -8,7 +8,8 @@ import os
 import urllib.error
 import urllib.request
 import urllib.parse
-from typing import Any, cast
+import threading
+from typing import Any, Callable, cast
 
 from . import __version__
 from .http_io import read_bounded, ResponseTooLarge
@@ -18,7 +19,7 @@ from .capabilities import PlannerBudget
 from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
 from .prompts import PLAN, CODE
 
-from .providers import PROVIDERS as PROVIDERS, endpoint, key_for
+from .providers import PROVIDERS as PROVIDERS, LOCAL_PROVIDERS, endpoint, key_for
 
 
 
@@ -31,12 +32,19 @@ class ModelError(ValueError):
         super().__init__(message)
 
 
-def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[str, str] | None = None, timeout: float = 300) -> dict[str, Any]:
+class NoLocalRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req: Any, fp: Any, code: int, msg: str, headers: Any, newurl: str) -> Any:
+        fp.close()
+        raise ModelError('Local runtime redirects are refused. Use its direct loopback /v1 endpoint.', 'configuration')
+
+
+def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[str, str] | None = None, timeout: float = 300, local_only: bool = False) -> dict[str, Any]:
     deadline = time.monotonic() + timeout
     body = None if payload is None else json.dumps(payload).encode()
     req = urllib.request.Request(url, data=body, headers={"User-Agent": "IdeaFoundry/" + __version__ + " desktop-client", "Content-Type": "application/json", **(headers or {})})
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as response:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoLocalRedirect()).open if local_only else urllib.request.urlopen
+        with opener(req, timeout=timeout) as response:
             data = read_bounded(response,deadline)
             parsed = json.loads(data)
             if not isinstance(parsed, dict):
@@ -55,7 +63,7 @@ def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[
     except TimeoutError as exc:
         raise ModelError("Model request timed out or exceeded its elapsed response-read budget. Trying another configured model may help.", "transport") from exc
     except (OSError, http.client.HTTPException) as exc:
-        raise ModelError("Cannot reach the model service. Check that Ollama is running or that the selected API is reachable.", "transport") from exc
+        raise ModelError("Cannot reach the selected model service. Start the selected local runtime or check the API connection.", "transport") from exc
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise ModelError("Provider returned invalid JSON.", "format") from exc
 
@@ -91,7 +99,7 @@ class ModelClient:
             raise ValueError("Unknown provider.")
         if not isinstance(model, str) or not model.strip() or len(model) > 200:
             raise ValueError("Enter a model name.")
-        if provider == "ollama" and "embed" in model.lower():
+        if provider in LOCAL_PROVIDERS and "embed" in model.lower():
             raise ValueError("Choose a chat/coding model. Embedding models cannot generate apps.")
         self.provider, self.model = provider, model.strip()
         self.options = validate_options(options or {})
@@ -100,6 +108,8 @@ class ModelClient:
         self.planner_budget: PlannerBudget | None = None
         self.recovery_mode = "initial"
         self.continuation_prefix = ""
+        self.stream_progress: Callable[[str],None] | None = None
+        self.cancel_event = threading.Event()
 
     def complete(self, system: str, prompt: str) -> dict[str, Any]:
         try:
@@ -164,10 +174,15 @@ class ModelClient:
             if complete_recovery:
                 schema = COMPLETE_CODE_SCHEMA
             self.last_metadata['transport_attempted'] = True
-            result = request_json(os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat", {
+            url=os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat"
+            payload: dict[str,Any] = {
                 "model": self.model, "messages": messages, "stream": False, "format": schema if self.options["structured_outputs"] else "json", "keep_alive": "5m",
                 "options": {"temperature": 0.2, "num_ctx": self.options["num_ctx"], "num_predict": output},
-            }, timeout=self.options['timeout_seconds'])
+            }
+            if self.stream_progress:
+                from .streaming import stream_chat
+                result=stream_chat(url,payload,{},self.options['timeout_seconds'],'ollama',self.cancel_event,self.stream_progress)
+            else:result=request_json(url,payload,timeout=self.options['timeout_seconds'])
             self._identity(result)
             self.last_usage = {label: result[key] for key, label in [("prompt_eval_count", "prompt_tokens"), ("eval_count", "completion_tokens")] if type(result.get(key)) is int and result[key] >= 0}
             for source,target in [('load_duration','ollama_load_seconds'),('eval_duration','ollama_eval_seconds'),('prompt_eval_duration','ollama_prompt_seconds')]:
@@ -186,16 +201,22 @@ class ModelClient:
             except ValueError as exc:
                 raise ModelError(str(exc), "configuration") from None
             key = key_for(self.provider)
-            if not key:
+            if not key and self.provider != 'local':
                 raise ModelError(f"Set {variable} in your local .env file and restart. Never put keys in project prompts.", "auth")
-            payload: dict[str, Any] = {"model":self.model,"messages":messages,"temperature":0.2,"max_tokens":output,"stream":False}
+            payload = {"model":self.model,"messages":messages,"temperature":0.2,"max_tokens":output,"stream":False}
             if self.options['structured_outputs']:
                 payload['response_format'] = {"type":"json_object"}
             if self.provider == 'cloudflare':
                 payload['options'] = {'rejectIfBusy':True}
             self.last_metadata['transport_attempted'] = True
-            result = request_json(base + "/chat/completions", payload,
-                                  {"Authorization":"Bearer "+key}, timeout=self.options["timeout_seconds"])
+            headers={"Authorization":"Bearer "+key} if key else {}
+            if self.provider == 'local':
+                if self.stream_progress:
+                    from .streaming import stream_chat
+                    result=stream_chat(base+'/chat/completions',payload,headers,self.options['timeout_seconds'],'local',self.cancel_event,self.stream_progress)
+                else:result = request_json(base+'/chat/completions',payload,headers,timeout=self.options['timeout_seconds'],local_only=True)
+            else:
+                result = request_json(base+'/chat/completions',payload,headers,timeout=self.options['timeout_seconds'])
             self._identity(result)
             usage = result.get("usage", {})
             self.last_usage = {key: usage[key] for key in ("prompt_tokens", "completion_tokens") if isinstance(usage, dict) and type(usage.get(key)) is int and usage[key] >= 0}
@@ -236,4 +257,14 @@ def connection_info() -> dict[str, Any]:
         info["ollama"].update(connected=True, models=[m["name"] for m in data.get("models", [])])
     except (ValueError, KeyError, TypeError):
         info["ollama"].update(connected=False, models=[])
+    try:
+        local_key=key_for('local')
+        data=request_json(endpoint('local')+'/models',None,
+                          {'Authorization':'Bearer '+local_key} if local_key else {},timeout=3,local_only=True)
+        entries=data.get('data',[])
+        if not isinstance(entries,list):raise ValueError('Invalid local model catalogue.')
+        names=[entry['id'] for entry in entries if isinstance(entry,dict) and isinstance(entry.get('id'),str) and re.fullmatch(r'[A-Za-z0-9_./:@+-]{1,200}',entry['id'])]
+        info['local'].update(configured=True,connected=True,models=names)
+    except (ValueError, KeyError, TypeError):
+        info['local'].update(configured=True,connected=False,models=[],configuration_detail='Start the OpenAI-compatible server in LM Studio (port 1234), or set LOCAL_API_URL for llama.cpp. Check local server authentication if enabled.')
     return info

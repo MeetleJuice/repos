@@ -38,7 +38,7 @@ class CapabilityRegistry:
                 if saved.get('schema') == 1 and isinstance(saved.get('models'), dict): self.overrides = saved['models']
         except (OSError, ValueError, AttributeError): pass
 
-    def get(self, provider: str, model: str, options: dict[str, Any] | None = None) -> Capability:
+    def get(self, provider: str, model: str, options: dict[str, Any] | None = None, role: str = 'coder') -> Capability:
         key = provider+'/'+model
         record = self.overrides.get(key, self.builtin['models'].get(key, self.builtin['defaults']))
         fallback = self.builtin['defaults']
@@ -49,10 +49,12 @@ class CapabilityRegistry:
         thinking = record.get('supports_thinking_budget') is True
         budget = record.get('thinking_budget_default', 0)
         if type(budget) is not int or not 0 <= budget <= 4096: budget = 1024 if thinking else 0
-        if provider == 'ollama':
+        if provider in {'ollama','local'}:
             options = options or {}
             context = options.get('num_ctx', 16384)
-            output = min(options.get('num_predict', 8192), context-1)
+            # Planner num_predict is a floor, not a model output ceiling. The
+            # reservation below still accounts for input within this context.
+            output = context-1 if role == 'planner' else min(options.get('num_predict', 8192), context-1)
             thinking, budget = False, 0
         return Capability(output, context, thinking, budget, record.get('estimated', True) is not False, str(record.get('source', 'Unknown.'))[:300])
 
@@ -104,7 +106,7 @@ class CapabilityRegistry:
             atomic_text(self.path,json.dumps({'schema':1,'models':self.overrides},indent=2)+'\n')
 
     def reserve(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str, compact: bool = False) -> PlannerBudget:
-        cap = self.get(provider, model, options)
+        cap = self.get(provider, model, options, role='planner')
         try: payload = json.loads(prompt)
         except ValueError: payload = {}
         if not isinstance(payload, dict): payload = {}
@@ -121,7 +123,7 @@ class CapabilityRegistry:
         input_estimate = (len((system+prompt).encode('utf-8',errors='surrogatepass')) + len(json.dumps(PLAN_SCHEMA)) + 1)//2 + 512
         room = min(cap.max_output_tokens, cap.max_context_tokens-input_estimate)
         text = max(self.builtin['planner_output_floor'], options.get('num_predict',4096), 0 if compact else estimate)
-        if text+thinking > room: raise ValueError('Planner output reservation exceeds the model output/context budget. Use a larger-capacity configured model or narrow the proposal; no request was sent.')
+        if text+thinking > room: raise ValueError('Planner needs '+str(text+thinking)+' output tokens plus an estimated '+str(input_estimate)+' input tokens; output ceiling is '+str(cap.max_output_tokens)+' and context is '+str(cap.max_context_tokens)+'. Increase Ollama context in planner settings if memory permits, or choose a larger-capacity model; no request was sent.')
         return PlannerBudget(text+thinking, text, thinking, input_estimate, estimate)
 
     def reserve_builder(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str) -> PlannerBudget:

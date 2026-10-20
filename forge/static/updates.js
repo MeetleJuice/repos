@@ -5,8 +5,19 @@ let reconnectTimer = null;
 let updateInstalling = false;
 let reconnectAttempts = 0;
 let originalBoot = null;
+let readyVersion = null;
 
 function renderUpdate(state) {
+  const event=state.status === "available" ? state.completion_event : null;
+  $("update-ready-banner").hidden=!event || sessionStorage.getItem("foundry-dismissed-update")===event.version;
+  if (event) {
+    $("update-ready-message").textContent=event.message;
+    if (readyVersion!==event.version) {
+      readyVersion=event.version;
+      window.dispatchEvent(new CustomEvent("foundry:update-ready",{detail:event}));
+      console.info(event.message);
+    }
+  }
   $("update-status").textContent = state.message;
   $("update-notes").hidden = !state.release?.notes;
   $("update-notes").textContent = state.release?.notes || "";
@@ -30,6 +41,11 @@ function renderUpdate(state) {
     $("update-button").textContent = "↻ Update";
   }
 }
+$("update-ready-open").onclick=()=>$("update-button").click();
+$("update-ready-dismiss").onclick=()=>{
+  if (readyVersion) sessionStorage.setItem("foundry-dismissed-update",readyVersion);
+  $("update-ready-banner").hidden=true;
+};
 
 function reconnect() {
   clearInterval(updateTimer);

@@ -36,7 +36,8 @@ def main():
                 browser=p.chromium.launch(executable_path=shutil.which('chromium'));page=browser.new_page(viewport={'width':1440,'height':1000})
                 errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
                 page.goto('http://127.0.0.1:'+str(server.server_port))
-                expect(page.locator('.model-state')).to_have_count(9,timeout=10000)
+                expect(page.locator('.model-state')).to_have_count(10,timeout=10000)
+                expect(page.locator('[data-model-id="local"]')).to_have_attribute('aria-label','LM Studio / llama.cpp: not checked')
                 expect(page.locator('[data-model-id="ollama/nomic-embed-text:latest"]')).to_have_attribute('data-state','embedding')
                 config={'provider':'gemini','model':'fixture-model'}
                 state=bench.create('Build task tracker',config,config,cloud_consent=True)

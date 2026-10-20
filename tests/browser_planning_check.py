@@ -31,9 +31,17 @@ def main():
                 errors = []
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.goto(f'http://127.0.0.1:{server.server_port}')
+                page.evaluate("fillModelSettings('planner', '', {options:{num_ctx:8192,num_predict:4096}}); updateCloud()")
                 page.locator('#planner-model').locator('..').locator('summary').click()
                 page.locator('#planner-context').select_option('8192')
-                expect(page.locator('#planner-output')).to_have_value('4096')
+                expect(page.locator('#planner-output')).to_have_value('')
+                page.locator('#idea').fill('Build a local notes app with SQLite persistence.')
+                page.locator('#propose').click()
+                expect(page.locator('#notice')).to_contain_text('Local planning needs at least 8192 output tokens')
+                assert not models.calls, 'Impossible local context must fail before creating a planning job'
+                page.locator('#planner-context').select_option('32768')
+                expect(page.locator('#planner-output')).to_have_value('8192')
+                assert page.locator('#planner-output option').all_text_contents()==['8192','16384']
                 page.locator('#planner-fallback-provider').select_option('groq')
                 page.locator('#planner-fallback-model').fill('user-chosen-model')
                 expect(page.locator('.cloud-option')).to_be_visible()
@@ -67,10 +75,28 @@ def main():
                 page.locator('#approve').click()
                 state = bench.list_projects()[0]
                 assert state['approved']
-                assert state['planner']['options']['num_ctx'] == 8192
+                assert state['planner']['options']['num_ctx'] == 32768
+                assert state['planner']['options']['num_predict'] == 8192
                 assert state['planner']['fallback']['model'] == 'local-backup-planner'
                 assert state['model_calls'][-1]['model'] == 'local-backup-planner'
                 assert not state.get('checks'), 'Approval must not execute code'
+                page.locator('#edit-models').click()
+                page.locator('#project-planner-model').fill('qwen2.5:7b')
+                page.locator('#project-planner-model').locator('..').locator('summary').click()
+                page.evaluate("fillModelSettings('planner', 'project-', {options:{num_ctx:32768,num_predict:4096}})")
+                expect(page.locator('#project-planner-output')).to_have_value('8192')
+                page.locator('#project-planner-context').select_option('8192')
+                page.locator('#model-form button[type=submit]').click()
+                expect(page.locator('#models-dialog')).to_be_visible()
+                assert bench.load(state['id'])['planner']==state['planner'], 'Invalid settings must not replace the saved route'
+                page.locator('#project-planner-context').select_option('32768')
+                page.locator('#model-form button[type=submit]').click()
+                expect(page.locator('#models-dialog')).not_to_be_visible()
+                saved=bench.load(state['id'])
+                assert saved['planner']['model']=='qwen2.5:7b'
+                assert saved['planner']['options']['num_predict']==8192
+                assert saved['plan']==state['plan'] and saved['approved']
+                assert len(models.calls)==3, 'Changing settings must not invoke a model'
                 old = legacy_state()
                 old.update(title='Legacy proposal', approved=False, status='proposed', starter='notes', plan=bad, next_task=0)
                 directory = bench.directory(old['id'])

@@ -29,6 +29,7 @@ async function refreshWorkflow(id) {
         const li=document.createElement("li"),title=document.createElement("strong"),detail=document.createElement("small");
         title.textContent=task.title+" — "+task.state;
         detail.textContent=(task.files.length?"Files: "+task.files.join(", ")+". ":"")+(task.blocked_by.length?"Needs saved tasks "+task.blocked_by.join(", ")+". ":"")+(task.milestone_current?"Current approved HTTP prefix passed. ":task.milestone_evidence?"Historical milestone evidence; current checks may be pending. ":"");
+        if (task.finish_gate?.passed) detail.textContent+=" Finish gate: approval, scope and saved source checked; behavior evidence remains separate.";
         const outcome=document.createElement("p");outcome.textContent="Outcome: "+task.outcome;
         const label=document.createElement("small");label.textContent="Declared completion criteria · not individually verified";
         const criteria=document.createElement("ul");criteria.className="task-criteria";

@@ -56,6 +56,27 @@ def finish_task(state: dict[str,Any], files: dict[str,str]) -> None:
     state.pop('pending_task',None);seal_checkpoint(state,files)
 
 
+def finish_gate(state: dict[str,Any], index: int, files: dict[str,str]) -> dict[str,Any]:
+    """Reread approval and saved candidate before advancing; no semantic claims."""
+    problem=resume_problem(state,files)
+    if problem:raise ValueError('Task finish gate: '+problem)
+    task=state['plan']['tasks'][index]
+    pending=state.get('pending_task') or {}
+    if not state.get('approved') or state.get('next_task')!=index or pending.get('phase') not in {'candidate_saved','source_supported'}:
+        raise ValueError('Task finish gate requires approval and a reconciled saved candidate. Resume the current task.')
+    from .tasks import task_packet
+    packet=task_packet(state['plan'],index,index)
+    current=file_hashes(files);before=pending['before_files']
+    changed=sorted(n for n in set(before)|set(current) if before.get(n)!=current.get(n))
+    if packet['structured']:
+        if set(changed)-set(packet['files']):raise ValueError('Task finish gate found changes outside the approved task files.')
+        if not changed and not pending.get('source_support'):raise ValueError('Task finish gate needs source changes or checked source citations.')
+    return {'schema':1,'task':index+1,'passed':True,'plan_sha256':plan_hash(state['plan']),
+            'source_sha256':source_hash(files),'outcome':task.get('outcome',task['title']),
+            'criteria':packet['done_when'],'changed_files':changed,'behavior_verified':False,
+            'meaning':'Approval, task scope and saved-source consistency checked. Declared behavior still needs execution/manual evidence.'}
+
+
 def task_board(state: dict[str,Any], files: dict[str,str]) -> dict[str,Any]:
     plan=state.get('plan') or {};cursor=state.get('next_task',0);fresh=evidence_status(state,files)
     receipts={r['task']-1:r for r in state.get('task_receipts',[]) if r.get('task',0)<=cursor}
@@ -75,6 +96,7 @@ def task_board(state: dict[str,Any], files: dict[str,str]) -> dict[str,Any]:
         related=[{'kind':kind,'number':i+1,'name':check['name']} for kind in ('checks','browser_checks','manual_checks')
                  for i,check in enumerate(plan.get(kind,[])) if features.intersection(check.get('feature_indexes',[]))]
         rows.append({'task':index+1,'title':task['title'],'outcome':task.get('outcome',task['title']),'state':state_name,'blocked_by':blocked,'files':task.get('files',[]),
+                     'finish_gate':receipt.get('finish_gate'),
                      'related_checks':related,'related_checks_meaning':'Related by declared feature coverage; not per-criterion execution proof.',
                      'check_indexes':task.get('check_indexes',[]),'source_changed':receipt.get('source_changed'),
                      'milestone_evidence':milestone,'milestone_current':bool(milestone and milestone.get('passed') and milestone.get('source_sha256')==fresh['current_source_sha256']),

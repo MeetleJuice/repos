@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "provenance": "Synthetic protocol and controller regressions frozen before the 0.25 implementation; not live model performance evidence.",
+  "runtime": {"provider": "local", "model": "fixture-coder", "options": {"num_ctx": 32768, "num_predict": 8192, "structured_outputs": true, "timeout_seconds": 30}},
+  "catalogue": {"data": [{"id": "fixture-coder"}, {"id": "fixture-embedding"}]},
+  "completion": {"choices": [{"finish_reason": "stop", "message": {"content": "{\"ok\":true}"}}], "usage": {"prompt_tokens": 20, "completion_tokens": 4}},
+  "loop_limit": 3
+}

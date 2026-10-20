@@ -236,6 +236,17 @@ async function applyCloudProfile(profile, project, ident = current?.id) {
 }
 $("cloud-new").onclick = cloudHandle(() => applyCloud(false));
 $("cloud-project").onclick = cloudHandle(() => applyCloud(true));
+$("compatible-apply").onclick=cloudHandle(async()=>{
+  const ident=current?.id;
+  $("compatible-apply").disabled=true;
+  try {
+    const profile=await api('/api/local/setup',{planner:$("compatible-planner").value,coder:$("compatible-coder").value});
+    await applyCloudProfile(profile,false);
+    if (ident && current?.id===ident && !activeStatuses.has(current.status)) await applyCloudProfile(profile,true,ident);
+    await connections();
+    $("cloud-feedback").textContent="Local server route applied. No cloud fallback or generation. Check the server's loaded context before building.";
+  } finally {$("compatible-apply").disabled=false;}
+});
 window.addEventListener("DOMContentLoaded", () => {
   if (lastConnectionInfo) renderCloudSetup(lastConnectionInfo);
 });

@@ -188,8 +188,14 @@ def make_server(port=8765, workbench=None, credentials=None):
                 runtime = runtime_diagnostics()
                 provider_info = connection_info()
                 local_info.update(provider_info.get("ollama",{}))
+                local_info['compatible']=provider_info.get('local',{})
                 self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "saved_routes":cloud.saved_profiles(), "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured, "local_calibration":read_calibration(bench.root.parent/"local-calibration-v1.json")})
                 return
+            if path == '/api/local/setup' and post:
+                if any(thread.is_alive() for thread,_ in bench.jobs.values()):raise ValueError('Stop the active job before changing runtime setup.')
+                info=connection_info().get('local',{})
+                local_info['compatible']=info
+                self.json(cloud.local_runtime(body.get('planner'),body.get('coder'),info.get('models',[]) if info.get('connected') else []));return
             pieces = path.strip("/").split("/")
             if len(pieces) not in {3, 4} or pieces[:2] != ["api", "projects"]:
                 self.json({"error": "Not found."}, 404)
