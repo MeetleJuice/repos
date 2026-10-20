@@ -30,7 +30,7 @@ class DashboardRoutesTests(unittest.TestCase):
             threading.Thread(target=server.serve_forever,daemon=True).start()
             base='http://127.0.0.1:'+str(server.server_port)
             try:
-                for path in ['/dashboard','/dashboard/','/dashboard/assets/app.js','/dashboard/assets/app.css','/dashboard/assets/elk-worker.js','/dashboard/map']:
+                for path in ['/dashboard','/dashboard/','/dashboard/assets/app.js','/dashboard/assets/app.css','/dashboard/assets/elk-worker.js','/dashboard/launcher.js','/dashboard/launcher.css','/dashboard/map']:
                     with urllib.request.urlopen(base+path) as response:
                         self.assertEqual(response.status,200)
                         self.assertIn("worker-src 'self'",response.headers['Content-Security-Policy'])
@@ -61,6 +61,12 @@ class DashboardRoutesTests(unittest.TestCase):
                         self.assertIn('ifd-root',html)
                 except urllib.error.HTTPError as error:
                     self.fail('Dashboard route should return 200; got HTTP '+str(error.code))
-                with urllib.request.urlopen(base) as response:self.assertIn('href="/dashboard"',response.read().decode())
+                with urllib.request.urlopen(base) as response:
+                    html=response.read().decode()
+                    self.assertIn('<button id="open-dashboard"',html)
+                    self.assertIn('src="/dashboard/launcher.js"',html)
+                    self.assertIn('href="/dashboard/launcher.css"',html)
+                    self.assertIn('href="/dashboard"',html)
+                    self.assertNotIn("unsafe-inline",response.headers['Content-Security-Policy'])
                 with urllib.request.urlopen(base+'/health') as response:self.assertEqual(response.status,200)
             finally:server.shutdown();server.server_close()

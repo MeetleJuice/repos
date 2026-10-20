@@ -1,5 +1,7 @@
 # Dashboard edition 1.0 — delivery report
 
+Historical report for the standalone Dashboard 1.0.0 edition at commit 0c239b3. Starting in core v0.27.0, the user's subsequent request authorizes normal Update-button releases and a prominent button that opens a separate window. See `../README.md` for current installation, launcher and release instructions. The results and single-existing-line scope below describe the original edition, not the later release metadata or launcher changes.
+
 ## Detected stack and audit
 
 Idea Foundry core 0.26.1, commit 531fe15: Python standard-library HTTP server, daemon-thread job controller, explicit file-backed state/history, plain deferred JavaScript/HTML/CSS. No pre-existing React app, JS package manifest, frontend bundler, state store or general tracing/event bus.

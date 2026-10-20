@@ -4,7 +4,11 @@ An isolated full-screen source map for Idea Foundry core 0.26.1. The default mod
 
 ## Open it
 
-Extract the Dashboard edition ZIP into a **new folder**, close the old Foundry terminal, and launch `Start-Foundry.bat` from the new folder. Keep the existing private workspace; this edition does not move projects or credentials. Click **Dashboard ↗** in the workbench header, or open `http://127.0.0.1:8765/dashboard` while Foundry is running. If you launch on another port, use that port instead. Core version still reads **0.26.1** because this edition changes only one existing source line, not version/update metadata.
+From **v0.27.0**, Dashboard ships in the normal Foundry release. Click **Update → Check for updates → Install & restart** in the workbench. Managed installation requires Foundry to have been started with `Start-Foundry.bat`; follow the existing updater's restart prompt if necessary. Future published releases use the same Update button. Your private workspace and credentials remain in place.
+
+Click the highlighted **Dashboard ↗ button beside Update**. It requests a separate browser window and focuses that window on repeated clicks. If your browser blocks the window, an **Open Dashboard here** link appears beside the button. Browser settings can choose a tab instead. You can also open `/dashboard` on the running Foundry address.
+
+Manual alternative: extract the regular `Idea-Foundry-0.27.0.zip` into a new folder, close the old Foundry terminal and run the new folder's `Start-Foundry.bat`.
 
 1. Choose a journey, such as **Approved project · sequential generation**.
 2. Press **Play simulation**. Cyan indicates a running step, green a completed step, and red a simulated failure. Pause/resume, Stop and Tempo control timer playback.
@@ -16,9 +20,9 @@ Reduced-motion settings disable the pulse/edge animation; textual status remains
 
 ## Architecture and scope
 
-`register(Handler)` returns a handler subclass that serves an exact dashboard asset allowlist and adds its own header link to the root HTML response. Host/Origin checks and all original API methods remain inherited. Dashboard CSS, state, timer engine, worker and React dependencies live here. Runtime Python imports only the standard library; runtime TypeScript imports only this feature and its declared third-party packages.
+`register(Handler)` returns a handler subclass that serves an exact dashboard asset allowlist and adds its own header button plus external launcher script/styles to the root HTML response. This preserves the workbench's existing CSP without inline handlers. Host/Origin checks and all original API methods remain inherited. Dashboard CSS, state, timer engine, worker and React dependencies live here. Runtime Python imports only the standard library; runtime TypeScript imports only this feature and its declared third-party packages.
 
-The only existing-file edit is:
+The runtime registration seam remains:
 
 ```diff
 --- a/forge/server.py
@@ -28,7 +32,7 @@ The only existing-file edit is:
      server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
 ```
 
-Delete `forge/dashboard/` and remove that line to restore the pre-feature runtime. `DASHBOARD_CODEBASE_MAP.md` is a standalone root deliverable with no runtime dependency. No existing project, approval contract, frozen check, model route, updater manifest, build script or UI file is changed.
+Delete `forge/dashboard/` and remove that line to restore the pre-feature runtime. `DASHBOARD_CODEBASE_MAP.md` is a standalone root deliverable with no runtime dependency. The normal release additionally changes core version/release notes, the updater manifest, the packager's root-map allowlist and release guidance in AGENTS.md/README.md, as explicitly requested after the isolated edition. No project, approval contract, frozen check or model route is changed.
 
 ## Build and verification
 
@@ -40,15 +44,16 @@ npm --prefix forge/dashboard run typecheck
 npm --prefix forge/dashboard test
 python -m unittest forge.dashboard.test_dashboard -q
 python forge/dashboard/browser_check.py
+python forge/dashboard/launcher_check.py
 python forge/dashboard/removal_check.py
 python -m unittest discover -q
 ```
 
 Build tooling installs exact locked packages in an OS temporary cache, not in the project/workspace. TypeScript checks application source in strict mode; external declaration checking is skipped for the upstream elkjs optional-children declaration defect documented in `docs/RESEARCH.md`. No production dependency is added to the Python app.
 
-Browser checks require the existing optional Playwright/Chromium tools. Simulation tests cover every node/edge, cancellation and failed paths. Route tests exercise security/allowlists and source excerpts. The removal check validates all 351 frozen baseline hashes after removing the one line, deletes the feature in a temporary copy, runs the original suite and checks `/dashboard` returns 404. Test/developer scripts may import existing app modules solely to verify the integration; no such imports are in the runtime feature.
+Browser checks require the existing optional Playwright/Chromium tools. Simulation tests cover every node/edge, cancellation and failed paths. Launcher checks cover a distinct browser window, reuse, blocked-popup fallback, mobile and unsaved form preservation. Route tests exercise security/allowlists and source excerpts. The removal check validates 346 frozen baseline hashes after removing the one line while retaining the five authorized release metadata/guidance changes, deletes the feature in a temporary copy, runs the original suite and checks `/dashboard` returns 404. Test/developer scripts may import existing app modules solely to verify the integration; no such imports are in the runtime feature.
 
-Build the separate archive with `python forge/dashboard/package_dashboard.py`. It invokes the unchanged source packager, adds the standalone root map, and writes an immutable Dashboard edition archive. It deliberately does not update `releases/latest.json` or the core version.
+Publish normal releases with the existing `python package.py --release` process after incrementing the core version and completing validation. This writes the versioned archive and `releases/latest.json` used by the Update button. `package_dashboard.py` belongs to the historical standalone 1.0.0 edition; it is not the release path for this or future updates.
 
 ## Source and research provenance
 

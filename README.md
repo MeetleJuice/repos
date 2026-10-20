@@ -1,10 +1,16 @@
-# Idea Foundry 0.26.1
+# Idea Foundry 0.27.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.27.0 Dashboard button and normal updates
+
+Click **Update → Check for updates → Install & restart**, keeping the Foundry terminal open. This release and future published updates use the existing Update button; no separate Dashboard edition is needed. Start with `Start-Foundry.bat` to enable managed installation.
+
+The highlighted **Dashboard ↗** button beside Update opens the source-mapped execution dashboard in a separate window. Repeated clicks focus that window; if your browser blocks it, a normal link appears. Browser settings can choose a tab instead. Try **Play simulation**, or select **Observe workspace** for read-only project activity. Simulation never starts or verifies an app. Projects, model settings and credentials stay in place. [Dashboard guide](forge/dashboard/README.md).
 
 ## 0.26.1 automatic local backups
 

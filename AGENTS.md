@@ -6,6 +6,8 @@ These rules guide reviewed development of Foundry. They do not authorize message
 
 Use the existing checkout; do not create a worktree unless the user requests one. The workbench uses Python standard library. `python -m unittest discover -q` is the primary check. Browser checks optionally require pinned Playwright and Chromium; provider tests use fixtures, never real keys. Package with `python package.py`; test the extracted distribution before publishing a versioned release.
 
+For requested updates, use the normal Update-button delivery path: increment the core version, run `python package.py --release`, validate the extracted archive and publish its versioned ZIP together with `releases/latest.json`. The user expects current and future releases through the existing Update button; a standalone edition ZIP must not be the only delivery path.
+
 ## Condition → prevention
 
 - A truncated response is an output-budget failure, not a provider outage. Reserve output explicitly; never fall back to a model with a smaller output ceiling.

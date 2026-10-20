@@ -1,0 +1,27 @@
+#open-dashboard.ifd-open-dashboard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 15px;
+  min-height: 38px;
+  border: 1px solid #4ab8d1;
+  border-radius: 9px;
+  background: #123948;
+  color: #c1f3ff;
+  font-weight: 700;
+  white-space: nowrap;
+}
+#open-dashboard.ifd-open-dashboard:hover {
+  background: #1c5061;
+  border-color: #8ceaff;
+}
+#open-dashboard.ifd-open-dashboard:focus-visible {
+  outline: 2px solid #8ceaff;
+  outline-offset: 3px;
+}
+#dashboard-popup-fallback:not([hidden]) {
+  display: inline-block;
+  color: #9deaff;
+  font-size: 12px;
+  padding: 6px;
+}

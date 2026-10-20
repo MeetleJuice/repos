@@ -9,8 +9,11 @@ ASSETS={'/dashboard':('index.html','text/html; charset=utf-8'),
         '/dashboard/assets/app.js':('assets/app.js','text/javascript'),
         '/dashboard/assets/app.css':('assets/app.css','text/css'),
         '/dashboard/assets/elk-worker.js':('assets/elk-worker.js','text/javascript'),
+        '/dashboard/launcher.js':('launcher.js','text/javascript'),
+        '/dashboard/launcher.css':('launcher.css','text/css'),
         '/dashboard/map':('docs/CODEBASE_MAP.md','text/plain; charset=utf-8')}
-ENTRY=b'<a class="secondary ifd-entry" href="/dashboard" target="_blank" rel="noopener">&#9672; Dashboard &#8599;</a>'
+ENTRY=b'<button id="open-dashboard" class="secondary ifd-open-dashboard" type="button" title="Open Dashboard in a separate window" aria-describedby="dashboard-popup-fallback">&#9672; Dashboard &#8599;</button><a id="dashboard-popup-fallback" class="ifd-popup-fallback" href="/dashboard" target="_blank" rel="noopener" hidden>Window blocked? Open Dashboard here &#8599;</a>'
+LAUNCHER=b'<link rel="stylesheet" href="/dashboard/launcher.css"><script src="/dashboard/launcher.js" defer></script>'
 
 
 def register(base: Any) -> Any:
@@ -24,6 +27,7 @@ def register(base: Any) -> Any:
         def send_bytes(self, status: int, content: bytes, content_type: str = 'application/json', filename: str | None = None) -> None:
             if status==200 and urlsplit(self.path).path=='/' and content_type.startswith('text/html'):
                 content=content.replace(b'<div class="topbar-actions">',b'<div class="topbar-actions">'+ENTRY,1)
+                content=content.replace(b'</head>',LAUNCHER+b'</head>',1)
             super().send_bytes(status,content,content_type,filename)
 
         def do_GET(self) -> None:
