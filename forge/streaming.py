@@ -71,8 +71,13 @@ def stream_chat(url: str, payload: dict[str, Any], headers: dict[str,str], timeo
                          'auth' if status in {401,403} else 'request' if status==400 else 'provider',http_status=status) from None
     except InterruptedError:
         raise
-    except (TimeoutError,OSError,http.client.HTTPException):
-        raise ModelError('Local streaming connection timed out or disconnected. Check the selected runtime; partial output was not saved.','transport') from None
+    except TimeoutError:
+        raise ModelError('Local stream timed out; partial output was not saved. Use smaller planning steps or an explicit longer local timeout.','transport',transport_kind='timeout') from None
+    except urllib.error.URLError as exc:
+        kind='timeout' if isinstance(exc.reason,TimeoutError) else 'connection'
+        raise ModelError('Local stream connection failed; partial output was not saved. Check its timeout and runtime settings.','transport',transport_kind=kind) from None
+    except (OSError,http.client.HTTPException):
+        raise ModelError('Local streaming connection disconnected. Check the selected runtime; partial output was not saved.','transport',transport_kind='connection') from None
     except (json.JSONDecodeError,UnicodeDecodeError):
         raise ModelError('Local runtime returned a malformed streaming frame.','format') from None
     if not terminal:raise ModelError('Local stream ended without a completion marker; partial output was not accepted.','format')

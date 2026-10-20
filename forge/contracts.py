@@ -13,7 +13,7 @@ from .tasks import MAX_TASKS, validate_tasks
 
 Plan = dict[str, Any]
 
-def validate_structure(plan: dict[str, Any]) -> dict[str, Any]:
+def validate_structure(plan: dict[str, Any], *, outline: bool = False) -> dict[str, Any]:
     if not isinstance(plan, dict):
         raise ValueError("Proposal must be a JSON object.")
     for name in ("title", "summary"):
@@ -38,14 +38,19 @@ def validate_structure(plan: dict[str, Any]) -> dict[str, Any]:
         if missing:
             raise ValueError(f"Every feature needs {label} coverage. Missing feature indexes: {sorted(missing)}.")
     tasks = plan.get("tasks")
-    if not isinstance(tasks, list) or not 1 <= len(tasks) <= MAX_TASKS:
-        raise ValueError("Proposal must contain 1–16 ordered tasks.")
-    for task in tasks:
-        if not isinstance(task, dict) or not all(isinstance(task.get(k), str) and 0 < len(task[k]) <= 6000 for k in ("title", "instructions")):
-            raise ValueError("Each task needs a title and instructions.")
+    if outline:
+        if 'tasks' in plan:raise ValueError('An outline must not contain implementation tasks.')
+        tasks=[]
+    else:
+        if not isinstance(tasks, list) or not 1 <= len(tasks) <= MAX_TASKS:
+            raise ValueError("Proposal must contain 1–16 ordered tasks.")
+        for task in tasks:
+            if not isinstance(task, dict) or not all(isinstance(task.get(k), str) and 0 < len(task[k]) <= 6000 for k in ("title", "instructions")):
+                raise ValueError("Each task needs a title and instructions.")
     if not isinstance(plan.get("context_policy","full"),str) or plan.get("context_policy","full") not in {"full","focused_v1"}:raise ValueError("context_policy must be full or focused_v1.")
-    coverage(tasks, "task")
-    validate_tasks(plan)
+    if not outline:
+        coverage(tasks, "task")
+        validate_tasks(plan)
     checks = plan.get("checks")
     if not isinstance(checks, list) or not 1 <= len(checks) <= 15:
         raise ValueError("Proposal must contain 1–15 behavioral HTTP checks.")

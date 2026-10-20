@@ -1,0 +1,103 @@
+{
+  "new_unversioned_candidate": {
+    "review": {
+      "passed": true,
+      "findings": [],
+      "contracts": [
+        {
+          "method": "GET",
+          "path": "/health",
+          "status": 200,
+          "response_kind": "object",
+          "required_fields": [
+            "status"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "status": 200,
+          "response_kind": "text",
+          "required_fields": []
+        }
+      ],
+      "executed": false,
+      "meaning": "Proposal consistency review. No generated code was run; passing does not establish app correctness."
+    },
+    "structured": false
+  },
+  "adapt_arcade_example_to_required_contract": {
+    "passed": false,
+    "findings": [
+      {
+        "code": "structure",
+        "path": "/",
+        "message": "Task 1: cover 1\u20133 feature indexes; split broad implementation work.",
+        "severity": "error"
+      }
+    ],
+    "contracts": [],
+    "executed": false,
+    "meaning": "Proposal consistency review. No generated code was run; passing does not establish app correctness."
+  },
+  "pooled_timeout_then_schema_failures": {
+    "status": "error",
+    "error": "All configured models failed: ollama: transport; ollama: schema_error",
+    "attempts": [
+      {
+        "model": "qwen2.5:7b",
+        "failure_class": "provider_unavailable",
+        "error_category": "transport",
+        "review_codes": null,
+        "review_findings": null
+      },
+      {
+        "model": "deepseek-r1:7b",
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "review_codes": [
+          "structure"
+        ],
+        "review_findings": null
+      },
+      {
+        "model": "deepseek-r1:7b",
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "review_codes": [
+          "structure"
+        ],
+        "review_findings": null
+      }
+    ],
+    "last_review": {
+      "passed": false,
+      "findings": [
+        {
+          "code": "structure",
+          "path": "/",
+          "message": "Proposal needs a nonempty title (up to 6000 characters).",
+          "severity": "error"
+        }
+      ],
+      "contracts": [],
+      "executed": false,
+      "meaning": "Proposal consistency review. No generated code was run; passing does not establish app correctness."
+    },
+    "events": [
+      "Planning with ollama/qwen2.5:7b",
+      "Requesting ollama/qwen2.5:7b (route step 1/2).",
+      "ollama request failed (transport). Trying the next configured tier.",
+      "Requesting ollama/deepseek-r1:7b (route step 2/2).",
+      "Proposal failed deterministic review; one focused correction on ollama/deepseek-r1:7b.",
+      "Requesting ollama/deepseek-r1:7b (route step 3/3).",
+      "Proposal correction failed; advancing to the next model without restarting the route.",
+      "Planner request failed: All configured models failed: ollama: transport; ollama: schema_error",
+      "Stopped with error: All configured models failed: ollama: transport; ollama: schema_error"
+    ]
+  },
+  "task_repair_scope_guard": {
+    "without_packet": "allowed",
+    "with_packet": "Task scope violation: other.py. Change only approved task files: app.py. Preserve other files; return exact edits or only changed files."
+  }
+}

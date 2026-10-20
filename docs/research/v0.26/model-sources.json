@@ -1,0 +1,199 @@
+[
+  {
+    "id": "aa_coding",
+    "url": "https://artificialanalysis.ai/leaderboards/coding",
+    "accessed_utc": "2026-10-20T16:09:41.314783+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support"
+  },
+  {
+    "id": "aa_models",
+    "url": "https://artificialanalysis.ai/leaderboards/models",
+    "accessed_utc": "2026-10-20T16:09:41.315553+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support"
+  },
+  {
+    "id": "swe_pro_github",
+    "url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/README.md",
+    "accessed_utc": "2026-10-20T16:09:41.316053+00:00",
+    "status": 200,
+    "final_url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/README.md",
+    "sha256": "9b5058fbc2f806a47a2de6db9a89c5805b8c7d89319cd7d4f9b328c091d1f983",
+    "bytes": 8069,
+    "evidence_class": "retrieved_primary_source_author_claims_not_reproduced"
+  },
+  {
+    "id": "swe_pro_site",
+    "url": "https://scale.com/leaderboard/swe_bench_pro_public",
+    "accessed_utc": "2026-10-20T16:09:41.316726+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support"
+  },
+  {
+    "id": "lcb_readme",
+    "url": "https://raw.githubusercontent.com/LiveCodeBench/LiveCodeBench/main/README.md",
+    "accessed_utc": "2026-10-20T16:09:41.317143+00:00",
+    "status": 200,
+    "final_url": "https://raw.githubusercontent.com/LiveCodeBench/LiveCodeBench/main/README.md",
+    "sha256": "ee0029cddc1d9051f35818f3348a4327819a3e35a9e597732519245605195cf6",
+    "bytes": 12825,
+    "evidence_class": "retrieved_primary_source_author_claims_not_reproduced"
+  },
+  {
+    "id": "lcb_site",
+    "url": "https://livecodebench.github.io/",
+    "accessed_utc": "2026-10-20T16:09:41.318748+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support"
+  },
+  {
+    "id": "frontiercode",
+    "url": "https://frontiercode.ai/",
+    "accessed_utc": "2026-10-20T16:09:41.322907+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "openai_models",
+    "url": "https://platform.openai.com/docs/models",
+    "accessed_utc": "2026-10-20T16:09:41.327675+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support"
+  },
+  {
+    "id": "swe_v2",
+    "url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/v2/README.md",
+    "accessed_utc": "2026-10-20T16:10:00.837949+00:00",
+    "status": 200,
+    "final_url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/v2/README.md",
+    "sha256": "dde4168fed17ca1ea00b26a93aca78dad43c7b3f981b93a2872428259428231f",
+    "bytes": 6858,
+    "evidence_class": "retrieved_primary_source_author_claims_not_reproduced"
+  },
+  {
+    "id": "swe_website",
+    "url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/docs/index.html",
+    "accessed_utc": "2026-10-20T16:10:00.839058+00:00",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "lcb_leaderboard",
+    "url": "https://raw.githubusercontent.com/LiveCodeBench/livecodebench.github.io/main/leaderboard.html",
+    "accessed_utc": "2026-10-20T16:10:00.839774+00:00",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "lcb_index",
+    "url": "https://raw.githubusercontent.com/LiveCodeBench/livecodebench.github.io/main/index.html",
+    "accessed_utc": "2026-10-20T16:10:00.840233+00:00",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "lcb_errata",
+    "url": "https://raw.githubusercontent.com/LiveCodeBench/LiveCodeBench/main/ERRATA.md",
+    "accessed_utc": "2026-10-20T16:10:00.840512+00:00",
+    "status": 200,
+    "final_url": "https://raw.githubusercontent.com/LiveCodeBench/LiveCodeBench/main/ERRATA.md",
+    "sha256": "7c2fa9557e0bdafad12ae29c89b2b1b8d972ccb102f9b0b58ab4293c74261861",
+    "bytes": 2206,
+    "evidence_class": "retrieved_primary_source_author_claims_not_reproduced"
+  },
+  {
+    "id": "aa_github",
+    "url": "https://raw.githubusercontent.com/ArtificialAnalysis/ArtificialAnalysis/main/README.md",
+    "accessed_utc": "2026-10-20T16:10:00.840949+00:00",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "aa_api_docs",
+    "url": "https://artificialanalysis.ai/documentation",
+    "accessed_utc": "2026-10-20T16:10:00.842922+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support"
+  },
+  {
+    "id": "frontiercode_com",
+    "url": "https://frontiercode.com/",
+    "accessed_utc": "2026-10-20T16:10:00.847215+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "github_search_claim",
+    "url": "https://api.github.com/search/code?q=%22FrontierCode%22+%2260.4%22",
+    "accessed_utc": "2026-10-20T16:10:00.874003+00:00",
+    "status": "error",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "evidence_class": "retrieval_failure_no_claim_support"
+  },
+  {
+    "id": "codex_models",
+    "url": "https://raw.githubusercontent.com/openai/codex/main/codex-rs/core/models.json",
+    "accessed_utc": "2026-10-20T16:10:13.525604+00:00",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "lcb_web_master",
+    "url": "https://raw.githubusercontent.com/LiveCodeBench/livecodebench.github.io/master/leaderboard.html",
+    "accessed_utc": "2026-10-20T16:10:13.528242+00:00",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "lcb_web_git",
+    "url": "https://raw.githubusercontent.com/LiveCodeBench/LiveCodeBench.github.io/master/leaderboard.html",
+    "accessed_utc": "2026-10-20T16:10:13.530628+00:00",
+    "status": "error",
+    "error": "HTTP Error 404: Not Found",
+    "evidence_class": "retrieval_failure_no_claim_support",
+    "discovery_note": "Candidate URL/path, not authenticated evidence of publisher identity; a failed guess is not proof of absence."
+  },
+  {
+    "id": "swe_index_root",
+    "url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/index.html",
+    "accessed_utc": "2026-10-20T16:10:13.532034+00:00",
+    "status": 200,
+    "final_url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/index.html",
+    "sha256": "4d60641d707aa3574db8722616f459e80a595a4c275c5686e6195523a17459e9",
+    "bytes": 16176,
+    "evidence_class": "retrieved_primary_source_author_claims_not_reproduced"
+  },
+  {
+    "id": "swe_gate",
+    "url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/v2/GATE.md",
+    "accessed_utc": "2026-10-20T16:10:13.533436+00:00",
+    "status": 200,
+    "final_url": "https://raw.githubusercontent.com/scaleapi/SWE-bench_Pro-os/main/v2/GATE.md",
+    "sha256": "7c30b8d6aef5ea7413831ac5618220f8c01ff15439bc6732a25ceaeb2c401e71",
+    "bytes": 1659,
+    "evidence_class": "retrieved_primary_source_author_claims_not_reproduced"
+  }
+]

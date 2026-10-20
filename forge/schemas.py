@@ -2,7 +2,7 @@
 from typing import Any
 
 INDEXES = {'type': 'array', 'items': {'type': 'integer'}}
-PLAN_SCHEMA = {
+PLAN_SCHEMA: dict[str, Any] = {
     'type': 'object',
     'required': ['title', 'summary', 'features', 'out_of_scope', 'risks', 'tasks', 'checks', 'app_kind', 'task_contract_version', 'context_policy'],
     'properties': {

@@ -1,0 +1,2511 @@
+{
+  "baseline": "e4df92bfa3c5585a182ce5e5952a66d85e3560e2",
+  "meaning": "All tracked bytes read and hashed; text line/AST inventory is not a manual line-by-line review or behavioral verification.",
+  "files": [
+    {
+      "path": ".env.example",
+      "bytes": 1213,
+      "sha256": "8b333fab337a32239a70a622ed002c34f1c754837289bb18253591258d5816fc",
+      "kind": "text",
+      "lines": 26
+    },
+    {
+      "path": ".gitattributes",
+      "bytes": 129,
+      "sha256": "7fe3aac07fec1e75702d97e6c6abd43b1588a7eece3b58f46a2012807af3bf67",
+      "kind": "text",
+      "lines": 2
+    },
+    {
+      "path": ".github/workflows/tests.yml",
+      "bytes": 2691,
+      "sha256": "d897084a3733f37669387325795c12830694734b7f8d0617612061ebfe4417ac",
+      "kind": "text",
+      "lines": 56
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 86,
+      "sha256": "8f695b852c672b38aab11916eb0daef0e9fa798c08ece7853026d1b7e8dcb336",
+      "kind": "text",
+      "lines": 10
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 10717,
+      "sha256": "ba1b7750bcc1f7448f0a8287304d7739a57472b38cff3f2be617a1dd48066b91",
+      "kind": "text",
+      "lines": 60
+    },
+    {
+      "path": "GOALS.md",
+      "bytes": 940,
+      "sha256": "5eb90dccdf765fe4995ec142dc53e1d99101788a3cbbd3607646f4214aa3acfd",
+      "kind": "text",
+      "lines": 7
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1082,
+      "sha256": "c1fd92b11e4d69c6efab263e442396c2ceeca8874dd2900f7289912316204a2b",
+      "kind": "text",
+      "lines": 21
+    },
+    {
+      "path": "PLANS.md",
+      "bytes": 2118,
+      "sha256": "22f78357da00cb71ad82c62890d680f1a793f3d2e72d87a1ac09bcfd8e6ddd55",
+      "kind": "text",
+      "lines": 23
+    },
+    {
+      "path": "PROMPTS.md",
+      "bytes": 1047,
+      "sha256": "cd3cab88f94f556a01f5dc05b32c0a7822d93c1f2e47203f0172cbc4dedf691f",
+      "kind": "text",
+      "lines": 15
+    },
+    {
+      "path": "README.md",
+      "bytes": 38135,
+      "sha256": "5f70d37208757145216e090739d21b2b4dd1b901767d822030a82b5f93226e09",
+      "kind": "text",
+      "lines": 498
+    },
+    {
+      "path": "Start-Foundry.bat",
+      "bytes": 133,
+      "sha256": "c989ddd755da510c10edd762b85827f8498a40fdd0ab21805e520d03b2b1f966",
+      "kind": "text",
+      "lines": 9
+    },
+    {
+      "path": "bootstrap.py",
+      "bytes": 6178,
+      "sha256": "6bdcf6f9ea4a321b63115f2c984f4053e716b96c55c277e9ccd34adb819d8469",
+      "kind": "text",
+      "lines": 147,
+      "functions": 6,
+      "classes": 0
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "bytes": 14693,
+      "sha256": "316a367fcafa8a18c0e3a46a43ea65cbe2775e094845a0dad89977237ab5e7f0",
+      "kind": "text",
+      "lines": 179
+    },
+    {
+      "path": "docs/CLOUD-RESEARCH.md",
+      "bytes": 5483,
+      "sha256": "020a1d6843449a2dcbf70d99ccbeca8c22420a5d73309d8a6d5be8986b79aa27",
+      "kind": "text",
+      "lines": 66
+    },
+    {
+      "path": "docs/EXECUTIVE-PASS-1.md",
+      "bytes": 1495,
+      "sha256": "f7be18d2d53aa03a55d150d02c1f53c80f213c220b6c6025b01013849d4be271",
+      "kind": "text",
+      "lines": 23
+    },
+    {
+      "path": "docs/EXECUTIVE-PASS-2.md",
+      "bytes": 2234,
+      "sha256": "f089f8e2dbcb25e37741352c56e130c223640dccbb63053ef41634b4958da097",
+      "kind": "text",
+      "lines": 36
+    },
+    {
+      "path": "docs/EXECUTIVE-PASS-3.md",
+      "bytes": 1862,
+      "sha256": "a2626350ea08b680c85a1ffa01c9c5bcb937dc110ecc7471791c08a135d271c8",
+      "kind": "text",
+      "lines": 26
+    },
+    {
+      "path": "docs/PASS-1-AUDIT.md",
+      "bytes": 3256,
+      "sha256": "786770d6d3d7e3e57142be4314228a378bf3116c5be9bc6314796b75e15534e8",
+      "kind": "text",
+      "lines": 45
+    },
+    {
+      "path": "docs/PASS-2-RESEARCH.md",
+      "bytes": 5873,
+      "sha256": "89ebea796e9bb651ec2621f3b68d44cd0a34a66ef8acb77b093df575e136d3b8",
+      "kind": "text",
+      "lines": 64
+    },
+    {
+      "path": "docs/PASS-3-RESEARCH.md",
+      "bytes": 6192,
+      "sha256": "801ed2111fe3781b5de3c7dd7e1b9d881afec40321944e80f374b81888c58e12",
+      "kind": "text",
+      "lines": 68
+    },
+    {
+      "path": "docs/RELEASE-0.10.0.md",
+      "bytes": 2628,
+      "sha256": "7b7da4db55c5de38b40f410bc1a8913a8badafacbd40fdb1bf6a38d18471aea1",
+      "kind": "text",
+      "lines": 15
+    },
+    {
+      "path": "docs/RELEASE-0.10.1.md",
+      "bytes": 1376,
+      "sha256": "b8e07540a075214b7e43d0c55c88ba02843313fa553152e545e9505c246a7722",
+      "kind": "text",
+      "lines": 9
+    },
+    {
+      "path": "docs/RELEASE-0.11.0.md",
+      "bytes": 2032,
+      "sha256": "43292ff03b15f36eef157ee3fb7a213a227ed68d855585ebbde01558cad4b990",
+      "kind": "text",
+      "lines": 15
+    },
+    {
+      "path": "docs/RELEASE-0.12.0.md",
+      "bytes": 5834,
+      "sha256": "8c42840da5ffa6a379f7f0c64dc576656f3b605abe93f98f965194db3f3202da",
+      "kind": "text",
+      "lines": 34
+    },
+    {
+      "path": "docs/RELEASE-0.13.0.md",
+      "bytes": 3647,
+      "sha256": "b72d9bb127ae54c9a18d4a57b185f132c694283e1b72b1798196c5fa5a56ebe3",
+      "kind": "text",
+      "lines": 29
+    },
+    {
+      "path": "docs/RELEASE-0.14.0.md",
+      "bytes": 6013,
+      "sha256": "20997f6613369791dfa32fe4fb14c3af92cee167af7cbea96a343bfa740ce033",
+      "kind": "text",
+      "lines": 38
+    },
+    {
+      "path": "docs/RELEASE-0.15.0.md",
+      "bytes": 6448,
+      "sha256": "feec619df2f3d405ecc9cefb0db90caf5250efce3e21faf2ae0d689626715ce7",
+      "kind": "text",
+      "lines": 45
+    },
+    {
+      "path": "docs/RELEASE-0.16.0.md",
+      "bytes": 5322,
+      "sha256": "c96f6bf93fa7ccbcfc39e2ce15b4c41a7ab9f7a1f3989adc6ed87ea89d84e961",
+      "kind": "text",
+      "lines": 31
+    },
+    {
+      "path": "docs/RELEASE-0.17.0.md",
+      "bytes": 6180,
+      "sha256": "7256ffa93b95ded8bb74e7c5c16aa63b4ef540cac46132d2c02904676d002cee",
+      "kind": "text",
+      "lines": 35
+    },
+    {
+      "path": "docs/RELEASE-0.18.0.md",
+      "bytes": 3103,
+      "sha256": "46f2793735a6e5f36d19b10e6d35f49586748b6b3fdbb326f9cbb6a1f181c4b8",
+      "kind": "text",
+      "lines": 17
+    },
+    {
+      "path": "docs/RELEASE-0.18.1.md",
+      "bytes": 2072,
+      "sha256": "242d1c069a8c58fa6bbcbc2f47daa7c22d0d0e968fa84cf83201be0f9ad5940b",
+      "kind": "text",
+      "lines": 11
+    },
+    {
+      "path": "docs/RELEASE-0.3.md",
+      "bytes": 2779,
+      "sha256": "e22716dc71b70bb6ab2ca2cd42a29553ff75c8840adfff005ac545932822858a",
+      "kind": "text",
+      "lines": 44
+    },
+    {
+      "path": "docs/RELEASE-0.4.md",
+      "bytes": 2434,
+      "sha256": "14d74d4a132f5238d1bb7d57c5a230652f0a47897c45a7f41e821fc588c4726f",
+      "kind": "text",
+      "lines": 39
+    },
+    {
+      "path": "docs/RELEASE-0.5.md",
+      "bytes": 6381,
+      "sha256": "108cf75336c5491cd03a79b89957662a9be3a3ca7b88caf6d1ed2fed2e0b5c13",
+      "kind": "text",
+      "lines": 95
+    },
+    {
+      "path": "docs/RELEASE-0.6.md",
+      "bytes": 5777,
+      "sha256": "31c326722e751a072fdc173f0ebcfcc7f37adfb57f31a5508f55ad04c232d6d9",
+      "kind": "text",
+      "lines": 84
+    },
+    {
+      "path": "docs/RELEASE-0.7.1.md",
+      "bytes": 2580,
+      "sha256": "630165acfd2c3e1b2b9ae9d3a5dd8b747e70c70d2080c2b87ca72311b5809781",
+      "kind": "text",
+      "lines": 38
+    },
+    {
+      "path": "docs/RELEASE-0.7.2.md",
+      "bytes": 2298,
+      "sha256": "81a874fd3835ba721fac88ba26a1d42a58138ce7c1d60bef65c8f99fe10e7d0f",
+      "kind": "text",
+      "lines": 35
+    },
+    {
+      "path": "docs/RELEASE-0.7.3.md",
+      "bytes": 3288,
+      "sha256": "c50849e8db000ba4f79d32f70633d2cca54a832f572eabde551d3357633290e0",
+      "kind": "text",
+      "lines": 45
+    },
+    {
+      "path": "docs/RELEASE-0.7.md",
+      "bytes": 5155,
+      "sha256": "25dde53448ba4ced684b8a300465c6bf8d7b1d629370877ff3d9060cd6323ba7",
+      "kind": "text",
+      "lines": 80
+    },
+    {
+      "path": "docs/RELEASE-0.8.0.md",
+      "bytes": 4743,
+      "sha256": "86c7134f82606497d2ff1464c399637bee2e7eeff5012def27a65607e43d25bd",
+      "kind": "text",
+      "lines": 70
+    },
+    {
+      "path": "docs/RELEASE-0.8.1.md",
+      "bytes": 2817,
+      "sha256": "e8cac4b993c734af11e942118ce36029b24d9b7980c8725be41f820135a4ea5c",
+      "kind": "text",
+      "lines": 38
+    },
+    {
+      "path": "docs/RELEASE-0.9.0.md",
+      "bytes": 5245,
+      "sha256": "ea53a8eade19858352accd804db1fdc5bf30ea6328a83b3ab376fd48b416b514",
+      "kind": "text",
+      "lines": 70
+    },
+    {
+      "path": "docs/RESEARCH.md",
+      "bytes": 8524,
+      "sha256": "3f519209b187aa6ed71b1c24300d6e4b91a02c80fecd0a83ad6dd790e316e5b4",
+      "kind": "text",
+      "lines": 97
+    },
+    {
+      "path": "docs/VALIDATION.md",
+      "bytes": 30996,
+      "sha256": "d7fcac1bd545f28c87e2278061a923898bff207732dad9ccc71f1672a4265662",
+      "kind": "text",
+      "lines": 365
+    },
+    {
+      "path": "docs/benchmarks/evidence-0.7.json",
+      "bytes": 482,
+      "sha256": "3cc7090afe202a464c61b2063060365131be24834a860d913527bf0301c428b0",
+      "kind": "text",
+      "lines": 16
+    },
+    {
+      "path": "docs/benchmarks/planning-0.6.json",
+      "bytes": 333,
+      "sha256": "0f929d5d2832b6e3568b6733267770c7556b429832edd0368c7de50ed4c40029",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "docs/delivery-control-0.22.0.md",
+      "bytes": 10744,
+      "sha256": "825ea578f5659344ed96e0e69bb1fba5401a52dfe5290da4e87282bd9cb53206",
+      "kind": "text",
+      "lines": 92
+    },
+    {
+      "path": "docs/hybrid-execution-0.21.0.md",
+      "bytes": 12289,
+      "sha256": "fad148ffdda89efcee49cab5bed95265fb2e6baa976874be37ceae2f44415e5f",
+      "kind": "text",
+      "lines": 88
+    },
+    {
+      "path": "docs/local-harness-0.25.0.md",
+      "bytes": 2647,
+      "sha256": "2c80c23599ccb4c9d9452fea7f0bdc3269fecb3a99703fe130376808f1481c23",
+      "kind": "text",
+      "lines": 16
+    },
+    {
+      "path": "docs/model-studio-0.23.0.md",
+      "bytes": 6676,
+      "sha256": "638c291531cacb18de6375fee1c9bba092c0c8ee08f4c0d5b357b337590c310d",
+      "kind": "text",
+      "lines": 35
+    },
+    {
+      "path": "docs/orchestration-0.24.0.md",
+      "bytes": 8408,
+      "sha256": "e545c37a22c04f07c132e92f02a2d42699f3ddf388380019c798e4bf81ce2685",
+      "kind": "text",
+      "lines": 46
+    },
+    {
+      "path": "docs/phases/completion-0.25.0.md",
+      "bytes": 662,
+      "sha256": "6d227f5846041fe04967cb19bdadb054c8ee67b2e7fca75d855ba053f81761a6",
+      "kind": "text",
+      "lines": 7
+    },
+    {
+      "path": "docs/phases/local-runtime-0.25.0.md",
+      "bytes": 571,
+      "sha256": "923bd581243d191fce5b4f3865ffd9195121520f28fa1c71d50bc0e8d9284c6b",
+      "kind": "text",
+      "lines": 7
+    },
+    {
+      "path": "docs/proposals/Neon-Dodge-Shield-Repair.json",
+      "bytes": 7979,
+      "sha256": "61c568bdcadf70d94182249d84693f92ab29d7d141ad74d0f4d821f205282bd7",
+      "kind": "text",
+      "lines": 209
+    },
+    {
+      "path": "docs/research/automatic-routing-results-v1.json",
+      "bytes": 1206,
+      "sha256": "9c6e34efa3096d0040927cbd76a2fda8046a15dab8ee463ff622385ac9eb7157",
+      "kind": "text",
+      "lines": 54
+    },
+    {
+      "path": "docs/research/automatic-routing-v1.md",
+      "bytes": 3467,
+      "sha256": "d8f7fa05aa6593ea7c1ab961a02ade9b90fabe3d3df2684c7828e15574da273f",
+      "kind": "text",
+      "lines": 30
+    },
+    {
+      "path": "docs/research/baseline-handoffs.json",
+      "bytes": 1700,
+      "sha256": "d7a7f228a303abd4caa20633e01dbf9331d350751487ce7a2216e32ee1cac7e1",
+      "kind": "text",
+      "lines": 37
+    },
+    {
+      "path": "docs/research/baseline-planning.json",
+      "bytes": 334,
+      "sha256": "b259013c6d192c75ad444f6dea31f609b9a32eccbd54a8e48f6f7477299e120e",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "docs/research/build-operation-results-v1.json",
+      "bytes": 1808,
+      "sha256": "7a1b069953c67ba68bb3735fbaae5c9bac15b94e2100c64dbc00c9819a1c54fd",
+      "kind": "text",
+      "lines": 62
+    },
+    {
+      "path": "docs/research/build-operation-v1.md",
+      "bytes": 4391,
+      "sha256": "cfce6644df38c16b926409732313e57e917a5483556ea1ec67122a48adfefe4f",
+      "kind": "text",
+      "lines": 25
+    },
+    {
+      "path": "docs/research/completion-process-results.json",
+      "bytes": 2027,
+      "sha256": "7e828226ca331c25231fb013148e2c142eea1c8b05d479b262ac2d062c42a563",
+      "kind": "text",
+      "lines": 62
+    },
+    {
+      "path": "docs/research/completion-process-v1.md",
+      "bytes": 4828,
+      "sha256": "6f71f23c8591574b069b42274f7274fb9f34428dda2f9ebb68ff8e71d4434053",
+      "kind": "text",
+      "lines": 38
+    },
+    {
+      "path": "docs/research/delivery-control-paired-0.22.0.json",
+      "bytes": 1322,
+      "sha256": "98ba49ecfcfa23d015195fac4f52dc83179dc8c940b5a2df3d0d3669a61d0622",
+      "kind": "text",
+      "lines": 48
+    },
+    {
+      "path": "docs/research/delivery-control-sources-0.22.0.json",
+      "bytes": 1531,
+      "sha256": "873cf063e9de42f9e76c7cdc32ed4935effc7d1e0657a0e24183b275798f2d8f",
+      "kind": "text",
+      "lines": 44
+    },
+    {
+      "path": "docs/research/domain-1.md",
+      "bytes": 6239,
+      "sha256": "bd839925d11509242408c764c98c2e1d75ffee6702f82d2223c3c936ed3d481e",
+      "kind": "text",
+      "lines": 36
+    },
+    {
+      "path": "docs/research/domain-2.md",
+      "bytes": 5351,
+      "sha256": "b46accc9a7a13560bd1fb76943789313d878a72d06622b79ac420dc91287beac",
+      "kind": "text",
+      "lines": 37
+    },
+    {
+      "path": "docs/research/domain-3.md",
+      "bytes": 5375,
+      "sha256": "87254591e244a9abc3115c129571e87d781d48adb6e174454317ebf9f04d6186",
+      "kind": "text",
+      "lines": 24
+    },
+    {
+      "path": "docs/research/domain-4.md",
+      "bytes": 4850,
+      "sha256": "3273a1746fbb177099db86a382c76d2f1ecd9233c88c9f2da1f6564d35be6690",
+      "kind": "text",
+      "lines": 24
+    },
+    {
+      "path": "docs/research/domain-5.md",
+      "bytes": 5016,
+      "sha256": "093ac3b39d1d81b303586d89658972c2995898096d57cd08c8ae73b8549155a8",
+      "kind": "text",
+      "lines": 29
+    },
+    {
+      "path": "docs/research/domain-6.md",
+      "bytes": 4621,
+      "sha256": "62151e1f633592d74c427acd982ceb0d35620836a132604f2e7323b4d08463a6",
+      "kind": "text",
+      "lines": 27
+    },
+    {
+      "path": "docs/research/execution-boundary-paired-0.19.0.json",
+      "bytes": 715,
+      "sha256": "b81bf531ea39f5828590a035d7a819293646d180dc880eb4e1b9a624e803d952",
+      "kind": "text",
+      "lines": 24
+    },
+    {
+      "path": "docs/research/execution-boundary-sources-0.19.0.json",
+      "bytes": 820,
+      "sha256": "8153fdf07283e572838fb8c7537b4f1ccfc809fc6431f4bebc4f8bdd7377cabf",
+      "kind": "text",
+      "lines": 22
+    },
+    {
+      "path": "docs/research/five-category-audit-v1.md",
+      "bytes": 9039,
+      "sha256": "019f7160f93d84bc20932b9e66195cf1fecbdb59df0a82ac569c6eea6980ece1",
+      "kind": "text",
+      "lines": 79
+    },
+    {
+      "path": "docs/research/five-category-results-v1.json",
+      "bytes": 1545,
+      "sha256": "c065452a382a50afa046ce7b7890b6dc61c235276378eacf521a3eb2fd575b2f",
+      "kind": "text",
+      "lines": 44
+    },
+    {
+      "path": "docs/research/handoff-experiments.json",
+      "bytes": 5836,
+      "sha256": "d7ac635c115448b5b6c0b102e1812324c4ee4cc082e6325723952a7d98a27aea",
+      "kind": "text",
+      "lines": 236
+    },
+    {
+      "path": "docs/research/harness-audit.json",
+      "bytes": 5836,
+      "sha256": "5d2d6f564060187affd7a7d52025ff0eab7c651a01c80d7e50dafec19f01f4c4",
+      "kind": "text",
+      "lines": 90
+    },
+    {
+      "path": "docs/research/hybrid-paired-0.21.0.json",
+      "bytes": 655,
+      "sha256": "d294d88fb63300bcefbe78182cfd11b432b4e5c544b2f1e92364cafcc6cc3fd0",
+      "kind": "text",
+      "lines": 22
+    },
+    {
+      "path": "docs/research/hybrid-sources-0.21.0.json",
+      "bytes": 1856,
+      "sha256": "4f30408462f031350d8b0e3210717dcd5dd3bf39d185e9961c27e4ce06aee0bd",
+      "kind": "text",
+      "lines": 51
+    },
+    {
+      "path": "docs/research/local-harness-sources-0.25.0.json",
+      "bytes": 2164,
+      "sha256": "141975d92120f099a9e691a2828704679733d9084137f548e7dd8d57e8701a71",
+      "kind": "text",
+      "lines": 67
+    },
+    {
+      "path": "docs/research/model-studio-sources-0.23.0.json",
+      "bytes": 1348,
+      "sha256": "424d475fe260444dd205f35b0b4e11d50e67fa9cc43d5835cd635bd24e1602b8",
+      "kind": "text",
+      "lines": 35
+    },
+    {
+      "path": "docs/research/orchestration-paired-0.24.0.json",
+      "bytes": 1863,
+      "sha256": "9ba898da7e03ccb2a5bc393471a1757fd36d28eb2c694304849d2f5adb286464",
+      "kind": "text",
+      "lines": 70
+    },
+    {
+      "path": "docs/research/orchestration-sources-0.24.0.json",
+      "bytes": 1633,
+      "sha256": "6022f290be2718c6ad6c12a3cfa888a2661cbd746daa2d1eee924e5da4bd50d2",
+      "kind": "text",
+      "lines": 40
+    },
+    {
+      "path": "docs/research/planner-truncation-results.json",
+      "bytes": 3969,
+      "sha256": "fd80c99ef2bb7424a4664630e28e8f3b38a581bb72fe143be00c1e00c73f9d3f",
+      "kind": "text",
+      "lines": 133
+    },
+    {
+      "path": "docs/research/provider-pool-results-v1.json",
+      "bytes": 1898,
+      "sha256": "3b0aab8c97169317a3a2d011c12d8cd43fd076c0bcb4895c1c91ca73ab5a4e27",
+      "kind": "text",
+      "lines": 70
+    },
+    {
+      "path": "docs/research/provider-pool-v1.md",
+      "bytes": 5085,
+      "sha256": "51849b552a0429ea59ce393b49c7002942d427ef0b967e09b4c0c6ea85073a5a",
+      "kind": "text",
+      "lines": 32
+    },
+    {
+      "path": "docs/research/replay-delivery-control.py",
+      "bytes": 2674,
+      "sha256": "9eaf0538563741c3ef36b8541845156f97994d5d39173967424633b2b4ea7f29",
+      "kind": "text",
+      "lines": 34,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "docs/research/replay-hybrid-source.py",
+      "bytes": 1840,
+      "sha256": "9e96ef1d5f81118f176578bb4500cd12b85546deb9b1bcfb66d91dbb2695b744",
+      "kind": "text",
+      "lines": 18,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "docs/research/replay-orchestration.py",
+      "bytes": 2455,
+      "sha256": "de2acb8829c95938901579715dbbd57d636906219ecd94d66960b3ce3b6af626",
+      "kind": "text",
+      "lines": 39,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "docs/research/replay-task-decomposition.py",
+      "bytes": 1765,
+      "sha256": "9336cbf8b95c73f95f88a38351ea04e7d232cbd5800b9329b194b53a41831dff",
+      "kind": "text",
+      "lines": 22,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "docs/research/task-decomposition-paired-0.20.0.json",
+      "bytes": 510,
+      "sha256": "7c1154935c11eab4b58eef4303e1822cc3359e8d15491ff00d26504b1e02735c",
+      "kind": "text",
+      "lines": 20
+    },
+    {
+      "path": "docs/research/task-decomposition-sources-0.20.0.json",
+      "bytes": 424,
+      "sha256": "70a58de65b98831f4356579dddfd61f83417c30951dd83bba9aa5d9ac1698118",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "docs/research/workflow-audit-v1.md",
+      "bytes": 6342,
+      "sha256": "79c36fb8e22ab00317b8a4db5bbf0e43da3ac1184ebef53d7aa77bac9ed79cac",
+      "kind": "text",
+      "lines": 46
+    },
+    {
+      "path": "docs/research/workflow-results-v1.json",
+      "bytes": 2440,
+      "sha256": "d1ee99c092769fef386566b93733c9196436163e311c63db164fb2e6ded1ad0b",
+      "kind": "text",
+      "lines": 81
+    },
+    {
+      "path": "docs/status.md",
+      "bytes": 11108,
+      "sha256": "89a4aba25a370e21e2565fcb936bf539013d30f30fdcc59fc2a726c9b15c9ac8",
+      "kind": "text",
+      "lines": 68
+    },
+    {
+      "path": "docs/task-decomposition-0.20.0.md",
+      "bytes": 8504,
+      "sha256": "ebd0c75cbc9ab3b212f5ed79d2d1b89b63598cc399d4b26b24bd06bfd1b30c67",
+      "kind": "text",
+      "lines": 58
+    },
+    {
+      "path": "docs/upgrade-0.19.0.md",
+      "bytes": 9802,
+      "sha256": "22f9106bf767cea605d921040e6553e608d0f811ee119e5db7c709dd51e0d641",
+      "kind": "text",
+      "lines": 76
+    },
+    {
+      "path": "docs/validation-0.19.0.md",
+      "bytes": 2371,
+      "sha256": "6974e83d195fdf563ecd0a037c86c642bd09c34c887d651028506130d5814e3f",
+      "kind": "text",
+      "lines": 13
+    },
+    {
+      "path": "docs/validation-0.20.0.md",
+      "bytes": 2656,
+      "sha256": "c2a0031d525816ea7f233cce2bf849ea99cc1b3e788bb94808d2a2e4eb9b1c0d",
+      "kind": "text",
+      "lines": 15
+    },
+    {
+      "path": "docs/validation-0.21.0.md",
+      "bytes": 3431,
+      "sha256": "2a1628cc4b2353d38834d38271f6cc9a92718a7b2b32257394ad3e9b0781ede3",
+      "kind": "text",
+      "lines": 16
+    },
+    {
+      "path": "docs/validation-0.22.0.md",
+      "bytes": 3723,
+      "sha256": "75b8237e5a1b98db08e866829f75c7471e993b492ee1d3e400818fd84c0eb110",
+      "kind": "text",
+      "lines": 16
+    },
+    {
+      "path": "docs/validation-0.23.0.md",
+      "bytes": 3204,
+      "sha256": "4b63b83b0f7ff98d31e6a737af2535ca3ab3e97b4bd46d7342f1ba7e6c8a4935",
+      "kind": "text",
+      "lines": 21
+    },
+    {
+      "path": "docs/validation-0.24.0.md",
+      "bytes": 3415,
+      "sha256": "26274df3742e37a39cabc786902cf71ba1b569eca00e457024d5048f7bc0761e",
+      "kind": "text",
+      "lines": 21
+    },
+    {
+      "path": "docs/validation-0.25.0.md",
+      "bytes": 2961,
+      "sha256": "1c5d871e5667bc220e591352c38408e6bca0a058d7d6aed4a27e20604a803ed4",
+      "kind": "text",
+      "lines": 25
+    },
+    {
+      "path": "examples/notes-app/BUILD-REPORT.json",
+      "bytes": 2194,
+      "sha256": "3e236decb00eecc4845605582caf9e69431351ce684537d88faac36d5f9c7584",
+      "kind": "text",
+      "lines": 11
+    },
+    {
+      "path": "examples/notes-app/CHECKS.json",
+      "bytes": 1786,
+      "sha256": "707eddad78c770c8375ebfc287bee8f700c4bf9a35aef90749b35ac70be97194",
+      "kind": "text",
+      "lines": 92
+    },
+    {
+      "path": "examples/notes-app/PROJECT.md",
+      "bytes": 5833,
+      "sha256": "14eac6a557c6ad0cf57466593eff5f23a4a75bcf42b243184748c8fc1dd50936",
+      "kind": "text",
+      "lines": 169
+    },
+    {
+      "path": "examples/notes-app/README.md",
+      "bytes": 1268,
+      "sha256": "b499cc18267b7d6bb339528de11c0eddc04e758a6752e769efa9200f7a620354",
+      "kind": "text",
+      "lines": 22
+    },
+    {
+      "path": "examples/notes-app/REPAIR-NOTES.md",
+      "bytes": 1528,
+      "sha256": "c56da34a0ba7e9d5693fc138354fd84ba342f49656ee41345d5eb75e2154683f",
+      "kind": "text",
+      "lines": 22
+    },
+    {
+      "path": "examples/notes-app/TASKS.md",
+      "bytes": 2331,
+      "sha256": "c15d3959925a3cbff803cdea522295cac022c974659142b4efe0d846958408c4",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "examples/notes-app/app.js",
+      "bytes": 1900,
+      "sha256": "e2dcbc272a8dec17a9cbeace76976e4a9f6444e5cd543edca08bc68fcac58f90",
+      "kind": "text",
+      "lines": 15
+    },
+    {
+      "path": "examples/notes-app/app.py",
+      "bytes": 6390,
+      "sha256": "f1f1690135831e0222ec0202a3459e8b5d9b135145c64af094c3a87f44430b6d",
+      "kind": "text",
+      "lines": 124,
+      "functions": 8,
+      "classes": 1
+    },
+    {
+      "path": "examples/notes-app/index.html",
+      "bytes": 1144,
+      "sha256": "8951c820abaf97884a93971bf48409cde1319140ff5e7c5fb0df34b7437235a2",
+      "kind": "text",
+      "lines": 1
+    },
+    {
+      "path": "examples/notes-app/launch.py",
+      "bytes": 2826,
+      "sha256": "5b95e2232258d3fbdaf9b26dcceb35b24dae9c198794ae3259dd46f66ebfa2a2",
+      "kind": "text",
+      "lines": 76,
+      "functions": 2,
+      "classes": 0
+    },
+    {
+      "path": "examples/notes-app/run.bat",
+      "bytes": 125,
+      "sha256": "4320526da48e9e9ec5130f8638b57e389c481ef58e35ee6ea11c38d7e5a592ad",
+      "kind": "text",
+      "lines": 9
+    },
+    {
+      "path": "examples/notes-app/run.sh",
+      "bytes": 64,
+      "sha256": "c1da1bf8c6d4944b58299f7a854f1a353f46b1493b8763397939fc768eabbe97",
+      "kind": "text",
+      "lines": 3
+    },
+    {
+      "path": "examples/notes-app/style.css",
+      "bytes": 1998,
+      "sha256": "3581b3ec512e278ee1a70ecb1aa347dbf3ac40c52811937ab8c3ede6183499d1",
+      "kind": "text",
+      "lines": 1
+    },
+    {
+      "path": "examples/notes-app/test_app.py",
+      "bytes": 6573,
+      "sha256": "b3068e87a0677024c94ffa597b166acd0adc7e4d568e0991b3b06052ed086846",
+      "kind": "text",
+      "lines": 153,
+      "functions": 20,
+      "classes": 1
+    },
+    {
+      "path": "examples/notes-proposal-v05.json",
+      "bytes": 4596,
+      "sha256": "ff275225c1606042744ff80f08d2727afb7f5f904d89ef6d5e827972bd1e6baa",
+      "kind": "text",
+      "lines": 157
+    },
+    {
+      "path": "examples/notes-proposal.json",
+      "bytes": 5660,
+      "sha256": "e4cc35d424a9dd14fbb4cb2f4c5304f7a10061745ba6fae15bab6d069f51a122",
+      "kind": "text",
+      "lines": 163
+    },
+    {
+      "path": "examples/task-tracker/BUILD-REPORT.json",
+      "bytes": 1776,
+      "sha256": "f318a45c273c01a81f4fac7b0000d870a2f38bf802bbf83201c9402894b5ad4f",
+      "kind": "text",
+      "lines": 10
+    },
+    {
+      "path": "examples/task-tracker/CHECKS.json",
+      "bytes": 357,
+      "sha256": "c81771176c530b9454f7cf2c5bb1a16f4a689d2302d29633d4a18d96b952d457",
+      "kind": "text",
+      "lines": 23
+    },
+    {
+      "path": "examples/task-tracker/PROJECT.md",
+      "bytes": 2241,
+      "sha256": "7464a941343ba832a931fc8ed6b8408cdbb6af593ca6f6530906e70b81e565c3",
+      "kind": "text",
+      "lines": 60
+    },
+    {
+      "path": "examples/task-tracker/README.md",
+      "bytes": 1058,
+      "sha256": "84a84f56dedcc82bfed0ef567503cc45e5a58e7c961fdbc2e610b19cbc31b2ac",
+      "kind": "text",
+      "lines": 17
+    },
+    {
+      "path": "examples/task-tracker/REPAIR-NOTES.md",
+      "bytes": 995,
+      "sha256": "ae851c9e44282a8f58b89c7af66f9bdba8fd2c28c7d0764b2ecab4cd353df013",
+      "kind": "text",
+      "lines": 16
+    },
+    {
+      "path": "examples/task-tracker/TASKS.md",
+      "bytes": 229,
+      "sha256": "2373486031e2074aaf8662297245c9888a558463a6255bd0cddff9725184758f",
+      "kind": "text",
+      "lines": 4
+    },
+    {
+      "path": "examples/task-tracker/app.js",
+      "bytes": 2625,
+      "sha256": "5cb43035db7b52769064fc8f964be12d219f79b45484787340b559559f172acd",
+      "kind": "text",
+      "lines": 22
+    },
+    {
+      "path": "examples/task-tracker/app.py",
+      "bytes": 7000,
+      "sha256": "93bc4a3f5e20931336f6fa78d3b0a9babdb212d0a341e3549fa1393c630e7dfd",
+      "kind": "text",
+      "lines": 139,
+      "functions": 10,
+      "classes": 1
+    },
+    {
+      "path": "examples/task-tracker/index.html",
+      "bytes": 1240,
+      "sha256": "d10d5316b640f2624a486c393fd8c4dfcadd8e46dc89445a5535070195b65380",
+      "kind": "text",
+      "lines": 1
+    },
+    {
+      "path": "examples/task-tracker/run.bat",
+      "bytes": 177,
+      "sha256": "d16596b460a9f35b168a16730c19e59df966b6e3637a61f9f903bf3bf74676c1",
+      "kind": "text",
+      "lines": 9
+    },
+    {
+      "path": "examples/task-tracker/run.sh",
+      "bytes": 90,
+      "sha256": "cc9f028c33aee20dcd586573d0d859279830ef9a8d5b1f3ddd5a8cb7d65bf428",
+      "kind": "text",
+      "lines": 3
+    },
+    {
+      "path": "examples/task-tracker/style.css",
+      "bytes": 2017,
+      "sha256": "32c1231c75aad9fd46de8401ad7281d08ea20e8ec4ec7cdf0b888d64429a7f21",
+      "kind": "text",
+      "lines": 1
+    },
+    {
+      "path": "examples/task-tracker/test_app.py",
+      "bytes": 5904,
+      "sha256": "fa1efd6b004aa7a8eee4f95f67811e91b745bff45edafb2b79e9ecbed469070d",
+      "kind": "text",
+      "lines": 129,
+      "functions": 16,
+      "classes": 1
+    },
+    {
+      "path": "forge/__init__.py",
+      "bytes": 668,
+      "sha256": "a0bafab40f83de227b5c4618839be19e764e17bae31f571452ef1a288f71f9ed",
+      "kind": "text",
+      "lines": 5,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "forge/browser_runner.py",
+      "bytes": 10339,
+      "sha256": "848a13a4be77db928d1f1a82e89431135342b769289263569b5bda638642a74b",
+      "kind": "text",
+      "lines": 181,
+      "functions": 8,
+      "classes": 2
+    },
+    {
+      "path": "forge/build_contract.py",
+      "bytes": 3534,
+      "sha256": "43718318afb74c11b200e1986dc9580415f7d20d013a9bfbb25c4a6de1fcee78",
+      "kind": "text",
+      "lines": 45,
+      "functions": 3,
+      "classes": 0
+    },
+    {
+      "path": "forge/calibration.py",
+      "bytes": 2593,
+      "sha256": "284d4b12dd0a9f8572d710074e12ad8612b7040d209ca9ce13cc817b76054606",
+      "kind": "text",
+      "lines": 42,
+      "functions": 2,
+      "classes": 0
+    },
+    {
+      "path": "forge/capabilities.py",
+      "bytes": 8969,
+      "sha256": "c5a0987393be8b9e6d11d2196d4f986ba0ee3b6fd2e39f6e55693163fb3751a2",
+      "kind": "text",
+      "lines": 137,
+      "functions": 6,
+      "classes": 3
+    },
+    {
+      "path": "forge/circuit.py",
+      "bytes": 1085,
+      "sha256": "16a67194437f212d6ed8a97a899e79ebfb7f48d6a194a6e562e8e92e6efad2f6",
+      "kind": "text",
+      "lines": 30,
+      "functions": 5,
+      "classes": 1
+    },
+    {
+      "path": "forge/cloud.py",
+      "bytes": 17473,
+      "sha256": "ea4eaf0a60a472cf9512f63c9c439d6296111551bc05b3957e94f8cc41c67527",
+      "kind": "text",
+      "lines": 240,
+      "functions": 9,
+      "classes": 1
+    },
+    {
+      "path": "forge/context.py",
+      "bytes": 5252,
+      "sha256": "4270225d145d9d9b3157d20f7fb00c168f3938b022f174e3cb1fe881016bb91b",
+      "kind": "text",
+      "lines": 96,
+      "functions": 9,
+      "classes": 0
+    },
+    {
+      "path": "forge/contracts.py",
+      "bytes": 17535,
+      "sha256": "38bc9af2433d8b2e32d802e58aea05a5c17a16adeac4ef5075950b6aaee00447",
+      "kind": "text",
+      "lines": 274,
+      "functions": 12,
+      "classes": 3
+    },
+    {
+      "path": "forge/core.py",
+      "bytes": 100591,
+      "sha256": "27665e3416dcb730eb7fceb34ab0ccc47414de468eb2bcdd1993d30200872801",
+      "kind": "text",
+      "lines": 1308,
+      "functions": 47,
+      "classes": 1
+    },
+    {
+      "path": "forge/credentials.py",
+      "bytes": 5126,
+      "sha256": "9dbc563c2750f244ac5a1d459df603f8739f9be431350fa443c2b8f8685f4ac8",
+      "kind": "text",
+      "lines": 106,
+      "functions": 7,
+      "classes": 1
+    },
+    {
+      "path": "forge/edits.py",
+      "bytes": 2029,
+      "sha256": "22d1a334ffb461c78c8d0e8736d1678b83896e93ac5307f56c83af9beb7b345e",
+      "kind": "text",
+      "lines": 34,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "forge/evidence.py",
+      "bytes": 5869,
+      "sha256": "17becc87e7f4fb9631a1990ae24d4495912248bf1c77a47267c72f07e23951aa",
+      "kind": "text",
+      "lines": 81,
+      "functions": 3,
+      "classes": 0
+    },
+    {
+      "path": "forge/execution.py",
+      "bytes": 7820,
+      "sha256": "0f9ebe7c7107c75e4ed473fb694fa5fece59569929918ff1779043e6a65dcfd0",
+      "kind": "text",
+      "lines": 106,
+      "functions": 10,
+      "classes": 0
+    },
+    {
+      "path": "forge/focus.py",
+      "bytes": 6383,
+      "sha256": "a2a8fe29c72554605870b408956b1c92efb66b87e879c8530f36ffeed4987ca3",
+      "kind": "text",
+      "lines": 111,
+      "functions": 6,
+      "classes": 1
+    },
+    {
+      "path": "forge/handoffs.py",
+      "bytes": 995,
+      "sha256": "2c08878b489f0956e9ea6f004adb128d617292d48ddcb7e806d42b07ebd7378d",
+      "kind": "text",
+      "lines": 26,
+      "functions": 2,
+      "classes": 1
+    },
+    {
+      "path": "forge/harness.py",
+      "bytes": 18622,
+      "sha256": "65f8e00507ac2c239e95fed4d32950c9e9f39da40ce396c594defa693386364d",
+      "kind": "text",
+      "lines": 376,
+      "functions": 17,
+      "classes": 2
+    },
+    {
+      "path": "forge/history.py",
+      "bytes": 6183,
+      "sha256": "2c15aa15be072030910264c60e28f31c0b29edbeee6967ff81e9f13be6d9cdf8",
+      "kind": "text",
+      "lines": 126,
+      "functions": 7,
+      "classes": 0
+    },
+    {
+      "path": "forge/http_io.py",
+      "bytes": 1161,
+      "sha256": "1882b80343700b9b2dd7620903f54fc60b8a1f69a0b3876e225ebd277143cd5d",
+      "kind": "text",
+      "lines": 31,
+      "functions": 1,
+      "classes": 1
+    },
+    {
+      "path": "forge/inspection.py",
+      "bytes": 4912,
+      "sha256": "f0c793a2bebb225d90fbd13260c4bdc9b87b679ba892676882ac051a4ac28583",
+      "kind": "text",
+      "lines": 65,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "forge/launch_template.py",
+      "bytes": 2826,
+      "sha256": "5b95e2232258d3fbdaf9b26dcceb35b24dae9c198794ae3259dd46f66ebfa2a2",
+      "kind": "text",
+      "lines": 76,
+      "functions": 2,
+      "classes": 0
+    },
+    {
+      "path": "forge/model-capabilities-v1.json",
+      "bytes": 1130,
+      "sha256": "8aa7a26ebb577b9a8b01346d0d8919b6302967d2da21dd00a06349c4511c0f65",
+      "kind": "text",
+      "lines": 10
+    },
+    {
+      "path": "forge/model-selection-v1.json",
+      "bytes": 436,
+      "sha256": "d9752791673808e857df211c017b2bad04f35695091fdeca65e3156cd9832fad",
+      "kind": "text",
+      "lines": 20
+    },
+    {
+      "path": "forge/model_status.py",
+      "bytes": 5245,
+      "sha256": "540e21196567f75d9d8ce183750232f25128ad767487a807ce70ec9a3c1dab46",
+      "kind": "text",
+      "lines": 88,
+      "functions": 9,
+      "classes": 1
+    },
+    {
+      "path": "forge/models.py",
+      "bytes": 19088,
+      "sha256": "3a07121bc075b4a4c5b93dc8e12f9c831393b6cf9930b58b00e371d515e8c576",
+      "kind": "text",
+      "lines": 270,
+      "functions": 11,
+      "classes": 3
+    },
+    {
+      "path": "forge/planning.py",
+      "bytes": 4096,
+      "sha256": "1b1987c48dd739c71787715d2880dfd5e4a07c3dddf420472cb94e46dc9c8c6d",
+      "kind": "text",
+      "lines": 79,
+      "functions": 1,
+      "classes": 2
+    },
+    {
+      "path": "forge/prompts.py",
+      "bytes": 15899,
+      "sha256": "8d82fa782c1714cca593f6d589b63a27e00e43902cb3e1026d620da6b3fce814",
+      "kind": "text",
+      "lines": 154,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "forge/providers.py",
+      "bytes": 3701,
+      "sha256": "e8f9d39e07766cebddc7a27872ce7ac52db9de8fe4ac56a6042edaccd257399a",
+      "kind": "text",
+      "lines": 61,
+      "functions": 3,
+      "classes": 0
+    },
+    {
+      "path": "forge/reporting.py",
+      "bytes": 3910,
+      "sha256": "ebba435609d5a165acfb237a2a41eb470bee279e1b3b936e226aa2dbc9f79658",
+      "kind": "text",
+      "lines": 59,
+      "functions": 2,
+      "classes": 0
+    },
+    {
+      "path": "forge/routing.py",
+      "bytes": 4242,
+      "sha256": "ae57b4a47eb78a70c5d6466de83567b4fa437131def1877dc418e258f01382e8",
+      "kind": "text",
+      "lines": 84,
+      "functions": 4,
+      "classes": 3
+    },
+    {
+      "path": "forge/runner.py",
+      "bytes": 12096,
+      "sha256": "421b12afc23b2094e23748b38e90c952e6db7f37873883ffa387560f616c22a5",
+      "kind": "text",
+      "lines": 215,
+      "functions": 8,
+      "classes": 0
+    },
+    {
+      "path": "forge/scaffolds.py",
+      "bytes": 1792,
+      "sha256": "6d99fc35e98fd03762ed22aa3c672277bb556bb37858c4ce4edb89d2ac1ee81b",
+      "kind": "text",
+      "lines": 23,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "forge/schemas.py",
+      "bytes": 5161,
+      "sha256": "2fedfd850e30c4bcb015a281ae1c3de418c2aa2708148a34d188d1df5b6808fd",
+      "kind": "text",
+      "lines": 43,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "forge/server.py",
+      "bytes": 18340,
+      "sha256": "70e1ddffea8e96ac8ab225cf16bcb053ad8afedda6b94b1ac5cc2cf2431c0764",
+      "kind": "text",
+      "lines": 319,
+      "functions": 12,
+      "classes": 1
+    },
+    {
+      "path": "forge/starters/arcade/app.py",
+      "bytes": 1864,
+      "sha256": "a94d15a1fca5b0de3127e6a059dfddddc40a5bece98284de5a287a0fa42ce433",
+      "kind": "text",
+      "lines": 43,
+      "functions": 3,
+      "classes": 1
+    },
+    {
+      "path": "forge/starters/arcade/game.js",
+      "bytes": 6238,
+      "sha256": "15024e38bda89c9271151100590c06e97053060c3b63116f73229a413dd6833a",
+      "kind": "text",
+      "lines": 217
+    },
+    {
+      "path": "forge/starters/arcade/index.html",
+      "bytes": 1768,
+      "sha256": "05960e72c2d688f3cd2674f20499bd0b16b05f5210a0e902ebde96f5711fa933",
+      "kind": "text",
+      "lines": 51
+    },
+    {
+      "path": "forge/starters/arcade/proposal.json",
+      "bytes": 3968,
+      "sha256": "f58d7e0cd0e8dac0dba24e9b23ba7168387ffd07fe05927a385f1865cc092f5d",
+      "kind": "text",
+      "lines": 127
+    },
+    {
+      "path": "forge/starters/arcade/style.css",
+      "bytes": 2266,
+      "sha256": "18d5e7a0a8c494e745b940ba67b1d1720e08ebcc9a01a388496a1599216c8835",
+      "kind": "text",
+      "lines": 145
+    },
+    {
+      "path": "forge/starters/arcade/test_app.py",
+      "bytes": 1562,
+      "sha256": "994ab3cab419dab199b4a66a90bddba439f6d9d97c4e95093cee502aa2b87c1c",
+      "kind": "text",
+      "lines": 38,
+      "functions": 5,
+      "classes": 1
+    },
+    {
+      "path": "forge/starters/arcade/test_foundation.py",
+      "bytes": 1345,
+      "sha256": "e25d304038c9ec91c108782837dc8e18e26ba05563e6d48939509ed697ddc562",
+      "kind": "text",
+      "lines": 34,
+      "functions": 1,
+      "classes": 1
+    },
+    {
+      "path": "forge/starters/web/app.py",
+      "bytes": 1693,
+      "sha256": "a42990d6645070bc56906d95268461d87ae05771ee3664254474c44e9f876459",
+      "kind": "text",
+      "lines": 41,
+      "functions": 4,
+      "classes": 1
+    },
+    {
+      "path": "forge/starters/web/index.html",
+      "bytes": 352,
+      "sha256": "518b76195e41ee2416fcdf0f11ef5fd245ab1045eee3cb7b82a550e9cb1ffd37",
+      "kind": "text",
+      "lines": 2
+    },
+    {
+      "path": "forge/starters/web/style.css",
+      "bytes": 364,
+      "sha256": "5a25fa2d0d6b1019b3ec716b92f5c03a4ba0ff3bdae464b7c88b324deaae98af",
+      "kind": "text",
+      "lines": 6
+    },
+    {
+      "path": "forge/starters/web/test_foundation.py",
+      "bytes": 1345,
+      "sha256": "e25d304038c9ec91c108782837dc8e18e26ba05563e6d48939509ed697ddc562",
+      "kind": "text",
+      "lines": 34,
+      "functions": 1,
+      "classes": 1
+    },
+    {
+      "path": "forge/static/activity.js",
+      "bytes": 2641,
+      "sha256": "fe305e864635d4fcf5a3ec8e4cfe86430e5a5cf27ff906dbe8923fcc6e1dc1c5",
+      "kind": "text",
+      "lines": 57
+    },
+    {
+      "path": "forge/static/app.js",
+      "bytes": 49823,
+      "sha256": "39f47edd69de740b473f2343d31d3a19ac2fde050ae5f78ef85887dc51a36ec9",
+      "kind": "text",
+      "lines": 1258
+    },
+    {
+      "path": "forge/static/cloud.js",
+      "bytes": 13151,
+      "sha256": "0f0c17741267cf73bc363d9c42af2f21d9aa21db10b8e2c71227d4afcce13565",
+      "kind": "text",
+      "lines": 292
+    },
+    {
+      "path": "forge/static/icon.png",
+      "bytes": 1407585,
+      "sha256": "766acf5aeb8c239761b79cb03319b31c5fa8894a9926382ca5e332f5286fae5e",
+      "kind": "binary"
+    },
+    {
+      "path": "forge/static/index.html",
+      "bytes": 40041,
+      "sha256": "1f1f78801a8472edd83f1083d7df78fd0e6fee5e499e7a84435c811757c85efa",
+      "kind": "text",
+      "lines": 800
+    },
+    {
+      "path": "forge/static/planning.js",
+      "bytes": 13636,
+      "sha256": "bc3f23dcb666aa78bb47dc683fb5c2ad7e36df0eadefd89bf4a3e3158d8ee047",
+      "kind": "text",
+      "lines": 299
+    },
+    {
+      "path": "forge/static/studio.css",
+      "bytes": 6279,
+      "sha256": "403d9a159ed58f3436ac0153c41e1fc8ae675d0050a3f47c23239d287c2df6fc",
+      "kind": "text",
+      "lines": 65
+    },
+    {
+      "path": "forge/static/studio.js",
+      "bytes": 8524,
+      "sha256": "ef9d9282fedc86a23d096124a2f07c4060d031b317b1689a124cfedd80205435",
+      "kind": "text",
+      "lines": 128
+    },
+    {
+      "path": "forge/static/style.css",
+      "bytes": 30532,
+      "sha256": "867eaabeeed7d3db6a6c87cda6abccfd20198b0915f4421e6617b6db28c92588",
+      "kind": "text",
+      "lines": 1761
+    },
+    {
+      "path": "forge/static/updates.js",
+      "bytes": 4911,
+      "sha256": "36c308dd369ad131b228457cdd02819fd9fc8144092ca71208ca208170425655",
+      "kind": "text",
+      "lines": 144
+    },
+    {
+      "path": "forge/static/workflow.js",
+      "bytes": 5688,
+      "sha256": "e8f83b4909e3ab861fdced2ac86e660f3d8e928a7296fa93631db5fca8c84468",
+      "kind": "text",
+      "lines": 80
+    },
+    {
+      "path": "forge/storage.py",
+      "bytes": 3725,
+      "sha256": "7286afcb43403476c8ac16e04c1d4c5807a9db57c5266e75f042b596bd6304cd",
+      "kind": "text",
+      "lines": 87,
+      "functions": 3,
+      "classes": 0
+    },
+    {
+      "path": "forge/streaming.py",
+      "bytes": 4756,
+      "sha256": "72baacdf1350d05b4163d4244769ba91141e1d506871eed9016ed533dbaaf149",
+      "kind": "text",
+      "lines": 82,
+      "functions": 2,
+      "classes": 0
+    },
+    {
+      "path": "forge/tasks.py",
+      "bytes": 7894,
+      "sha256": "eb482c61f68d4408be03d4179005783602d5e4ff638a201b14ec1b0ed7ee2fc0",
+      "kind": "text",
+      "lines": 91,
+      "functions": 5,
+      "classes": 0
+    },
+    {
+      "path": "forge/updates.py",
+      "bytes": 12108,
+      "sha256": "d101e4744638d3af119ffa13c7168e62f2812d79d6c9d3e2c863367d7b0d5057",
+      "kind": "text",
+      "lines": 226,
+      "functions": 12,
+      "classes": 2
+    },
+    {
+      "path": "forge/workflow.py",
+      "bytes": 9518,
+      "sha256": "9fb693af310e621ae08f2e834872f1d6ec2cb941939d81d94bfd77b29f08bf37",
+      "kind": "text",
+      "lines": 100,
+      "functions": 6,
+      "classes": 0
+    },
+    {
+      "path": "package.py",
+      "bytes": 2689,
+      "sha256": "006a5871acdd614f1c2e3c2b2d842053d2778d595e44800f72d588f54fa6f354",
+      "kind": "text",
+      "lines": 52,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "releases/Idea-Foundry-0.10.0.zip",
+      "bytes": 1473921,
+      "sha256": "5d3a2037799ed16e5b0aaf3f3b3b0cd3106878b7a368b48a84a051bc1653f181",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.10.1.zip",
+      "bytes": 1476853,
+      "sha256": "ee282e0731d096f06fd2fb783aa4c7ea515dc6a0e1eb73166b3cb3cde24ef7ec",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.11.0.zip",
+      "bytes": 1524904,
+      "sha256": "4b7e51d6987de4052d9ecc084abc816ca45956dcffaebe6a04e8e491bd0d9386",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.12.0.zip",
+      "bytes": 1541780,
+      "sha256": "438ab3f898f56a362b432d6092a018927080df52cd46b158862bf5921f208739",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.13.0.zip",
+      "bytes": 1554653,
+      "sha256": "0bdb356dcb0a117f310d6070629bc1d966f8ef5226c8c1cc0c01bc6e61363e6c",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.14.0.zip",
+      "bytes": 1576603,
+      "sha256": "3185cfe44082d2ea021df695d8b112e252a779cec7a522e6cfdad18e56d2f5c4",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.15.0.zip",
+      "bytes": 1605310,
+      "sha256": "5f9a800bd66fea0dee2c626665f5063ff52f965c846333268ddc589e75486981",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.16.0.zip",
+      "bytes": 1618914,
+      "sha256": "3a1c86dbfb0d620190d4149f44e4d3b8d0b6e9cdeb3d7e35d87a8a8e2a2baba0",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.17.0.zip",
+      "bytes": 1635889,
+      "sha256": "b7d55e2db55b24bdf6ccc31eb06ee7dfc364d75683cbf178a954db6f262f7532",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.18.0.zip",
+      "bytes": 1653328,
+      "sha256": "7b0d229694218df00ef05434a5971632767a7ed9a85ecb97417ffd98e0b30977",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.18.1.zip",
+      "bytes": 1657748,
+      "sha256": "0ff209b82ab40af80ee3ad52f7e1f69f4310788c464229606ed2edb0d26a7fb3",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.19.0.zip",
+      "bytes": 1673631,
+      "sha256": "7969034da6e33127898732ea6ba7a0b9332ac6a27d11c2236fba9cf5846bd00c",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.20.0.zip",
+      "bytes": 1691330,
+      "sha256": "2dbf54d0853930718c720844354e01586fc72a8bd273fe1a82f9e8fe6e55818f",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.21.0.zip",
+      "bytes": 1711737,
+      "sha256": "37a7592f30651f5dda6c34015db94464caa4958551a3b9b14b22f8cc79b08356",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.22.0.zip",
+      "bytes": 1739143,
+      "sha256": "42f5467dc3ee2cb07d70e9f06e6bb2f5b02b3e84cd1ba0f8c926bba40c7118eb",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.23.0.zip",
+      "bytes": 1756418,
+      "sha256": "b2094a2743b51ca3c144963d21110fc8c2c390df71d7aa73042ff8acdca21f06",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.24.0.zip",
+      "bytes": 1777403,
+      "sha256": "b13f37a54e9752b7dc8ca3fdaf32ed26ddd4edc4eb5600889430ccc77ec327dc",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.25.0.zip",
+      "bytes": 1801951,
+      "sha256": "164c653c0eb7c50997965775f0e370685886d8e53cec049cf3384201d6ab9104",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.5.0.zip",
+      "bytes": 158051,
+      "sha256": "0608486976a9061655f172020b8d2532dafd0b428c923e888265467110624fd8",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.6.0.zip",
+      "bytes": 200524,
+      "sha256": "983b61489a9a2c58ef29ca1cca3d10e57e6c436d51de230534d7f9a0e5334bae",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.7.0.zip",
+      "bytes": 1398479,
+      "sha256": "32d83a22ddec6a48b973fb2c3933bad43129dee9d7b07140770a8274e12ce4d7",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.7.1.zip",
+      "bytes": 1404923,
+      "sha256": "26547e39694fc4a39264fe97f2b329416f67039cf5f3bc683162991024d84e84",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.7.2.zip",
+      "bytes": 1409900,
+      "sha256": "050b1a9a8e4ca11178789a0edd94e9d64747dd886cbdbc574ba102caf5fb8e67",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.7.3.zip",
+      "bytes": 1423041,
+      "sha256": "ff49238575884ec541818efc7a1af4aaa98d5df4afaf591ab8f19ae855f147d2",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.8.0.zip",
+      "bytes": 1445236,
+      "sha256": "fd4ada5a4599153922b03ae5c35188a94eb6ec6f92185610f9a0392bc3990b1f",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.8.1.zip",
+      "bytes": 1448991,
+      "sha256": "37cb6342612e31b47372ea4b1278469146e412c2e279b3a53ffd07e5589314c7",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Idea-Foundry-0.9.0.zip",
+      "bytes": 1470788,
+      "sha256": "b2391e20c64e8db775d62620f18aa8418bf82550d93f5978bc74be2ed75d32c8",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Neon-Dodge-Shield-Repair-0.7.3.json",
+      "bytes": 7979,
+      "sha256": "61c568bdcadf70d94182249d84693f92ab29d7d141ad74d0f4d821f205282bd7",
+      "kind": "text",
+      "lines": 209
+    },
+    {
+      "path": "releases/Neon-Dodge-Shield-Repair-0.7.3.zip",
+      "bytes": 2731,
+      "sha256": "744a039fcbe9530563fec5ddb3c2b82b98bb9f67aa7af589dcc0ea65d524c346",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Personal-Project-Dashboard-Repaired.zip",
+      "bytes": 24111,
+      "sha256": "9f9c1d034cc4ff9dbf9ec5e8f509f871d8009c73879dcd6d210f2ed8bd969188",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/Tiny-Colony-Proposal.zip",
+      "bytes": 5728,
+      "sha256": "7fc5d07078b5af69d83e05b62d07add3f766a3f5522835024a54696757d2fbc6",
+      "kind": "binary"
+    },
+    {
+      "path": "releases/latest.json",
+      "bytes": 860,
+      "sha256": "2ce5bff156c77fe1b23c53231a8869453fd4d4d752f5d4772681e9659bb62a67",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "run.py",
+      "bytes": 402,
+      "sha256": "6e9b5d9eea3c38eaf1ee6c6504aae097de0d70c29b2d0ccd20047ee6913006c3",
+      "kind": "text",
+      "lines": 12,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "tests/__init__.py",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "kind": "text",
+      "lines": 0,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "tests/benchmark_handoffs.py",
+      "bytes": 4867,
+      "sha256": "e9e18a0f315629fc9313e256b9bcad2a55ab58457b7437d058f1ee178deb1993",
+      "kind": "text",
+      "lines": 79,
+      "functions": 3,
+      "classes": 0
+    },
+    {
+      "path": "tests/benchmark_planning.py",
+      "bytes": 1691,
+      "sha256": "3023f3dc2d0e6c27c9ced625220a5007b5e998a0ffe3d672035e5b0a53a4f0ee",
+      "kind": "text",
+      "lines": 39,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_arcade_check.py",
+      "bytes": 10290,
+      "sha256": "f78af71a06d3fc565dece0ceb30aa737e52ca4a9a5bb97bc2586835414c08c9c",
+      "kind": "text",
+      "lines": 169,
+      "functions": 3,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_automatic_routing_check.py",
+      "bytes": 4244,
+      "sha256": "9e6243c34ecb8ae0db453de30892f72fd2ddebad325e12847c03b00e1d77eaa9",
+      "kind": "text",
+      "lines": 64,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_check.py",
+      "bytes": 4193,
+      "sha256": "5452f28cb1fdb7e6537a27ba22c60ededc07e520b9eaf7fd982713a18b55d952",
+      "kind": "text",
+      "lines": 70,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_cloud_check.py",
+      "bytes": 8261,
+      "sha256": "cac3076571b1b95073fad0b8836aa46d92de37a664aabe60668e03dac5f68d6f",
+      "kind": "text",
+      "lines": 114,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_delivery_control_check.py",
+      "bytes": 8027,
+      "sha256": "1e47d30474edae81935bc412c2962411c9954f26c09b49eb9428bcb3f15da980",
+      "kind": "text",
+      "lines": 101,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_hybrid_execution_check.py",
+      "bytes": 7087,
+      "sha256": "7de6a1598127ac6a97e38cb1898a5c2f7ebbf9401e04b5a57b8f8a3bc52e2ac9",
+      "kind": "text",
+      "lines": 91,
+      "functions": 2,
+      "classes": 1
+    },
+    {
+      "path": "tests/browser_local_harness_check.py",
+      "bytes": 8625,
+      "sha256": "ee25bafb84c75ad14b064adfa06816f66e41233afe97b905f505b54bc553f4fb",
+      "kind": "text",
+      "lines": 118,
+      "functions": 4,
+      "classes": 1
+    },
+    {
+      "path": "tests/browser_model_activity_check.py",
+      "bytes": 4137,
+      "sha256": "b2b6543f48c4ac62276f0ad4fa7951fa1d43ff66345180854d619f14a3fed9c4",
+      "kind": "text",
+      "lines": 69,
+      "functions": 3,
+      "classes": 1
+    },
+    {
+      "path": "tests/browser_model_studio_check.py",
+      "bytes": 8332,
+      "sha256": "ad661d098156a779641ea06c7d01e41fc7529e66ef2ac5dd427870ad1f0d05c5",
+      "kind": "text",
+      "lines": 112,
+      "functions": 2,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_notes_check.py",
+      "bytes": 3958,
+      "sha256": "1c21c9fa342647882300e3b5237a0e5725a3e7bc679cdab84890700476e37f4f",
+      "kind": "text",
+      "lines": 68,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_orchestration_check.py",
+      "bytes": 7699,
+      "sha256": "c29ec5d1b8161bebb40bcca0a1c8910b38ca1d7365e8bdaf5fda1f7298889742",
+      "kind": "text",
+      "lines": 100,
+      "functions": 2,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_planning_check.py",
+      "bytes": 8284,
+      "sha256": "2dc08584316dee749da285064c623796b416d9523f127a2296243cc1bba2e73c",
+      "kind": "text",
+      "lines": 121,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_proposal_import_check.py",
+      "bytes": 4738,
+      "sha256": "9d69a580f1cd210c30566211f43b819912e8f2c0ab8d7f51d5752bdf084ccc07",
+      "kind": "text",
+      "lines": 76,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_provider_pool_check.py",
+      "bytes": 6515,
+      "sha256": "7217d76ece1f7f4fea77fffc6c3bdfc57e5a9aa78fcb216c2994f41826b3a531",
+      "kind": "text",
+      "lines": 85,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_release_check.py",
+      "bytes": 5581,
+      "sha256": "490ce808b74e8281a4061c4b63feab14004e88b028effc1f097b7c52a09d8940",
+      "kind": "text",
+      "lines": 93,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_repair_check.py",
+      "bytes": 8596,
+      "sha256": "505a33efefbc7a2b3a416dcc214c4e4e3fdd4691412e059860ad8a5930b0b93f",
+      "kind": "text",
+      "lines": 128,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_starter_recovery_check.py",
+      "bytes": 4157,
+      "sha256": "48a0ed34b9632875b3d1cc4e0e8ca7da70c86af8a38f984f51995dfe19718214",
+      "kind": "text",
+      "lines": 74,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_task_contract_check.py",
+      "bytes": 6100,
+      "sha256": "0a41f9d9c1803693c7886dba4cd2aa1b9f8c48e7f27f7280617f12694adae7f7",
+      "kind": "text",
+      "lines": 79,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_tracker_check.py",
+      "bytes": 3674,
+      "sha256": "31b59ecd5f087f17263f896b5f80af669da92bb0cf1353054a8e1721d5a6bc2c",
+      "kind": "text",
+      "lines": 66,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_upgrade_check.py",
+      "bytes": 9506,
+      "sha256": "a93029256e9b8e71e404b8a33f6695c73402c63c07c70f2c8d752be5ee3dec11",
+      "kind": "text",
+      "lines": 149,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/browser_workflow_overview_check.py",
+      "bytes": 5666,
+      "sha256": "fee66c1ce6f101f29a6585fa625e2da194f605f1a7858c23be8f5a4d717f62f8",
+      "kind": "text",
+      "lines": 73,
+      "functions": 1,
+      "classes": 0
+    },
+    {
+      "path": "tests/fixture_data/bootstrap-v05.txt",
+      "bytes": 6178,
+      "sha256": "6bdcf6f9ea4a321b63115f2c984f4053e716b96c55c277e9ccd34adb819d8469",
+      "kind": "text",
+      "lines": 147
+    },
+    {
+      "path": "tests/fixture_data/build-ownership-v1.json",
+      "bytes": 477,
+      "sha256": "ee0ee8b56887e81567e21b314df847d68e91b5c88b66c1bdbbc972a8f6f6811c",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "tests/fixture_data/completion-process-v1.json",
+      "bytes": 6463,
+      "sha256": "211c250505291c37288837021c0712b261ed5eb63bce34a05b3a1597d95a1312",
+      "kind": "text",
+      "lines": 31
+    },
+    {
+      "path": "tests/fixture_data/delivery-control-v1.json",
+      "bytes": 812,
+      "sha256": "b62dea142aee04ecf13ed7130350cbca0ffaa0d536ada38c8e822b38479ec9a5",
+      "kind": "text",
+      "lines": 16
+    },
+    {
+      "path": "tests/fixture_data/execution-boundary-v1.json",
+      "bytes": 799,
+      "sha256": "a72c0a4269d38fa26abcbd2106e69a76df136a1d72a1c374b84d7f94ebce1c78",
+      "kind": "text",
+      "lines": 18
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v10.json",
+      "bytes": 1738,
+      "sha256": "d3bc49a04f34a5f9392d8b7fbe5b226cc0826f27440af66220c88a93453ffb17",
+      "kind": "text",
+      "lines": 51
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v11.json",
+      "bytes": 1842,
+      "sha256": "306260042572dd1fc6a99d0c5a648f803f54b9bab3db34026046234456823c09",
+      "kind": "text",
+      "lines": 55
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v12.json",
+      "bytes": 1996,
+      "sha256": "5256a737991af52fc92fd917bdd289768b05d615103d6feacd169cb6c95262bc",
+      "kind": "text",
+      "lines": 59
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v13.json",
+      "bytes": 2101,
+      "sha256": "08a8ef9978be6d1785e4ea9cb2178bdcef1e87799a4cc3079fd473c77f31b0a8",
+      "kind": "text",
+      "lines": 63
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v14.json",
+      "bytes": 2236,
+      "sha256": "55b03607705c2574be8037af87cceecc1953ea2e1cc60a58841b3647edfb63d5",
+      "kind": "text",
+      "lines": 67
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v2.json",
+      "bytes": 484,
+      "sha256": "f6ebdde9126afc521154993794cba8a91b35720f8ee3fb3fe9127d60a131a68d",
+      "kind": "text",
+      "lines": 15
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v3.json",
+      "bytes": 650,
+      "sha256": "dd192bf9b5b2b076c4951bcabfa639b3e53665c9a1fae7c07595069e040c4635",
+      "kind": "text",
+      "lines": 19
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v4.json",
+      "bytes": 746,
+      "sha256": "1b2d58b95733eef5838b62b81cd663ca9489ca4219beb43c8fb764e937ab529b",
+      "kind": "text",
+      "lines": 23
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v5.json",
+      "bytes": 1004,
+      "sha256": "8ad149427b08c33707145c63dc81f0ce959c253b519edac8958ec00743c9d94a",
+      "kind": "text",
+      "lines": 31
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v6.json",
+      "bytes": 1150,
+      "sha256": "3dd069e959624e3f14259a7fa5df2cb37fd8cdbdf1288a48298dd1c5ee59ff35",
+      "kind": "text",
+      "lines": 35
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v7.json",
+      "bytes": 1287,
+      "sha256": "a0288bbcdef341806f167a7a2133734e6a30248ed8e940e2789a55ee382f81e0",
+      "kind": "text",
+      "lines": 39
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v8.json",
+      "bytes": 1430,
+      "sha256": "7fb836cbc9d964ef7f148e7c1b012622c60845c37854067c0997d90319a7e7bb",
+      "kind": "text",
+      "lines": 43
+    },
+    {
+      "path": "tests/fixture_data/frozen-regressions-v9.json",
+      "bytes": 1573,
+      "sha256": "6c90321704b96f11b6e73f231a505996599d688b57d2bddaa667b9c98ac67dea",
+      "kind": "text",
+      "lines": 47
+    },
+    {
+      "path": "tests/fixture_data/groq-request-identity-v1.json",
+      "bytes": 426,
+      "sha256": "112a7d4c8ebadded945a71eb4485ed61ed40e5a281e8a3200357491e2d2c900d",
+      "kind": "text",
+      "lines": 9
+    },
+    {
+      "path": "tests/fixture_data/handoff-regressions-v1.json",
+      "bytes": 185645,
+      "sha256": "bbd15c652c4c919a51987a25a6a309320204e2e1f4ce62e27b904560744491f7",
+      "kind": "text",
+      "lines": 1939
+    },
+    {
+      "path": "tests/fixture_data/hybrid-execution-v1.json",
+      "bytes": 803,
+      "sha256": "692274be11520231dfe82666a0d14ade55e5c77e12ba0657eae1dd877ad33f52",
+      "kind": "text",
+      "lines": 20
+    },
+    {
+      "path": "tests/fixture_data/local-harness-v1.json",
+      "bytes": 579,
+      "sha256": "05390e0eac52362487e72791d4ddadd59c972826561c0023c0a2d24662702d96",
+      "kind": "text",
+      "lines": 8
+    },
+    {
+      "path": "tests/fixture_data/neon-plan-v06.json",
+      "bytes": 3814,
+      "sha256": "2bf67c25bed90af0ec58009c05fb80240a25dbdf8c65e161e5c53716b6643913",
+      "kind": "text",
+      "lines": 159
+    },
+    {
+      "path": "tests/fixture_data/neon-shield-broken.js",
+      "bytes": 7155,
+      "sha256": "6eaf054c603e74c69d48a3961d6405976a93d46470cd3d90fcf36697f5c11365",
+      "kind": "text",
+      "lines": 251
+    },
+    {
+      "path": "tests/fixture_data/neon-shield-repair.json",
+      "bytes": 2024,
+      "sha256": "e6bc3576656471b528120d9fd045473ba8dc77a783d006e57149b69578be662a",
+      "kind": "text",
+      "lines": 35
+    },
+    {
+      "path": "tests/fixture_data/notes-original-app.txt",
+      "bytes": 4141,
+      "sha256": "597dea698440cc9b90c3dfa6f46517ae5ffcdeba7083857904aa8272c9fb96e9",
+      "kind": "text",
+      "lines": 115
+    },
+    {
+      "path": "tests/fixture_data/notes-original-index.txt",
+      "bytes": 2782,
+      "sha256": "fe3c7e4082f7141c2ffe777a6dd3d45d0e47da26165035253e8303d5ba6e95dd",
+      "kind": "text",
+      "lines": 79
+    },
+    {
+      "path": "tests/fixture_data/notes-original-tests.txt",
+      "bytes": 5295,
+      "sha256": "af19afa707cd9ea75548132007ddfa6a7c558a4e7207e9133851240f7076fd02",
+      "kind": "text",
+      "lines": 150
+    },
+    {
+      "path": "tests/fixture_data/notes-plan-1.json",
+      "bytes": 4982,
+      "sha256": "83767d40aab07dd1260e2ffa3d8e2a223747480df429a06c45c526fac7e7e99f",
+      "kind": "text",
+      "lines": 180
+    },
+    {
+      "path": "tests/fixture_data/notes-plan-2.json",
+      "bytes": 5884,
+      "sha256": "6b8c37d45c3e925bacab33988bc825952457455af8ceaceff62d87acdddc3ec5",
+      "kind": "text",
+      "lines": 211
+    },
+    {
+      "path": "tests/fixture_data/notes-repaired-static-app.txt",
+      "bytes": 4169,
+      "sha256": "aeb3a0e33770b804a2e011d2d7bebc098120dde0e2e7a373deddb0938071e3f7",
+      "kind": "text",
+      "lines": 114
+    },
+    {
+      "path": "tests/fixture_data/notes-repaired-static-tests.txt",
+      "bytes": 2035,
+      "sha256": "a1a909bf3b9f93443276998b624210328f4a82b12c9f6be2f65cdf1f2cefe39a",
+      "kind": "text",
+      "lines": 55
+    },
+    {
+      "path": "tests/fixture_data/orchestration-v1.json",
+      "bytes": 1153,
+      "sha256": "ce6b7c02d3ef5e3c99441b4fefe6146be012ae4c0d8005f13cf045b8403322bb",
+      "kind": "text",
+      "lines": 19
+    },
+    {
+      "path": "tests/fixture_data/planner-compaction-v1.json",
+      "bytes": 31894,
+      "sha256": "51bbe46efa36f106891c8f8c75bde11ac9110576dcb1518fcb53ed0512e291af",
+      "kind": "text",
+      "lines": 323
+    },
+    {
+      "path": "tests/fixture_data/planner-semantic-routing-v1.json",
+      "bytes": 580,
+      "sha256": "bf82cecca1b3a51b64e5c2575d07c8d3f1d27e50eca91ef8a820765102ae2145",
+      "kind": "text",
+      "lines": 28
+    },
+    {
+      "path": "tests/fixture_data/planner-truncation-v1.json",
+      "bytes": 3948,
+      "sha256": "7f3cca7529ee88bbd18265881983835819cb84797cbfb146fc7f3b35cbe66aed",
+      "kind": "text",
+      "lines": 124
+    },
+    {
+      "path": "tests/fixture_data/provider-pool-v1.json",
+      "bytes": 453,
+      "sha256": "4e3d57891c112722a25f9bb9cc375b5db03cf03f208433cbf54b4b6ac1e1abfc",
+      "kind": "text",
+      "lines": 1
+    },
+    {
+      "path": "tests/fixture_data/run-v05.txt",
+      "bytes": 402,
+      "sha256": "6e9b5d9eea3c38eaf1ee6c6504aae097de0d70c29b2d0ccd20047ee6913006c3",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "tests/fixture_data/shield-repeated-plan.json",
+      "bytes": 7151,
+      "sha256": "222500d9bf137c3607596e674ffef06cbcb702a4435d05595cfc81c604018618",
+      "kind": "text",
+      "lines": 206
+    },
+    {
+      "path": "tests/fixture_data/task-decomposition-v1.json",
+      "bytes": 760,
+      "sha256": "110d906c762074373f536e9524799d03b98397489ef903303dc9fd73a9a40b60",
+      "kind": "text",
+      "lines": 21
+    },
+    {
+      "path": "tests/fixture_data/validator-v05.txt",
+      "bytes": 3866,
+      "sha256": "a89440b73adecdd4195c481e5fa6b1a97656574996fcd9a4a00818c12828bb7e",
+      "kind": "text",
+      "lines": 61
+    },
+    {
+      "path": "tests/fixture_data/version-v05.txt",
+      "bytes": 74,
+      "sha256": "a171d07a8e4c05ad4b1f68150746d857c0829ec25b2e7c0194851aa53e44adc6",
+      "kind": "text",
+      "lines": 3
+    },
+    {
+      "path": "tests/fixture_data/workflow-audit-v1.json",
+      "bytes": 707,
+      "sha256": "901a04b683017c868144817ed4cc6d85c78b965ca6d09b2fee27187359007afe",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "tests/fixture_data/workflow-five-pillars-v1.json",
+      "bytes": 536,
+      "sha256": "5611bbbbd38cf56b32f2b548a3de5a102591f2e375b4c612b4507fbd4babceae",
+      "kind": "text",
+      "lines": 12
+    },
+    {
+      "path": "tests/fixtures.py",
+      "bytes": 4268,
+      "sha256": "76634a7d26aaaa37726bdba7bb9c5be5e0f00385809b3a07e5c889107afc258c",
+      "kind": "text",
+      "lines": 76,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "tests/test_automatic_routing.py",
+      "bytes": 7381,
+      "sha256": "ca57897327cbf5933805639c0467bc72e5d68a3acf7c9e4969107d9f19c9b886",
+      "kind": "text",
+      "lines": 119,
+      "functions": 10,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_build_operation.py",
+      "bytes": 7719,
+      "sha256": "8cf6af7db5125e9899e2188a73bfbae5d567d79893d32629e0b978bd85c1f176",
+      "kind": "text",
+      "lines": 120,
+      "functions": 13,
+      "classes": 3
+    },
+    {
+      "path": "tests/test_cloud.py",
+      "bytes": 16885,
+      "sha256": "ab3f8f29935ac5f8d4f489aa7a1d63ccea38a631fdd47e8e190bc3ec0d4bfe1b",
+      "kind": "text",
+      "lines": 241,
+      "functions": 23,
+      "classes": 5
+    },
+    {
+      "path": "tests/test_compatibility.py",
+      "bytes": 9264,
+      "sha256": "6fd895217052ca77511dc99b67710151287a5fa71d22afa19ebecf36ad7b7238",
+      "kind": "text",
+      "lines": 166,
+      "functions": 7,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_completion_process.py",
+      "bytes": 9682,
+      "sha256": "3be0a332c7eb389ed33ff2b86f84170d6f62a62a6c4f4dc71c0e5bc6c552810f",
+      "kind": "text",
+      "lines": 161,
+      "functions": 15,
+      "classes": 3
+    },
+    {
+      "path": "tests/test_delivery_control.py",
+      "bytes": 10978,
+      "sha256": "654f90a1df9ae69d3ff932ced59f35ea2472bb26a574ee19ae86ecfd86e1d615",
+      "kind": "text",
+      "lines": 144,
+      "functions": 13,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_evidence.py",
+      "bytes": 13094,
+      "sha256": "333ae67c0d61f163720bfa14e6da38781de45120eca0185ec2c45489d25f0b4c",
+      "kind": "text",
+      "lines": 241,
+      "functions": 24,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_execution_boundary.py",
+      "bytes": 5701,
+      "sha256": "1f31cc997ee305f7741d1af2e2b60ea90a8eb068486e1cf6061f75c9bb773a96",
+      "kind": "text",
+      "lines": 97,
+      "functions": 9,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_handoffs.py",
+      "bytes": 4185,
+      "sha256": "d3b50ba0df388825d1b8ceff1d55f115ba41f7d6aea750ce04b50767726363bb",
+      "kind": "text",
+      "lines": 77,
+      "functions": 7,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_hybrid_execution.py",
+      "bytes": 8547,
+      "sha256": "e0694a1c9c097ddd0b1c478a360aafe6fa399f9e5a3f4939ae7986656b08378c",
+      "kind": "text",
+      "lines": 132,
+      "functions": 12,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_improvement_planning.py",
+      "bytes": 4848,
+      "sha256": "c0feeae97c41e568feb49863b10b12a59306a5ee6ed76883ba3688285db0397e",
+      "kind": "text",
+      "lines": 88,
+      "functions": 5,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_local_harness.py",
+      "bytes": 12435,
+      "sha256": "f4421524270f8d4db4294c799c4f9f9bc436db041f8d1942b431bda3bfdee9af",
+      "kind": "text",
+      "lines": 189,
+      "functions": 25,
+      "classes": 4
+    },
+    {
+      "path": "tests/test_model_studio.py",
+      "bytes": 4852,
+      "sha256": "8978ad0c5abb7cba2838a9b1f29be3c3827eff5a5782dc17e765476806892775",
+      "kind": "text",
+      "lines": 85,
+      "functions": 7,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_notes.py",
+      "bytes": 365,
+      "sha256": "2d89bdb5bbbb95356dae89555f13235aed17677f9668c81b6d36743c5a9f92eb",
+      "kind": "text",
+      "lines": 8,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "tests/test_orchestration.py",
+      "bytes": 11892,
+      "sha256": "6f2599b1d5018cec00b523909b3332852763be1a7b5f0a67c6c3365e35c249d0",
+      "kind": "text",
+      "lines": 166,
+      "functions": 14,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_planner_truncation.py",
+      "bytes": 17281,
+      "sha256": "d57e17db6edce9a73008e1d31adaa7248355e17491558de3195cccaf50baec77",
+      "kind": "text",
+      "lines": 248,
+      "functions": 24,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_planning.py",
+      "bytes": 16972,
+      "sha256": "628b6e51eda29cb8d0c81729282a2907046c3101a9b9c7248ccd5c08df5cecbc",
+      "kind": "text",
+      "lines": 300,
+      "functions": 25,
+      "classes": 6
+    },
+    {
+      "path": "tests/test_provider_pool.py",
+      "bytes": 20011,
+      "sha256": "ad6bf566b3c20326116e4b2010ef6fcacd3c7e3d931b9299ba17da6646d1eba2",
+      "kind": "text",
+      "lines": 263,
+      "functions": 28,
+      "classes": 3
+    },
+    {
+      "path": "tests/test_release.py",
+      "bytes": 12798,
+      "sha256": "7d3a7641d15494e1ff2665b5aecfe6b5e917d38853beda4feee8d60a48ccc566",
+      "kind": "text",
+      "lines": 259,
+      "functions": 21,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_repairs.py",
+      "bytes": 16538,
+      "sha256": "35038349522f536d7bbc929886a68b524d5484d7d6ab220bb7bc60625939fded",
+      "kind": "text",
+      "lines": 256,
+      "functions": 20,
+      "classes": 5
+    },
+    {
+      "path": "tests/test_request_identity.py",
+      "bytes": 3287,
+      "sha256": "d60762676c3c9ffbed543001558a2f08afd17e242469f8f9e6beb60ab908e8e9",
+      "kind": "text",
+      "lines": 58,
+      "functions": 6,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_review_api.py",
+      "bytes": 2998,
+      "sha256": "506a582005436dc78f458ca2cae87626907ff4469773f93a0b024fa016d9c1e4",
+      "kind": "text",
+      "lines": 55,
+      "functions": 2,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_source_validation.py",
+      "bytes": 2850,
+      "sha256": "129101d4321db30027150200c97fc87de9ab84241757a553573140008492996e",
+      "kind": "text",
+      "lines": 47,
+      "functions": 3,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_starter_recovery.py",
+      "bytes": 5416,
+      "sha256": "b13dc498c6052dc70e841a7665e6ba9a9398eb7e9ac6bb35846aecb3983d0c75",
+      "kind": "text",
+      "lines": 108,
+      "functions": 6,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_task_contracts.py",
+      "bytes": 6526,
+      "sha256": "e6f8b29eb8d0e8b84b900e6f74f626d44a320c532988f6585648765e8cd2d2a5",
+      "kind": "text",
+      "lines": 105,
+      "functions": 10,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_tracker.py",
+      "bytes": 387,
+      "sha256": "41fbf1fea6881581b3a7572d50cfa4f20abb62f557de90ba0690de90bf3551c8",
+      "kind": "text",
+      "lines": 8,
+      "functions": 0,
+      "classes": 0
+    },
+    {
+      "path": "tests/test_updates.py",
+      "bytes": 15697,
+      "sha256": "220b6bfc1d6d94a6147b3b603802e51da74caf8c3adc9480b40d99a034b27284",
+      "kind": "text",
+      "lines": 304,
+      "functions": 26,
+      "classes": 4
+    },
+    {
+      "path": "tests/test_upgrade.py",
+      "bytes": 11162,
+      "sha256": "6e5bd95079ab83ce0fa5680c25488bd503a33d3f8631d73a3f7ab32207b75ce8",
+      "kind": "text",
+      "lines": 200,
+      "functions": 20,
+      "classes": 2
+    },
+    {
+      "path": "tests/test_verification.py",
+      "bytes": 8747,
+      "sha256": "fad65fda90b3a51a032d63b1f26846a59bdb99c527cb91651db447055afbb573",
+      "kind": "text",
+      "lines": 151,
+      "functions": 13,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_workbench.py",
+      "bytes": 15820,
+      "sha256": "9915adb2f76fba7f16c3c9e34a90ff1a41f1ee1f0b220caf2faa0a337c9ee95d",
+      "kind": "text",
+      "lines": 324,
+      "functions": 32,
+      "classes": 5
+    },
+    {
+      "path": "tests/test_workflow_history.py",
+      "bytes": 15870,
+      "sha256": "d2db180b1a1ca66d1023b95f99d5b31ed304469d07d10cf1a2581090f1e5734e",
+      "kind": "text",
+      "lines": 264,
+      "functions": 26,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_workflow_overview.py",
+      "bytes": 7352,
+      "sha256": "a5ed290377237f3da9d9d032d1a28492a257939931b5aa2eaf66eb70d976d543",
+      "kind": "text",
+      "lines": 115,
+      "functions": 10,
+      "classes": 1
+    },
+    {
+      "path": "tests/test_workspace_cleanup.py",
+      "bytes": 7978,
+      "sha256": "74b7dc191f75ea65e3088e21e8b75bc2f09137781d71aae872b0deb4dfbfd491",
+      "kind": "text",
+      "lines": 152,
+      "functions": 18,
+      "classes": 3
+    },
+    {
+      "path": "tools/validate.py",
+      "bytes": 1922,
+      "sha256": "a46e02e586d39902dd5d54d7417223dfec6e98a6ae3b88d07bae325f343d896b",
+      "kind": "text",
+      "lines": 38,
+      "functions": 2,
+      "classes": 0
+    }
+  ]
+}

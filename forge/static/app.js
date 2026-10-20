@@ -176,6 +176,7 @@ function render() {
   if (typeof refreshStudio === "function") refreshStudio();
   if (typeof observeStudioJob === "function") observeStudioJob(p);
   refreshWorkflow(p.id);
+  renderPlanningProgress(p, busy);
   $("breadcrumb").textContent = p.title;
   $("project-title").textContent = p.title;
   $("project-summary").textContent = p.plan?.summary || p.idea;
@@ -577,6 +578,8 @@ $("idea-form").onsubmit = handle(async () => {
       starter: $("starter").value || null,
       ...models,
       cloud_consent: $("create-cloud").checked,
+      plan_mode: $("new-plan-mode").value,
+      local_timeout: $("new-plan-mode").value === "guided" ? Number($("new-local-timeout").value) : null,
     });
     localStorage.setItem("foundry-models", JSON.stringify(models));
     await openProject(p.id);
@@ -618,6 +621,12 @@ document
 $("revise").onclick = handle(() =>
   job("plan", { revision: $("revision").value }),
 );
+$("new-plan-mode").onchange = () => { $("new-planning-timeout").hidden = $("new-plan-mode").value !== "guided"; };
+$("plan-guided").onclick = handle(() => job("plan", {
+  plan_mode: "guided",
+  local_timeout: Number($("guided-local-timeout").value),
+  revision: $("revision").value || (current.guided_draft ? current.last_revision || "" : ""),
+}));
 $("approve").onclick = handle(async () => {
   current = await api(`/api/projects/${current.id}/approve`, {
     plan: JSON.parse($("plan-editor").value),

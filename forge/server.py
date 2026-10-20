@@ -152,7 +152,7 @@ def make_server(port=8765, workbench=None, credentials=None):
             if path == "/api/projects":
                 if post:
                     self.cloud_consent(body.get("planner", {}), body.get("coder", {}), body)
-                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True, body.get("use_reviewed_plan", False)), 201)
+                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True, body.get("use_reviewed_plan", False), body.get('plan_mode','single'), body.get('local_timeout')), 201)
                 else:
                     self.json(bench.list_projects())
                 return

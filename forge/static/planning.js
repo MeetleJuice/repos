@@ -1,9 +1,31 @@
 "use strict";
 // Proposal review and model settings are independent from source generation.
 const routePools = {};
+const savedFallbacks = {};
 let reviewedProposal = null;
 let proposalReviewTimer = null;
 let proposalReviewSequence = 0;
+
+function renderPlanningProgress(project, busy) {
+  document.getElementById("guided-planning").hidden = project.approved;
+  const action = document.getElementById("plan-guided");
+  action.disabled = busy;
+  const progress = project.planning_mode === "guided" ? project.planning_progress : null;
+  action.textContent = project.guided_draft && progress?.stage !== "complete proposal ready for review" ? "Resume small-step planning" : "Plan in smaller steps";
+  document.getElementById("guided-progress").textContent = progress
+    ? `${progress.stage === "complete proposal ready for review" ? "Assembled proposal ready for review" : "Unapproved planning draft saved"} · ${progress.features_planned}/${progress.features_total} features planned · ${progress.tasks} tasks. Changing the idea or revision starts a new draft.`
+    : "A saved draft is not an approved proposal or implementation evidence.";
+  const failures = (project.model_calls || []).filter(call => call.error_category || call.review_findings?.some(f => f.severity === "error")).slice(-6).reverse();
+  document.getElementById("planning-diagnostics").hidden = failures.length === 0;
+  const list = document.getElementById("planning-diagnostic-list");
+  list.replaceChildren();
+  for (const call of failures) {
+    const item = document.createElement("li");
+    const reasons = (call.review_findings || []).slice(0, 4).map(finding => `${finding.path}: ${finding.message}`).join("; ");
+    item.textContent = `${call.provider}/${call.model} · ${call.error_category || "schema_error"}${call.transport_kind ? " / " + call.transport_kind : ""} · ${reasons || call.error_detail || "No detailed reason retained in this older attempt."}`;
+    list.append(item);
+  }
+}
 
 function refreshModelChoices(id) {
   const select=document.getElementById(id+"-choice");
@@ -34,6 +56,7 @@ function modelConfig(role, prefix = "") {
   const fallback = document.getElementById(id + "-fallback-provider");
   if (fallback?.value)
     config.fallback = {
+      ...(savedFallbacks[id]?.provider===fallback.value && savedFallbacks[id]?.model===document.getElementById(id+"-fallback-model").value ? savedFallbacks[id] : {}),
       provider: fallback.value,
       model: document.getElementById(id + "-fallback-model").value,
     };
@@ -55,6 +78,7 @@ function cloudModel(config) {
 function fillModelSettings(role, prefix, config) {
   const id = prefix + role;
   routePools[id] = config.fallbacks || [];
+  savedFallbacks[id]=config.fallback ? JSON.parse(JSON.stringify(config.fallback)) : null;
   document.getElementById(id + "-model").setAttribute("list", config.provider === "local" ? "local-models" : "ollama-models");
   refreshModelChoices(id);
   showPool(id);
@@ -119,7 +143,9 @@ function renderProposalReview(project) {
       (project.proposal_source?.kind === "reviewed_starter" && !edited
         ? " · reviewed standard starter plan"
         : "") +
-      (project.planning_stats?.attempts > 1
+      (project.planning_stats?.mode === "guided"
+        ? ` · small-step planning · ${project.planning_stats.attempts} requests${project.planning_stats.fallback_used ? " using configured fallback" : ""}`
+        : project.planning_stats?.attempts > 1
         ? ` · recovered in ${project.planning_stats.attempts} requests${project.planning_stats.fallback_used ? " using configured fallback" : ""}`
         : "")
     : "Resolve proposal contradictions before approval";
@@ -202,7 +228,7 @@ window.addEventListener("DOMContentLoaded", () => {
         <label class="check-line"><input id="${id}-structured" type="checkbox" checked>Request native JSON format / Ollama schema</label>
         <p id="${id}-pool-label" class="muted"></p><button type="button" id="${id}-clear-pool" hidden>Use manual model settings</button>
         <label for="${id}-timeout">Request socket timeout</label>
-        <select id="${id}-timeout"><option>15</option><option>30</option><option>60</option><option selected>120</option></select>
+        <select id="${id}-timeout"><option>15</option><option>30</option><option>60</option><option selected>120</option><option>300</option><option>600</option></select>
         <label for="${id}-fallback-provider">Fallback provider · optional</label>
         <select id="${id}-fallback-provider">
           <option value="">None · use primary only</option>

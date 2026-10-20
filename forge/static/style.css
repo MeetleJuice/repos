@@ -1759,3 +1759,8 @@ a:focus-visible {
 #resume-warning {color:#ffd58a;}
 #local-calibration {padding:12px;margin:12px 0;border:1px solid #304054;border-radius:10px;}
 #calibration-model {max-width:100%;}
+/* Planning drafts stay visually separate from approval and execution evidence. */
+.planning-controls { border: 1px solid var(--border, #334155); border-radius: 14px; padding: 18px; margin: 16px 0; background: var(--panel, #131e29); }
+.planning-controls select { max-width: 100%; margin: 8px 12px 8px 0; }
+.planning-controls p, .planning-controls li { overflow-wrap: anywhere; }
+.planning-controls li + li { margin-top: 12px; }

@@ -1,0 +1,699 @@
+{
+  "schema": 1,
+  "scope": "Static primary-source audit; six products, five open core implementations, seven source repositories. No inference or runtime benchmark.",
+  "repositories": [
+    {
+      "name": "codex",
+      "url": "https://github.com/openai/codex.git",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "commit_date": "2026-10-20T15:43:19Z",
+      "accessed": "2026-10-20",
+      "method": "git clone --depth 1 via existing platform Git HTTPS proxy",
+      "runtime_tested": false
+    },
+    {
+      "name": "gemini-cli",
+      "url": "https://github.com/google-gemini/gemini-cli.git",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "commit_date": "2026-10-19T19:45:53Z",
+      "accessed": "2026-10-20",
+      "method": "git clone --depth 1 via existing platform Git HTTPS proxy",
+      "runtime_tested": false
+    },
+    {
+      "name": "aider",
+      "url": "https://github.com/Aider-AI/aider.git",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "commit_date": "2026-05-22T07:02:20-07:00",
+      "accessed": "2026-10-20",
+      "method": "git clone --depth 1 via existing platform Git HTTPS proxy",
+      "runtime_tested": false
+    },
+    {
+      "name": "openhands",
+      "url": "https://github.com/OpenHands/OpenHands.git",
+      "sha": "1ce086d3fca1d5ca3fe63dc83c1b8d847a5047b6",
+      "commit_date": "2026-10-20T11:23:26-04:00",
+      "accessed": "2026-10-20",
+      "method": "git clone --depth 1 via existing platform Git HTTPS proxy",
+      "runtime_tested": false
+    },
+    {
+      "name": "openhands-sdk",
+      "url": "https://github.com/OpenHands/software-agent-sdk.git",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "commit_date": "2026-10-20T10:02:32+02:00",
+      "accessed": "2026-10-20",
+      "method": "git clone --depth 1 via existing platform Git HTTPS proxy",
+      "runtime_tested": false
+    },
+    {
+      "name": "mini-swe-agent",
+      "url": "https://github.com/SWE-agent/mini-swe-agent.git",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "commit_date": "2026-09-03T01:05:59-04:00",
+      "accessed": "2026-10-20",
+      "method": "git clone --depth 1 via existing platform Git HTTPS proxy",
+      "runtime_tested": false
+    },
+    {
+      "name": "claude-code",
+      "url": "https://github.com/anthropics/claude-code.git",
+      "sha": "a6e289a2e772a17b3614a9ef43303003de5cd887",
+      "commit_date": "2026-10-19T23:06:44Z",
+      "accessed": "2026-10-20",
+      "method": "git clone --depth 1 via existing platform Git HTTPS proxy",
+      "runtime_tested": false
+    }
+  ],
+  "sources": [
+    {
+      "id": "codex-1",
+      "repository": "codex",
+      "path": "README.md",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/README.md",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "ba4e1f69ff48386e72a9c5e1edaf76aad64a475c2d51af79ccba6d1128261ba7",
+      "bytes": 3334
+    },
+    {
+      "id": "codex-2",
+      "repository": "codex",
+      "path": "codex-rs/Cargo.toml",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/Cargo.toml",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "4cefe1cb5a86c251cf02cde40cd2911024216372fc766739a6513be1527677d7",
+      "bytes": 21292
+    },
+    {
+      "id": "codex-3",
+      "repository": "codex",
+      "path": "codex-rs/core/Cargo.toml",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/Cargo.toml",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "cce8604eff6cb6904093ebc7f85169e6ee27ae1980f46e7ff4cd6fadb83e8df2",
+      "bytes": 6627
+    },
+    {
+      "id": "codex-4",
+      "repository": "codex",
+      "path": "codex-rs/core/src/session/turn.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/src/session/turn.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "78b7c4f42c86b8d7ffefd22be1c51d52305333527672cf1231aa35c25553651e",
+      "bytes": 136238
+    },
+    {
+      "id": "codex-5",
+      "repository": "codex",
+      "path": "codex-rs/core/src/tools/router.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/src/tools/router.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "f97420f8a7b117563faad165ae7ad0d020545a2dfffbc46dbbfbdc5251fd939d",
+      "bytes": 15214
+    },
+    {
+      "id": "codex-6",
+      "repository": "codex",
+      "path": "codex-rs/core/src/tools/orchestrator.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/src/tools/orchestrator.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "8996f718b818804473c151a8a643747c2b5ab69b05f4630eee143fac7daa0bb5",
+      "bytes": 28899
+    },
+    {
+      "id": "codex-7",
+      "repository": "codex",
+      "path": "codex-rs/core/src/compact.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/src/compact.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "7501febae5a93a943e22c17ddb4009d6fea587cef40c6d5c6cf1b0754737be0d",
+      "bytes": 33511
+    },
+    {
+      "id": "codex-8",
+      "repository": "codex",
+      "path": "codex-rs/core/src/agents_md_manager.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/src/agents_md_manager.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "816949372f864caa06d6d560c8ee8a14244533a3ad77bd9826783fecb6a44bfe",
+      "bytes": 8551
+    },
+    {
+      "id": "codex-9",
+      "repository": "codex",
+      "path": "codex-rs/core/src/agent/control/spawn.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/src/agent/control/spawn.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "ef28e41960381a4c789904d8dec9cd6a1f3cf1baf7772d444c4061f731badc23",
+      "bytes": 69343
+    },
+    {
+      "id": "codex-10",
+      "repository": "codex",
+      "path": "codex-rs/core/src/agent/control/budget.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core/src/agent/control/budget.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "5ab77ab8eb202c21e9c53aca921429f8abae53b1f857ff4f3128ac90d87a54f3",
+      "bytes": 1241
+    },
+    {
+      "id": "codex-11",
+      "repository": "codex",
+      "path": "codex-rs/core-plugins/src/lib.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/core-plugins/src/lib.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "3f753e94cbd8ce4d3589ce0948ac0eecf7618d9b32ec724ad329b4b06d8d8213",
+      "bytes": 5403
+    },
+    {
+      "id": "codex-12",
+      "repository": "codex",
+      "path": "codex-rs/ext/memories/src/lib.rs",
+      "url": "https://github.com/openai/codex/blob/f29d55ff0697a88226e8a9811b3c007e5f719cba/codex-rs/ext/memories/src/lib.rs",
+      "accessed": "2026-10-20",
+      "sha": "f29d55ff0697a88226e8a9811b3c007e5f719cba",
+      "file_sha256": "a6c7915326ad8420a70ec838d7cd40184967505734e2179923deb13b43c5b653",
+      "bytes": 784
+    },
+    {
+      "id": "gemini-cli-1",
+      "repository": "gemini-cli",
+      "path": "packages/core/package.json",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/package.json",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "06d1d9571083274f556538fb7bd1d64556f239d9de742514eaefa852690f19ee",
+      "bytes": 3857
+    },
+    {
+      "id": "gemini-cli-2",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/core/client.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/core/client.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "e25cd763ebc63944f3cf5178ca6c0d9c828634f57e921a98e52c2cb91276fe63",
+      "bytes": 42391
+    },
+    {
+      "id": "gemini-cli-3",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/core/turn.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/core/turn.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "d4f95a7d330b6065fc0c194b82375c7ed9db9ce9b1a126dae4250b668e5801aa",
+      "bytes": 15722
+    },
+    {
+      "id": "gemini-cli-4",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/tools/tool-registry.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/tools/tool-registry.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "172906fe3caa29e71d5accd04b9e94e16a52c799dcf88b1f12e690835f24f5c0",
+      "bytes": 24866
+    },
+    {
+      "id": "gemini-cli-5",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/scheduler/scheduler.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/scheduler/scheduler.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "0ba0ad10e08a496008754719d08d5dd224ae5dc4fe7d84fac2e6bbf4a28b38fa",
+      "bytes": 31881
+    },
+    {
+      "id": "gemini-cli-6",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/policy/policy-engine.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/policy/policy-engine.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "ec453504b3df45a473c99eeee094918e7c893af38c5ac9febbf9c0b84959dea8",
+      "bytes": 38158
+    },
+    {
+      "id": "gemini-cli-7",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/context/chatCompressionService.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/context/chatCompressionService.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "a278dae3a680fdb0d6072dbf821b496933a6f18d7899d43d6c5794690ca1c361",
+      "bytes": 23845
+    },
+    {
+      "id": "gemini-cli-8",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/agents/local-executor.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/agents/local-executor.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "59f739ac6416ff41b408560eaf4387f907a3b3f752a848045b758a8f1e33023d",
+      "bytes": 54315
+    },
+    {
+      "id": "gemini-cli-9",
+      "repository": "gemini-cli",
+      "path": "packages/core/src/utils/extensionLoader.ts",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/packages/core/src/utils/extensionLoader.ts",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "7b9669008d0ddd911feda73761256016e7e0a5b82daff10f2e0a48b14fc13244",
+      "bytes": 9678
+    },
+    {
+      "id": "gemini-cli-10",
+      "repository": "gemini-cli",
+      "path": "docs/tools/memory.md",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/docs/tools/memory.md",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "f441a575c49c629875423e76476454f24e5bee8e9aa71a8453f0993e310f54e1",
+      "bytes": 1185
+    },
+    {
+      "id": "gemini-cli-11",
+      "repository": "gemini-cli",
+      "path": "docs/cli/auto-memory.md",
+      "url": "https://github.com/google-gemini/gemini-cli/blob/76e4d7c046c7dab5727787da378b9c06bf0948cf/docs/cli/auto-memory.md",
+      "accessed": "2026-10-20",
+      "sha": "76e4d7c046c7dab5727787da378b9c06bf0948cf",
+      "file_sha256": "232133c2568ca86323415901f2648147f65ac85751c8aa1ea07cb9d7b6d1a588",
+      "bytes": 6976
+    },
+    {
+      "id": "aider-1",
+      "repository": "aider",
+      "path": "pyproject.toml",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/pyproject.toml",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "1faaea506c1d42f5e9db0d7152cea43920596b901e281e27c2655e791284c9ef",
+      "bytes": 1580
+    },
+    {
+      "id": "aider-2",
+      "repository": "aider",
+      "path": "requirements.txt",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/requirements.txt",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "5b340fe0a8830196dbfc18098edd73c379eeae05f752ab47979e96cb542f095f",
+      "bytes": 12329
+    },
+    {
+      "id": "aider-3",
+      "repository": "aider",
+      "path": "requirements/requirements-help.in",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/requirements/requirements-help.in",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "75968fb00892ba5b2c2bc3496a531a218a4966388095f1f8ba4f2d52ce2d16d3",
+      "bytes": 455
+    },
+    {
+      "id": "aider-4",
+      "repository": "aider",
+      "path": "aider/coders/base_coder.py",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/coders/base_coder.py",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "04a7b38c4f1d2b1684ac958f40bcd81a28b00139eae88afed59d2c970bef1ee1",
+      "bytes": 86302
+    },
+    {
+      "id": "aider-5",
+      "repository": "aider",
+      "path": "aider/coders/architect_coder.py",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/coders/architect_coder.py",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "6fb2aab62be79653ddc8c7f16e711477d1b40b56456a26a9a55db9473d0390cb",
+      "bytes": 1622
+    },
+    {
+      "id": "aider-6",
+      "repository": "aider",
+      "path": "aider/coders/editblock_coder.py",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/coders/editblock_coder.py",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "244df08f5ccd19928bcdac1901ae591a7a786d12a6f70d31400baaefb5a136a3",
+      "bytes": 19616
+    },
+    {
+      "id": "aider-7",
+      "repository": "aider",
+      "path": "aider/repomap.py",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/repomap.py",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "a5d4befe70445114b9f62da47b0eeb2a5384f9e84a0c083c77a4b339caf61ecd",
+      "bytes": 27306
+    },
+    {
+      "id": "aider-8",
+      "repository": "aider",
+      "path": "aider/history.py",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/history.py",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "5c9377875d6c9268ba16ec6cfd3cc30c7d3d8c23d42ffb2a5c3bc375aefc7e79",
+      "bytes": 4769
+    },
+    {
+      "id": "aider-9",
+      "repository": "aider",
+      "path": "aider/commands.py",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/commands.py",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "4457e9da5ac3d89003648d68f596aa9857a7e76e36dcff8ebd10f4b59ccd77e7",
+      "bytes": 62230
+    },
+    {
+      "id": "aider-10",
+      "repository": "aider",
+      "path": "aider/help.py",
+      "url": "https://github.com/Aider-AI/aider/blob/5dc9490bb35f9729ef2c95d00a19ccd30c26339c/aider/help.py",
+      "accessed": "2026-10-20",
+      "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+      "file_sha256": "43c292d06d3921c93662c55eb698fd94094d1f75a32531e0dedf2c7f9670942d",
+      "bytes": 4434
+    },
+    {
+      "id": "openhands-1",
+      "repository": "openhands",
+      "path": "README.md",
+      "url": "https://github.com/OpenHands/OpenHands/blob/1ce086d3fca1d5ca3fe63dc83c1b8d847a5047b6/README.md",
+      "accessed": "2026-10-20",
+      "sha": "1ce086d3fca1d5ca3fe63dc83c1b8d847a5047b6",
+      "file_sha256": "ac482568e7b7794340d11a3e615785378f0d53ed04308cef60516e41bd8a7ace",
+      "bytes": 12877
+    },
+    {
+      "id": "openhands-2",
+      "repository": "openhands",
+      "path": "docs/architecture.md",
+      "url": "https://github.com/OpenHands/OpenHands/blob/1ce086d3fca1d5ca3fe63dc83c1b8d847a5047b6/docs/architecture.md",
+      "accessed": "2026-10-20",
+      "sha": "1ce086d3fca1d5ca3fe63dc83c1b8d847a5047b6",
+      "file_sha256": "9f806944e4b13f4cc714da3f86f335b5f5bfcdeb49b9cf68ccaced2aaff3f84c",
+      "bytes": 4404
+    },
+    {
+      "id": "openhands-sdk-1",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/pyproject.toml",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/pyproject.toml",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "0589d9ae74ef2a542f75ba3033d496f48a7afde3b886e1cf4bbab88401c9bf0e",
+      "bytes": 1681
+    },
+    {
+      "id": "openhands-sdk-2",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/agent/agent.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/agent/agent.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "0fe8c703580ae6a6ae2dba97a0bc1966811950d224b4672a3d6af33001d30c92",
+      "bytes": 66135
+    },
+    {
+      "id": "openhands-sdk-3",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/conversation/impl/local_conversation.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/conversation/impl/local_conversation.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "14cb73e5c9426c17e66ccb01ad3469eecc0bb2ffb7c8c32ae6dc1bb810a35c1b",
+      "bytes": 147659
+    },
+    {
+      "id": "openhands-sdk-4",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/tool/registry.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/tool/registry.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "314f2b3d9118f18ae89d15540cc3475561b8af6674d31e5f9c3df9f3c6152319",
+      "bytes": 10747
+    },
+    {
+      "id": "openhands-sdk-5",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/security/confirmation_policy.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/security/confirmation_policy.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "6ecac839fa3740e5cdc8aae6515cd0cf4ef4177c5b27bb99a7d593af844c765f",
+      "bytes": 2145
+    },
+    {
+      "id": "openhands-sdk-6",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/context/condenser/README.md",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/context/condenser/README.md",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "66d1f0f6002f82ac610d478880b2c3f49215a062955aff4a2777f2698a4c21ff",
+      "bytes": 4602
+    },
+    {
+      "id": "openhands-sdk-7",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/context/memory.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/context/memory.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "a6689139d83713560d67b075cc74ee59bff6da3201cf026d93fe610e227fa4cf",
+      "bytes": 4326
+    },
+    {
+      "id": "openhands-sdk-8",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/skills/skill.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/skills/skill.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "6d21e1305c3f2cfb1db406cbddda966d43828b7ba3090e8f28914b05d970d007",
+      "bytes": 60780
+    },
+    {
+      "id": "openhands-sdk-9",
+      "repository": "openhands-sdk",
+      "path": "openhands-sdk/openhands/sdk/mcp/tool.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-sdk/openhands/sdk/mcp/tool.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "44a93746b9bb2f56c5559cb317b8196cd3e0c37bb417a16cb0f991beed2446a0",
+      "bytes": 21460
+    },
+    {
+      "id": "openhands-sdk-10",
+      "repository": "openhands-sdk",
+      "path": "openhands-tools/openhands/tools/delegate/impl.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-tools/openhands/tools/delegate/impl.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "d4dc38a701f9d79bed2ba87b42e83ac18c55087f6cd5a5340726d8559cdb6fca",
+      "bytes": 17412
+    },
+    {
+      "id": "openhands-sdk-11",
+      "repository": "openhands-sdk",
+      "path": "openhands-tools/openhands/tools/child_conversation/impl.py",
+      "url": "https://github.com/OpenHands/software-agent-sdk/blob/0996c33916c2a977ea9fe38deee660ff0e1389f2/openhands-tools/openhands/tools/child_conversation/impl.py",
+      "accessed": "2026-10-20",
+      "sha": "0996c33916c2a977ea9fe38deee660ff0e1389f2",
+      "file_sha256": "2e396c4f410b52dd53ed4225ee68cd7c76f445bca264cd3ed862c1bc384d9367",
+      "bytes": 5957
+    },
+    {
+      "id": "mini-swe-agent-1",
+      "repository": "mini-swe-agent",
+      "path": "README.md",
+      "url": "https://github.com/SWE-agent/mini-swe-agent/blob/04d809ceab9df28f9adaed044884180159172930/README.md",
+      "accessed": "2026-10-20",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "file_sha256": "9982d90b7566f2f3fa5e9811b475d5e8e2a84e2df80cf3f1e4be6e820b129835",
+      "bytes": 11106
+    },
+    {
+      "id": "mini-swe-agent-2",
+      "repository": "mini-swe-agent",
+      "path": "pyproject.toml",
+      "url": "https://github.com/SWE-agent/mini-swe-agent/blob/04d809ceab9df28f9adaed044884180159172930/pyproject.toml",
+      "accessed": "2026-10-20",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "file_sha256": "c176ff37a89ee88a2ea2ce746b9b7e723ea3175e53be5336ab99f5aba0d59ddf",
+      "bytes": 7285
+    },
+    {
+      "id": "mini-swe-agent-3",
+      "repository": "mini-swe-agent",
+      "path": "src/minisweagent/agents/default.py",
+      "url": "https://github.com/SWE-agent/mini-swe-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/default.py",
+      "accessed": "2026-10-20",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "file_sha256": "e8ef8aa365942d739c2ec5cb0879f60f377d2dc2de8ec670aaedf3bafb45a4c2",
+      "bytes": 8043
+    },
+    {
+      "id": "mini-swe-agent-4",
+      "repository": "mini-swe-agent",
+      "path": "src/minisweagent/agents/interactive.py",
+      "url": "https://github.com/SWE-agent/mini-swe-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/agents/interactive.py",
+      "accessed": "2026-10-20",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "file_sha256": "d68236832ce2a8c65340fdfd4cdb6df2a24818691112f83bc229197203521cce",
+      "bytes": 10352
+    },
+    {
+      "id": "mini-swe-agent-5",
+      "repository": "mini-swe-agent",
+      "path": "src/minisweagent/environments/local.py",
+      "url": "https://github.com/SWE-agent/mini-swe-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/environments/local.py",
+      "accessed": "2026-10-20",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "file_sha256": "01dd33ae6be897458611911cc0eee1389092ea9fc6788c7eb24773e7c6342b1c",
+      "bytes": 3617
+    },
+    {
+      "id": "mini-swe-agent-6",
+      "repository": "mini-swe-agent",
+      "path": "src/minisweagent/environments/docker.py",
+      "url": "https://github.com/SWE-agent/mini-swe-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/environments/docker.py",
+      "accessed": "2026-10-20",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "file_sha256": "21d389122b008e7b743d1e640207fda0b08d9010cf6323ddd02f0742b33b96a6",
+      "bytes": 6427
+    },
+    {
+      "id": "mini-swe-agent-7",
+      "repository": "mini-swe-agent",
+      "path": "src/minisweagent/run/benchmarks/swebench.py",
+      "url": "https://github.com/SWE-agent/mini-swe-agent/blob/04d809ceab9df28f9adaed044884180159172930/src/minisweagent/run/benchmarks/swebench.py",
+      "accessed": "2026-10-20",
+      "sha": "04d809ceab9df28f9adaed044884180159172930",
+      "file_sha256": "4bc6cfc0a388ba14b8c9cd7278f15efaef654f7f79b3b252208f8fdb11a0fc99",
+      "bytes": 12167
+    },
+    {
+      "id": "claude-code-1",
+      "repository": "claude-code",
+      "path": "README.md",
+      "url": "https://github.com/anthropics/claude-code/blob/a6e289a2e772a17b3614a9ef43303003de5cd887/README.md",
+      "accessed": "2026-10-20",
+      "sha": "a6e289a2e772a17b3614a9ef43303003de5cd887",
+      "file_sha256": "aa0d8b80ac083e1591be0789273f447058cc9187b4331634a5614155da27778d",
+      "bytes": 2873
+    },
+    {
+      "id": "claude-code-2",
+      "repository": "claude-code",
+      "path": "CHANGELOG.md",
+      "url": "https://github.com/anthropics/claude-code/blob/a6e289a2e772a17b3614a9ef43303003de5cd887/CHANGELOG.md",
+      "accessed": "2026-10-20",
+      "sha": "a6e289a2e772a17b3614a9ef43303003de5cd887",
+      "file_sha256": "7b8b5bc8c07b70c908b3d309b0a28635ac4c162f466bbe9e2df9d8efce3b4e37",
+      "bytes": 1057524
+    },
+    {
+      "id": "claude-code-3",
+      "repository": "claude-code",
+      "path": "plugins/README.md",
+      "url": "https://github.com/anthropics/claude-code/blob/a6e289a2e772a17b3614a9ef43303003de5cd887/plugins/README.md",
+      "accessed": "2026-10-20",
+      "sha": "a6e289a2e772a17b3614a9ef43303003de5cd887",
+      "file_sha256": "96f807a4aac7f46abee8a5e03db672c2c0d563b9383fa67cf69d842c26e342d4",
+      "bytes": 6530
+    },
+    {
+      "id": "claude-code-4",
+      "repository": "claude-code",
+      "path": "plugins/security-guidance/hooks/hooks.json",
+      "url": "https://github.com/anthropics/claude-code/blob/a6e289a2e772a17b3614a9ef43303003de5cd887/plugins/security-guidance/hooks/hooks.json",
+      "accessed": "2026-10-20",
+      "sha": "a6e289a2e772a17b3614a9ef43303003de5cd887",
+      "file_sha256": "37181aea2a1ccd4efa88c427d4cd194fac48ab1ca67779c14edf8de375809181",
+      "bytes": 2783
+    }
+  ],
+  "access_failures": [
+    {
+      "url": "https://api.github.com/repos/openai/codex",
+      "accessed": "2026-10-20",
+      "status": "failed",
+      "error": "URLError: Tunnel connection failed: 403 Forbidden",
+      "fallback": "native read-only Git HTTPS succeeded"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/how-claude-code-works",
+      "status": "failed",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "accessed": "2026-10-20"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/permissions",
+      "status": "failed",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "accessed": "2026-10-20"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/memory",
+      "status": "failed",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "accessed": "2026-10-20"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/sub-agents",
+      "status": "failed",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "accessed": "2026-10-20"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/hooks",
+      "status": "failed",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "accessed": "2026-10-20"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/plugins",
+      "status": "failed",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "accessed": "2026-10-20"
+    },
+    {
+      "url": "https://code.claude.com/docs/en/mcp",
+      "status": "failed",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "accessed": "2026-10-20"
+    }
+  ],
+  "claim_assessment": {
+    "eleven_production_harnesses_no_general_purpose_framework": "unverified_as_stated",
+    "reason": "No named eleven-product census, framework definition, production criterion, report/method or original source supplied. Six selected products cannot establish eleven or universal absence. Claude core unavailable.",
+    "narrow_observation": "Five accessible core implementations use product-owned loop/control abstractions; inspected core manifests/control files do not show LangChain/LangGraph/CrewAI/AutoGen as the owner of the principal coding loop. This is not a complete transitive dependency audit.",
+    "literal_counterexample": "Aider optional help extra uses LlamaIndex (aider/help.py imports VectorStoreIndex, requirements/requirements-help.in names llama-index-embeddings-huggingface). This is peripheral documentation retrieval, not ownership of its coding loop.",
+    "production_qualification": "mini-swe-agent pyproject development-status classifier is Alpha at inspected SHA; do not silently label every sampled repository production."
+  }
+}

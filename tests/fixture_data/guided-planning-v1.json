@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "provenance": "Synthetic controller regression derived from uploaded timeout plus task-schema rejection, frozen before integration. Not a live model quality benchmark.",
+  "failure_route": [
+    {"provider":"ollama","model":"qwen2.5:7b","category":"transport","elapsed_seconds":120},
+    {"provider":"ollama","model":"deepseek-r1:7b","category":"schema_error","missing":["outcome","files","depends_on","done_when"]}
+  ],
+  "task_required":["title","instructions","feature_indexes","outcome","files","depends_on","done_when"],
+  "planner_floor":8192,
+  "batch_feature_limit":2,
+  "task_limit":16,
+  "approval":"full assembled proposal only"
+}

@@ -30,7 +30,8 @@ from .reporting import OWNED, evidence_status, file_manifest
 from .handoffs import handoff_metrics
 from .capabilities import CapabilityRegistry
 from .contracts import validate_structure as validate_plan, require_consistent, review_plan, Review, Finding, ProposalError, starter_contracts
-from .planning import PlanningEngine
+from .planning import PlanningEngine, PlanningResult
+from .guided import run_guided, stage_review
 from .routing import validate_config, uses_cloud, validate_options, truncation_fallback_allowed
 from .prompts import PLAN, CODE
 from .inspection import inspect_files
@@ -249,6 +250,9 @@ class Workbench:
             for index, (selected, is_fallback) in enumerate(choices):
                 if cancel.is_set():
                     raise InterruptedError("Stopped before model inference.")
+                if selected['provider'] in {'ollama','local'} and state.get('job_local_timeout'):
+                    selected=copy.deepcopy(selected)
+                    selected['options']={**selected.get('options',{}),'timeout_seconds':state['job_local_timeout']}
                 if uses_cloud({'provider':selected['provider']}) and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
                 identity = (selected["provider"], selected["model"])
@@ -334,10 +338,15 @@ class Workbench:
                     result = client.complete(system, effective_prompt)
                     self.transport_circuit.success(selected["provider"])
                     if cancel.is_set(): raise InterruptedError("Stopped. Model output discarded.")
+                    if role=='planner':
+                        record['response_sha256']=hashlib.sha256(json.dumps(result,sort_keys=True).encode()).hexdigest()
                     if review_candidate is not None:
                         result, review_result = review_candidate(result)
                         record["proposal_valid"] = review_result.passed
+                        record['review_findings']=history.redact(review_result.to_dict()['findings'])
                         if not review_result.passed:
+                            reasons='; '.join(f.path+': '+f.message for f in review_result.findings if f.severity=='error')
+                            self.event(state,'Proposal rejected by review: '+reasons[:1800])
                             record["review_codes"] = [f.code for f in review_result.findings if f.severity == "error"]
                             record["failure_class"] = "schema_error"
                             record["error_category"] = "schema_error"
@@ -346,7 +355,7 @@ class Workbench:
                                 feedback = json.loads(prompt)
                                 feedback.update(previous_proposal=result,
                                     validation_error="; ".join(f.path + ": " + f.message for f in review_result.findings if f.severity == "error"),
-                                    correction_instruction="Return one complete proposal object at the root, with all required fields. Correct the findings without dropping requirements or acceptance checks.")
+                                    correction_instruction="Return the complete requested stage object at the root, following its output schema. Correct the findings without dropping requirements or changing acceptance checks.")
                                 choices.insert(index+1, (selected, is_fallback))
                                 correction_prompts[index+1] = json.dumps(feedback)
                                 recoveries[index+1] = ("schema_correction", "")
@@ -361,6 +370,8 @@ class Workbench:
                         self.event(state, "Response received from " + selected["provider"] + "/" + selected["model"] + ".")
                     return result
                 except ModelError as exc:
+                    record['error_detail']=history.redact(str(exc)[:1200])
+                    if exc.transport_kind:record['transport_kind']=exc.transport_kind
                     if exc.category in {'transport','provider'}:self.transport_circuit.failure(selected['provider'])
                     elif exc.category not in {'output_budget','configuration'}:self.transport_circuit.success(selected['provider'])
                     if exc.http_status is not None:record["http_status"]=exc.http_status
@@ -429,7 +440,7 @@ class Workbench:
                 raise ModelError('Output remained truncated after bounded recovery. No eligible equal/larger configured fallback resolved it. '+ '; '.join(failures),'truncated_output')
             if budget_failed:
                 raise ModelError('Configured route exhausted. Some models could not fit the output/context reservation; other provider failures are listed here: '+ '; '.join(failures),'output_budget')
-            if pool:
+            if pool or review_candidate is not None:
                 raise ModelError("All configured models failed: " + "; ".join(failures), "exhausted")
         finally:
             self.inference_lock.release()
@@ -532,9 +543,13 @@ class Workbench:
                 result.append({"name": name, "kind": "modified" if name in before else "added", "diff": "\n".join(lines)[:20000]})
         return result
 
-    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False) -> dict[str, Any]:
+    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:
         if self.maintenance:
             raise ValueError("An update is being installed. Wait for the restart.")
+        if plan_mode not in {'single','guided'}:
+            raise ValueError('Choose single or guided planning.')
+        if local_timeout is not None and (type(local_timeout) is not int or local_timeout not in {120,300,600}):
+            raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
         if type(use_reviewed_plan) is not bool or (use_reviewed_plan and starter != "arcade"):
             raise ValueError("A reviewed standard plan is available only for the Neon Dodge starter.")
         if starter is not None and starter not in CATALOG:
@@ -556,7 +571,7 @@ class Workbench:
         self.trace(state, "project_created", {"starter":starter, "idea_characters":len(state["idea"]), "planner":planner, "coder":coder}, "user")
         if use_reviewed_plan:
             return self.load_starter_plan(ident)
-        self.start(ident, "plan", {"cloud_consent": cloud_consent})
+        self.start(ident, "plan", {"cloud_consent": cloud_consent, 'plan_mode':plan_mode, 'local_timeout':local_timeout})
         return self.load(ident)
 
     def insights(self):
@@ -586,6 +601,9 @@ class Workbench:
             if existing and existing[0].is_alive():
                 raise ValueError("A job is already running for this project.")
             options = dict(options)
+            if options.get('plan_mode','single') not in {'single','guided'}:raise ValueError('Choose single or guided planning.')
+            if options.get('local_timeout') is not None and (type(options['local_timeout']) is not int or options['local_timeout'] not in {120,300,600}):raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
+            state['job_local_timeout']=options.get('local_timeout') if action=='plan' else None
             if type(options.get('stream_local',False)) is not bool:raise ValueError('Local streaming setting must be a JSON boolean.')
             state['job_stream_local']=options.get('stream_local',False)
             state['job_call_signatures']={}
@@ -1026,7 +1044,13 @@ class Workbench:
                 return None
             state["status"] = "repairing"
             self.event(state, f"Static repair {attempt+1}: correcting syntax/structure or adding missing tests without executing code.\n" + issues)
-            self.generate_and_apply(state, {"proposal": state["plan"], "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "failure": issues, "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair source syntax/structure. Add missing behavioral unittest files. Approved checks and frozen_tests are immutable. Repair unverified test files when necessary: import the real app and make actual HTTP requests. Implement every approved feature."}, cancel, repair=True)
+            repair_payload={"proposal":state['plan'],"files":self.context_files(state['id']),"source_map":source_map(self.context_files(state['id'])),
+                "failure":issues,"frozen_tests":list(state.get('frozen_tests',{})),
+                "instruction":"Repair only the reported source syntax/structure or missing behavioral tests. Preserve approved checks and frozen tests; do not implement future tasks. Import the real app in tests and make actual requests. Respect the active task packet when supplied."}
+            if state.get('pending_task') and state['plan'].get('task_contract_version')==1:
+                index=state['pending_task']['cursor']
+                repair_payload.update(current_task=state['plan']['tasks'][index],task_packet=task_packet(state['plan'],index,state['next_task']))
+            self.generate_and_apply(state,repair_payload,cancel,repair=True)
             state["repair_count"] += 1
             remaining -= 1
 
@@ -1123,6 +1147,7 @@ class Workbench:
                         record = state['model_calls'][-1]
                         record['proposal_valid'] = result.passed
                         if not result.passed: record['failure_class'] = 'schema_error'
+                        record['review_findings']=history.redact(result.to_dict()['findings'])
                     state["plan_review"] = result.to_dict()
                     state["failed_candidate"] = candidate if not result.passed else None
                     # Preserve a structurally valid failed candidate for direct editor repair.
@@ -1146,14 +1171,32 @@ class Workbench:
                     report(normalized, review_result)
                     return normalized, review_result
 
-                result = PlanningEngine().run(
-                    request,
-                    lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=bool(state["planner"].get("fallbacks")), review_candidate=reviewed if state["planner"].get("fallbacks") else None),
-                    evaluate, report, lambda message: self.event(state, message), cancel,
-                    has_fallback=bool(state["planner"].get("fallback")))
+                mode=options.get('plan_mode','single');state['planning_mode']=mode
+                if mode=='guided':
+                    def checkpoint(draft):
+                        state['guided_draft']=draft
+                        state['planning_progress']={'stage':'outline saved' if not draft['tasks'] else 'task batch saved',
+                            'features_planned':draft['next_feature'],'features_total':len(draft['outline']['features']),
+                            'tasks':len(draft['tasks']),'meaning':'Unapproved draft only. Final full-proposal review is still required.'}
+                        self.trace(state,'guided_plan_checkpoint',state['planning_progress'])
+                        self.event(state,'Guided planning: '+str(draft['next_feature'])+'/'+str(len(draft['outline']['features']))+' features assigned to '+str(len(draft['tasks']))+' tasks. Draft saved; not approved.')
+                    def generate_stage(system,payload,validate):
+                        self.event(state,'Guided planning: '+('define features and acceptance checks' if payload.get('planning_stage')=='outline' else 'plan feature indexes '+str(payload['target_feature_indexes']))+'.')
+                        return self.call_model(state,'planner',system,json.dumps(payload),cancel,review_candidate=lambda candidate:stage_review(validate,candidate))
+                    candidate=run_guided(request,generate_stage,checkpoint,cancel,state.get('guided_draft'))
+                    candidate,review_result=reviewed(candidate)
+                    if not review_result.passed:raise ProposalError(review_result)
+                    result=PlanningResult(candidate,review_result,state.get('job_inference_attempts',0),any(record.get('fallback') for record in state.get('model_calls',[]) if id(record) not in {id(old) for old in prior_model_records}))
+                    state['planning_progress']['stage']='complete proposal ready for review'
+                else:
+                    result = PlanningEngine().run(
+                        request,
+                        lambda payload, fallback: self.call_model(state, "planner", PLAN, json.dumps(payload), cancel, fallback=fallback, allow_fallback=bool(state["planner"].get("fallbacks")), review_candidate=reviewed if state["planner"].get("fallbacks") else None),
+                        evaluate, report, lambda message: self.event(state, message), cancel,
+                        has_fallback=bool(state["planner"].get("fallback")))
                 state.update(plan=result.plan, title=result.plan["title"], status="proposed",
                              plan_review=result.review.to_dict(),
-                             planning_stats={"attempts": result.attempts, "fallback_used": result.fallback_used or any(record.get("fallback") for record in state.get("model_calls", []) if id(record) not in {id(old) for old in prior_model_records})})
+                             planning_stats={"mode":mode,"attempts": result.attempts, "fallback_used": result.fallback_used or any(record.get("fallback") for record in state.get("model_calls", []) if id(record) not in {id(old) for old in prior_model_records})})
                 self.event(state, "Proposal ready. Consistency review passed; no generated code has run. Review the scope and acceptance checks before approval.")
                 return
             problem=resume_problem(state,self.context_files(state['id']))

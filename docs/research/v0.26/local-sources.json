@@ -1,0 +1,330 @@
+[
+  {
+    "id": "ollama-chat",
+    "url": "https://docs.ollama.com/api/chat",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-thinking",
+    "url": "https://docs.ollama.com/capabilities/thinking",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-structured",
+    "url": "https://docs.ollama.com/capabilities/structured-outputs",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-context",
+    "url": "https://docs.ollama.com/context-length",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-windows",
+    "url": "https://docs.ollama.com/windows",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-faq",
+    "url": "https://docs.ollama.com/faq",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "lmstudio-structured",
+    "url": "https://lmstudio.ai/docs/developer/openai-compat/structured-output",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "lmstudio-load",
+    "url": "https://lmstudio.ai/docs/developer/core/model-management/load",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "lmstudio-rest-chat",
+    "url": "https://lmstudio.ai/docs/developer/rest/chat",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "llamacpp-server",
+    "url": "https://raw.githubusercontent.com/ggml-org/llama.cpp/master/tools/server/README.md",
+    "final_url": "https://raw.githubusercontent.com/ggml-org/llama.cpp/master/tools/server/README.md",
+    "retrieved_utc": "2026-10-20T16:10:36.065329+00:00",
+    "sha256": "714c067bdbc49bde2735810fbff83eb2933b12c57d50f0012b61fcecb75a6a37",
+    "bytes": 119661,
+    "path": "/workspace/foundry026-research/local/raw/llamacpp-server.md",
+    "http_last_modified": null,
+    "status": "fetched"
+  },
+  {
+    "id": "vllm-openai",
+    "url": "https://docs.vllm.ai/en/latest/serving/openai_compatible_server/",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "vllm-structured",
+    "url": "https://docs.vllm.ai/en/latest/features/structured_outputs/",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "vllm-metrics",
+    "url": "https://docs.vllm.ai/en/latest/design/metrics/",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "nvidia-smi",
+    "url": "https://docs.nvidia.com/deploy/nvidia-smi/index.html",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "microsoft-taskmanager",
+    "url": "https://devblogs.microsoft.com/directx/gpus-in-the-task-manager/",
+    "status": "failed",
+    "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "deepseek-recommendations",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-R1/main/README.md",
+    "final_url": "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-R1/main/README.md",
+    "retrieved_utc": "2026-10-20T16:10:36.101991+00:00",
+    "sha256": "4ed979e497121ae4dd9f1573da1668219f43be55d62cc0bf2be5429211a67486",
+    "bytes": 20736,
+    "path": "/workspace/foundry026-research/local/raw/deepseek-recommendations.md",
+    "http_last_modified": null,
+    "status": "fetched"
+  },
+  {
+    "id": "ollama-api-raw",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "final_url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "retrieved_utc": "2026-10-20T16:10:52.140005+00:00",
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5",
+    "bytes": 54614,
+    "path": "/workspace/foundry026-research/local/raw/ollama-api-raw.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "ollama-faq-raw",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/faq.md",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-windows-raw",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/windows.md",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-structured-raw",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/structured-outputs.md",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-thinking-raw",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/thinking.md",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-api-types-raw",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/api/types.go",
+    "final_url": "https://raw.githubusercontent.com/ollama/ollama/main/api/types.go",
+    "retrieved_utc": "2026-10-20T16:10:52.198524+00:00",
+    "sha256": "9754c38dcde72d04339bdc2f2a851ad87c963bc83d2b8515cc90c2b4ae914145",
+    "bytes": 44562,
+    "path": "/workspace/foundry026-research/local/raw/ollama-api-types-raw.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "vllm-openai-raw",
+    "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/serving/openai_compatible_server.md",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "vllm-structured-raw",
+    "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/structured_outputs.md",
+    "final_url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/features/structured_outputs.md",
+    "retrieved_utc": "2026-10-20T16:10:52.423618+00:00",
+    "sha256": "cfa95b727a7c5e5a24572c8b17621e4147ccde2213196841391e6e685f857258",
+    "bytes": 16159,
+    "path": "/workspace/foundry026-research/local/raw/vllm-structured-raw.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "vllm-metrics-raw",
+    "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/design/metrics.md",
+    "final_url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/design/metrics.md",
+    "retrieved_utc": "2026-10-20T16:10:52.414682+00:00",
+    "sha256": "e4ca429054a5d90780e347a5d654a67fddf06e6545e6d852cdf5f6b8c29ba22b",
+    "bytes": 34124,
+    "path": "/workspace/foundry026-research/local/raw/vllm-metrics-raw.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "vllm-gpu-install-raw",
+    "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/getting_started/installation/gpu.md",
+    "final_url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/getting_started/installation/gpu.md",
+    "retrieved_utc": "2026-10-20T16:10:52.439841+00:00",
+    "sha256": "15bca8770e9ab27572599cffbe2c560222eba1db3b460ee97fa8598b3b04aa0f",
+    "bytes": 4170,
+    "path": "/workspace/foundry026-research/local/raw/vllm-gpu-install-raw.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "lmstudio-python-readme",
+    "url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-python/main/README.md",
+    "final_url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-python/main/README.md",
+    "retrieved_utc": "2026-10-20T16:10:52.472500+00:00",
+    "sha256": "915b3215f04238366f6978d12219d579030b349f008e1d0e757f08f339fc87a7",
+    "bytes": 7888,
+    "path": "/workspace/foundry026-research/local/raw/lmstudio-python-readme.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "lmstudio-js-readme",
+    "url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-js/main/README.md",
+    "final_url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-js/main/README.md",
+    "retrieved_utc": "2026-10-20T16:10:52.470938+00:00",
+    "sha256": "50c814762a61e04da4eb3f31916deb154345cae75b7d900338c8a058f0d3160e",
+    "bytes": 3267,
+    "path": "/workspace/foundry026-research/local/raw/lmstudio-js-readme.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "vllm-openai-raw-current",
+    "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/serving/online_serving/openai_compatible_server.md",
+    "final_url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/serving/online_serving/openai_compatible_server.md",
+    "retrieved_utc": "2026-10-20T16:11:28.058790+00:00",
+    "sha256": "15ee8d2beafd4d1a91a54ed5d7593a3753668c95a07de694224338a4f1700608",
+    "bytes": 9650,
+    "path": "/workspace/foundry026-research/local/raw/vllm-openai-raw-current.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "lmstudio-sdk-prediction",
+    "url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-python/main/src/lmstudio/sync_api.py",
+    "final_url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-python/main/src/lmstudio/sync_api.py",
+    "retrieved_utc": "2026-10-20T16:11:28.138742+00:00",
+    "sha256": "3f1373d2ec1a71c5228fcfafb1389ee40283e2a09cfaf90da329249ef7508323",
+    "bytes": 68246,
+    "path": "/workspace/foundry026-research/local/raw/lmstudio-sdk-prediction.txt",
+    "status": "fetched"
+  },
+  {
+    "id": "lmstudio-sdk-models",
+    "url": "https://raw.githubusercontent.com/lmstudio-ai/lmstudio-python/main/src/lmstudio/_sdk_models.py",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-docs-faq",
+    "url": "https://raw.githubusercontent.com/ollama/docs/main/faq.mdx",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-docs-windows",
+    "url": "https://raw.githubusercontent.com/ollama/docs/main/windows.mdx",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "ollama-docs-thinking",
+    "url": "https://raw.githubusercontent.com/ollama/docs/main/capabilities/thinking.mdx",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  },
+  {
+    "id": "lmstudio-docs-structured",
+    "url": "https://raw.githubusercontent.com/lmstudio-ai/docs/main/docs/developer/openai-compat/structured-output.mdx",
+    "status": "failed",
+    "error": "HTTP Error 404: Not Found",
+    "attempted_utc": "2026-10-20T16:13:40.654595+00:00",
+    "sha256": null,
+    "hash_meaning": "No body fetched; null hash is not verification."
+  }
+]

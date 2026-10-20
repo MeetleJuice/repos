@@ -18,13 +18,15 @@ from .routing import validate_options
 from .capabilities import PlannerBudget
 from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
 from .prompts import PLAN, CODE
+from .guided import planner_schema
 
 from .providers import PROVIDERS as PROVIDERS, LOCAL_PROVIDERS, endpoint, key_for
 
 
 
 class ModelError(ValueError):
-    def __init__(self, message: str, category: str = "format", retry_after: int = 0, partial_content: str = "", http_status: int | None = None) -> None:
+    def __init__(self, message: str, category: str = "format", retry_after: int = 0, partial_content: str = "", http_status: int | None = None, transport_kind: str | None = None) -> None:
+        self.transport_kind=transport_kind
         self.http_status=http_status if type(http_status) is int and 100<=http_status<=599 else None
         self.partial_content = partial_content
         self.category = category
@@ -61,9 +63,13 @@ def request_json(url: str, payload: dict[str, Any] | None = None, headers: dict[
         category = "rate_limit" if exc.code == 429 else "auth" if exc.code in {401, 403} else "quota" if exc.code == 402 else "model" if exc.code == 404 else "request" if exc.code == 400 else "provider"
         raise ModelError(f"Provider returned HTTP {exc.code}. Check the key, model access, quota and service availability.", category, retry, http_status=exc.code) from None
     except TimeoutError as exc:
-        raise ModelError("Model request timed out or exceeded its elapsed response-read budget. Trying another configured model may help.", "transport") from exc
+        raise ModelError("Model request timed out or exceeded its elapsed response-read budget. Trying another configured model may help.", "transport",transport_kind='timeout') from exc
+    except urllib.error.URLError as exc:
+        kind='timeout' if isinstance(exc.reason,TimeoutError) else 'connection'
+        message='Model connection timed out.' if kind=='timeout' else 'Cannot reach the selected model service. Check the runtime or API connection.'
+        raise ModelError(message,'transport',transport_kind=kind) from None
     except (OSError, http.client.HTTPException) as exc:
-        raise ModelError("Cannot reach the selected model service. Start the selected local runtime or check the API connection.", "transport") from exc
+        raise ModelError("Cannot reach the selected model service. Start the selected local runtime or check the API connection.", "transport",transport_kind='connection') from exc
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise ModelError("Provider returned invalid JSON.", "format") from exc
 
@@ -131,6 +137,8 @@ class ModelClient:
         elif self.recovery_mode in {"shortening", "budget_compaction"}:
             if system == CODE:
                 messages.append({"role":"user","content":"Return a fresh complete JSON object with only necessary changed files or exact edits. Keep the approved behavior and tests. Prefer small exact edits over rewriting unchanged files. Omit explanatory prose and never use placeholders or truncated file contents."})
+            elif planner_schema(system) is not None:
+                messages.append({'role':'user','content':'Return a fresh minimum-size JSON object matching ONLY this stage schema. Preserve all requested features and acceptance checks in an outline; for a task batch return only tasks for the target feature indexes. Keep every required field. Omit explanatory prose and wrappers.'})
             else:
                 messages.append({"role":"user","content":"Emit the minimum viable SCHEMA-COMPLETE proposal. Keep all required fields, full task instructions, acceptance checks, feature indexes and requested behavior. Use short strings and few focused tasks. Omit explanatory prose; do not omit checks, invent a skeleton schema or weaken approval scope. Return a fresh complete JSON object."})
         complete_recovery = system == CODE and json.loads(prompt).get("response_mode") == "complete_files"
@@ -140,7 +148,7 @@ class ModelClient:
             messages.append({"role":"user","content":directive})
         self.last_metadata.update(input_characters=sum(len(m['content']) for m in messages),
                                   effective_request_sha256=hashlib.sha256(json.dumps(messages).encode()).hexdigest())
-        if self.provider == "gemini" and self.planner_budget and (system == PLAN or self.planner_budget.thinking_budget > 0):
+        if self.provider == "gemini" and self.planner_budget and (system == PLAN or planner_schema(system) is not None or self.planner_budget.thinking_budget > 0):
             key = key_for('gemini')
             if not key: raise ModelError('Set GEMINI_API_KEY in your local .env file.', 'auth')
             generation: dict[str, Any] = {'maxOutputTokens':output,'temperature':0.2}
@@ -171,6 +179,7 @@ class ModelClient:
             self._finish(reason,content)
         elif self.provider == "ollama":
             schema: dict[str, Any] | str = PLAN_SCHEMA if system == PLAN else CODE_SCHEMA if system == CODE else "json"
+            if (guided_schema:=planner_schema(system)) is not None:schema=guided_schema
             if complete_recovery:
                 schema = COMPLETE_CODE_SCHEMA
             self.last_metadata['transport_attempted'] = True

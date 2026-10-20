@@ -1,10 +1,18 @@
-# Idea Foundry 0.25.0
+# Idea Foundry 0.26.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
+
+## 0.26.0 smaller planning steps and useful failure explanations
+
+For a new project, choose **How should we plan? → Small planning steps**. For an unapproved project that timed out or returned an invalid proposal, click **Plan in smaller steps**. Foundry saves a feature/check outline, then requests tasks for two features at a time. Reloading or stopping keeps each validated draft; **Resume small-step planning** continues a matching request. Changing the revision starts a fresh draft. Only a complete, reviewed proposal can be approved. This option can make more model requests and cost more on cloud routes; single-pass planning remains the default and can still make correction/fallback calls.
+
+Local planning offers explicit 2/5/10-minute socket settings. A longer timeout can help a slow response but cannot establish GPU fitness or guarantee a job deadline. **Recent model failures** retains individual validation findings and known timeout/connection reasons rather than just a route-exhausted message. Earlier history may lack details. Existing models, cloud consent, output floors and frozen checks remain enforced.
+
+Task-level static repairs now carry the active task's file scope, blocking unrelated writes before replacement. Saving model choices preserves an unchanged single fallback's context, output and timeout options. Both full-plan prompt examples now satisfy the actual versioned approval contract. [Guide and precise limits](docs/planning-reliability-0.26.0.md), [source-backed research](docs/research/v0.26/REPORT.md), [implementation plan](PLANS.md).
 
 ## 0.25.0 local harness and clearer completion
 

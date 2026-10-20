@@ -40,8 +40,8 @@ def validate_options(options: Any) -> ModelSettings:
     if type(structured) is not bool:
         raise ValueError('structured_outputs must be true or false.')
     timeout = options.get('timeout_seconds', 120)
-    if type(timeout) is not int or timeout not in {15,30,60,120}:
-        raise ValueError('Request timeout must be 15, 30, 60 or 120 seconds.')
+    if type(timeout) is not int or timeout not in {15,30,60,120,300,600}:
+        raise ValueError('Request timeout must be 15, 30, 60, 120, 300 or 600 seconds.')
     return {'num_ctx': context, 'num_predict': output, 'structured_outputs': structured, 'timeout_seconds':timeout}
 
 
