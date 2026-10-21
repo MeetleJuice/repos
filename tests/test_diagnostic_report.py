@@ -75,6 +75,60 @@ class Bench:
 
 
 class DiagnosticReportTests(unittest.TestCase):
+    def test_expanded_details_include_old_selected_project_and_disclose_limits(self):
+        import os
+        with tempfile.TemporaryDirectory() as temp:
+            bench = Bench(Path(temp))
+            for index in range(28):
+                ident = str(index).zfill(32)
+                directory = bench.root / ident; directory.mkdir()
+                state = {**bench.state, 'id': ident}
+                (directory/'state.json').write_text(json.dumps(state))
+            os.utime(bench.root/bench.state['id']/'state.json', (1,1))
+            report = self.module().collect_report(bench, Path(__file__).resolve().parents[1], project_id=bench.state['id'])
+            self.assertEqual(report['evidence']['projects'][0]['project_id'], bench.state['id'])
+            self.assertEqual(report['summary']['detailed_project_count'], 25)
+            self.assertEqual(report['summary']['project_count'], 29)
+            self.assertEqual(report['completeness']['limits']['history_records_per_project'], 4000)
+            self.assertEqual(report['completeness']['limits']['recorder_records'], 20000)
+            self.assertTrue(any('25 projects' in item for item in report['completeness']['omissions']))
+
+    def test_legacy_and_recorder_validation_codes_survive_without_messages(self):
+        with tempfile.TemporaryDirectory() as temp:
+            bench = Bench(Path(temp))
+            event = {'id':'reject-1','kind':'model_attempt','data':{
+                'provider':'ollama', 'model':'fixture', 'planning_stage':'feature_tasks',
+                'review_codes':['premature_milestone'], 'review_findings':[{'code':'premature_milestone',
+                'path':'/tasks/0/check_indexes', 'message':'PRIVATE UNPREFIXED CREDENTIAL', 'severity':'error'}]}}
+            path = bench.root/bench.state['id']/'workflow-history.jsonl'
+            path.write_text(json.dumps(event)+'\n')
+            with patch.object(bench.diagnostics, 'snapshot', return_value={'records':[event]}):
+                report = self.collect(bench)
+            for row in (report['evidence']['recorder']['records'][0], report['evidence']['projects'][0]['history']['records'][0]):
+                self.assertEqual(row['data']['review_codes'], ['premature_milestone'])
+                self.assertEqual(row['data']['review_findings'][0]['path'], '/tasks/0/check_indexes')
+            self.assertIn('premature_milestone', report['evidence']['validation_rules'])
+            self.assertNotIn('PRIVATE UNPREFIXED CREDENTIAL', json.dumps(report))
+
+    def test_planning_rejections_and_unapproved_draft_are_exported_without_prose(self):
+        from forge.diagnostic_report import collect_report
+        with tempfile.TemporaryDirectory() as temp:
+            bench = Bench(Path(temp))
+            bench.state['guided_draft'] = {'task_planning_policy': 'compiled_v1', 'next_feature': 1,
+                'outline': {'features': ['PRIVATE FEATURE'], 'checks': []},
+                'tasks': [{'title': 'PRIVATE TASK', 'files': ['app.py'], 'feature_indexes': [0], 'depends_on': []}]}
+            bench.state['model_calls'] = [{'provider': 'ollama', 'model': 'fixture', 'success': False,
+                'review_codes': ['task_width'], 'review_findings': [{'code': 'task_width', 'path': '/tasks/0',
+                'message': 'PRIVATE VALIDATION PROSE', 'severity': 'error'}], 'planning_stage': 'feature_tasks'}]
+            (bench.root / bench.state['id'] / 'state.json').write_text(json.dumps(bench.state))
+            report = collect_report(bench, Path(__file__).resolve().parents[1], project_id=bench.state['id'])
+            row = report['evidence']['projects'][0]
+            self.assertEqual(row['planning']['draft']['features_planned'], 1)
+            self.assertEqual(row['attempts'][0]['review_codes'], ['task_width'])
+            self.assertEqual(row['attempts'][0]['review_findings'][0]['path'], '/tasks/0')
+            self.assertNotIn('PRIVATE VALIDATION PROSE', json.dumps(report))
+            self.assertNotIn('PRIVATE FEATURE', json.dumps(report))
+
     def test_check_prose_and_query_samples_are_not_exported(self):
         with tempfile.TemporaryDirectory() as temp:
             bench = Bench(Path(temp))

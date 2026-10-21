@@ -110,10 +110,10 @@ def request_schema(system: str, prompt: str, complete: bool = False) -> dict[str
     except ValueError:return schema
     if not isinstance(payload,dict):return schema
     profile=payload.get('builder_profile')
-    if planner_schema(system) is not None and payload.get('planning_stage')=='tasks' and isinstance(profile,dict):
+    if planner_schema(system) is not None and payload.get('planning_stage') in {'tasks','feature_tasks'} and isinstance(profile,dict):
         props=schema['properties']['tasks']['items']['properties']
         for key,limit in (('files',profile.get('max_editable_files')),('feature_indexes',profile.get('max_feature_indexes'))):
-            if type(limit) is int and 1<=limit<=3:props[key]['maxItems']=limit
+            if key in props and type(limit) is int and 1<=limit<=3:props[key]['maxItems']=limit
     packet=payload.get('task_packet')
     if system==CODE and isinstance(packet,dict) and packet.get('structured') is True:
         names=packet.get('files')

@@ -1,0 +1,53 @@
+[
+  {
+    "url": "https://www.anthropic.com/engineering/building-effective-agents",
+    "error": "URLError"
+  },
+  {
+    "url": "https://docs.ollama.com/capabilities/structured-outputs",
+    "error": "URLError"
+  },
+  {
+    "url": "https://opentelemetry.io/docs/specs/semconv/gen-ai/gen-ai-spans/",
+    "error": "URLError"
+  },
+  {
+    "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html",
+    "error": "URLError"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "status": 200,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5",
+    "bytes_read": 54614,
+    "accessed": "2026-10-21"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/open-telemetry/semantic-conventions/main/docs/gen-ai/gen-ai-spans.md",
+    "status": 200,
+    "sha256": "a9898757b05a1c3e0aaa18d54140171d575717c8f7a59a07780e825e17847e99",
+    "bytes_read": 396,
+    "accessed": "2026-10-21"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Logging_Cheat_Sheet.md",
+    "status": 200,
+    "sha256": "ab43825f2095a964542a3ea3392e50c79fe4d51794ae1bdfc3bc246b243c5f39",
+    "bytes_read": 28287,
+    "accessed": "2026-10-21"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/claude-agent-sdk-python/main/README.md",
+    "status": 200,
+    "sha256": "c38a933bf8fef26316ea38635989b254e69a26d21d80b96bf5731cba4e88bcc6",
+    "bytes_read": 13250,
+    "accessed": "2026-10-21"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/open-telemetry/semantic-conventions-genai/main/docs/gen-ai/gen-ai-spans.md",
+    "status": 200,
+    "sha256": "df6f7bb1911dfe35d286c84971d8227a8f0e765cb3ad3be1532441371c17b69e",
+    "bytes_read": 84270,
+    "accessed": "2026-10-21"
+  }
+]

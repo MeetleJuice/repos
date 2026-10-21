@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "provenance": {
+    "kind": "synthetic-controller-regression-from-observed-journal",
+    "observed": "User journal: repeated premature_milestone and feature_scope failures exhausted planning before coding. Original rejected candidate bodies were not supplied; these replies are constructed, not historical provider output.",
+    "live_model_generation": false
+  },
+  "outline": {
+    "title": "Tiny Wins \u2014 evidence-ready draft",
+    "summary": "Reuse tested SQLite storage; build the browser interface.",
+    "features": [
+      "Create and list records with SQLite persistence",
+      "Use a responsive accomplishment interface"
+    ],
+    "out_of_scope": [
+      "Accounts"
+    ],
+    "risks": [
+      "Manual UI checks still require actual observations."
+    ],
+    "app_kind": "server",
+    "context_policy": "focused_v1",
+    "task_contract_version": 1,
+    "acceptance_policy": "evidence_v1",
+    "checks": [
+      {
+        "name": "Create a concrete record",
+        "method": "POST",
+        "path": "/api/records",
+        "body": {
+          "title": "Saved proof",
+          "note": "Persists"
+        },
+        "status": 201,
+        "json_contains": {
+          "id": 1,
+          "title": "Saved proof"
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Read the created record",
+        "method": "GET",
+        "path": "/api/records",
+        "status": 200,
+        "json_contains": {
+          "records": [
+            {
+              "id": 1,
+              "title": "Saved proof"
+            }
+          ]
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Read it after restart",
+        "method": "GET",
+        "path": "/api/records",
+        "status": 200,
+        "restart_before": true,
+        "json_contains": {
+          "records": [
+            {
+              "title": "Saved proof",
+              "note": "Persists"
+            }
+          ]
+        },
+        "feature_indexes": [
+          0
+        ]
+      }
+    ],
+    "api_contracts": [
+      {
+        "method": "POST",
+        "path": "/api/records",
+        "status": 201,
+        "response_kind": "object",
+        "required_fields": [
+          "id",
+          "title",
+          "note",
+          "created_at"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/records",
+        "status": 200,
+        "response_kind": "object",
+        "required_fields": [
+          "records",
+          "today_count"
+        ]
+      }
+    ],
+    "manual_checks": [
+      {
+        "name": "Browser interaction",
+        "steps": [
+          "Add a win, filter, reload and delete it."
+        ],
+        "expected": "The record persists and the list updates.",
+        "feature_indexes": [
+          1
+        ]
+      }
+    ]
+  },
+  "semantic_replies": [
+    {
+      "tasks": [
+        {
+          "title": "Reuse and check reviewed storage",
+          "instructions": "Inspect existing app.py and storage.py. Preserve the reviewed API and factory; cite current source if already implemented.",
+          "outcome": "The reviewed API creates and returns saved records.",
+          "files": [
+            "app.py",
+            "storage.py"
+          ],
+          "done_when": [
+            "Factory initializes storage; POST returns id; GET reads records across restart."
+          ]
+        }
+      ]
+    },
+    {
+      "tasks": [
+        {
+          "title": "Build the browser interface",
+          "instructions": "Implement a usable form, record list, Today filter and confirmed delete using the existing API; responsive dark gold styling.",
+          "outcome": "The browser can create, read, filter and delete records.",
+          "files": [
+            "index.html",
+            "style.css"
+          ],
+          "done_when": [
+            "A usable interface calls the existing API safely."
+          ]
+        }
+      ]
+    }
+  ],
+  "expected_feature_indexes": [
+    [
+      0
+    ],
+    [
+      1
+    ]
+  ],
+  "expected_dependencies": [
+    [],
+    [
+      0
+    ]
+  ],
+  "expected_check_indexes": [
+    [
+      0,
+      1,
+      2
+    ],
+    []
+  ]
+}

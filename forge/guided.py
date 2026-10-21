@@ -29,6 +29,8 @@ BATCH_SCHEMA: dict[str,Any]={'type':'object','required':['tasks'],'additionalPro
 
 
 def planner_schema(system: str) -> dict[str,Any] | None:
+    from .task_planning import FEATURE_PROMPT, FEATURE_SCHEMA
+    if system==FEATURE_PROMPT:return FEATURE_SCHEMA
     if system==OUTLINE_PROMPT:return OUTLINE_SCHEMA
     if system==TASKS_PROMPT:return BATCH_SCHEMA
     return None
@@ -98,12 +100,18 @@ def validate_batch(candidate: dict[str,Any], outline: dict[str,Any], earlier: li
 
 def stage_review(validate: Callable[[dict[str,Any]],None], candidate: dict[str,Any]) -> tuple[dict[str,Any],Review]:
     try:validate(candidate)
-    except (ValueError,TypeError,KeyError) as exc:return candidate,Review((Finding('guided_contract','/',str(exc)),))
+    except (ValueError,TypeError,KeyError) as exc:
+        from .planning_diagnostics import classify_finding
+        code,path=classify_finding('guided_contract','/',str(exc))
+        return candidate,Review((Finding(code,path,str(exc)),))
     return candidate,Review(())
 
 
 def run_guided(request: dict[str,Any], generate: Callable[[str,dict[str,Any],Callable[[dict[str,Any]],None]],dict[str,Any]],
                checkpoint: Callable[[dict[str,Any]],None], cancel: threading.Event, saved: dict[str,Any] | None = None) -> dict[str,Any]:
+    if request.get('task_planning_policy')=='compiled_v1':
+        from .task_planning import run_compiled
+        return run_compiled(request,generate,checkpoint,cancel,saved)
     identity=hashlib.sha256(json.dumps(request,sort_keys=True).encode()).hexdigest()
     draft=copy.deepcopy(saved) if saved and saved.get('request_sha256')==identity else {'schema':1,'request_sha256':identity,'outline':None,'tasks':[],'next_feature':0}
     if cancel.is_set():raise InterruptedError('Stopped before guided planning.')

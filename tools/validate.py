@@ -8,6 +8,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 TYPED = ('contracts planning routing schemas models evidence edits cloud credentials handoffs capabilities context history reporting providers model_status build_contract workflow http_io tasks circuit execution focus calibration streaming guided model_inventory acceptance diagnostics diagnostic_report lifecycle ideas').split()
+TYPED.extend(['task_planning', 'planning_diagnostics'])
 
 
 def run(args, cwd=ROOT):

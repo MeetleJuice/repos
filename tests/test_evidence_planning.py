@@ -15,6 +15,7 @@ from forge.scaffolds import starter_files
 from forge.core import Workbench
 from tests.test_workbench import ScriptedModels,await_job
 from tests.test_task_contracts import structured_plan
+from tests.test_guided_planning import feature_batches
 
 
 def proof_plan():
@@ -103,7 +104,7 @@ class EvidencePlanningTests(unittest.TestCase):
         plan=sqlite_plan();outline={k:v for k,v in plan.items() if k!='tasks'}
         outline.pop('acceptance_policy')
         with tempfile.TemporaryDirectory() as folder:
-            bench=Workbench(Path(folder)/'projects',ScriptedModels([outline,{'tasks':plan['tasks']}]))
+            bench=Workbench(Path(folder)/'projects',ScriptedModels([outline,*feature_batches(plan['tasks'])]))
             config={'provider':'ollama','model':'fixture'}
             state=await_job(bench,bench.create('A small accomplishment tracker',config,config,'sqlite',plan_mode='proof')['id'])
             self.assertEqual(state['status'],'proposed',state.get('error'))

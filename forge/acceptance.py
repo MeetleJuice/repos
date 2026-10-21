@@ -46,7 +46,7 @@ def evidence_findings(plan: dict[str,Any], *, outline: bool = False, partial: bo
     if not outline and plan.get('app_kind')!='browser':
         tasks=plan.get('tasks',[]);covered: set[int]=set();early=False
         producers={feature:index for index,task in enumerate(tasks) for feature in task.get('feature_indexes',[])}
-        prefix_ready=-1;missing=False
+        prefix_ready=0 if tasks else -1;missing=False
         for check_index,check in enumerate(checks):
             if partial and any(feature not in producers for feature in check.get('feature_indexes',[])):break
             prefix_ready=max(prefix_ready,max((producers.get(feature,-1) for feature in check.get('feature_indexes',[])),default=-1))

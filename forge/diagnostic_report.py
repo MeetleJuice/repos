@@ -31,11 +31,11 @@ from .history import totals_for
 from .providers import CLOUD_ORDER, CONFIG_NAMES, environment_value, key_for
 
 MAX_PROJECTS = 100
-MAX_DETAILS = 10
+MAX_DETAILS = 25
 MAX_STATE_BYTES = 2_000_000
-MAX_HISTORY_BYTES = 512_000
-MAX_HISTORY_RECORDS = 1000
-MAX_REPORT_BYTES = 8_000_000
+MAX_HISTORY_BYTES = 2_000_000
+MAX_HISTORY_RECORDS = 4000
+MAX_REPORT_BYTES = 24_000_000
 ACTIVE = {'planning', 'building', 'checking', 'repairing', 'queued'}
 
 # Source bodies, model summaries, user observations and arbitrary metadata never
@@ -50,7 +50,9 @@ EVENT_FIELDS = {
                       'reserved_text_output_tokens', 'estimated_required_output_tokens', 'input_estimate_tokens',
                       'max_output_ceiling', 'capability_estimated', 'timeout_seconds', 'input_characters',
                       'visible_output_tokens', 'thinking_tokens', 'ollama_load_seconds', 'ollama_eval_seconds',
-                      'ollama_prompt_seconds', 'ollama_tokens_per_second', 'failure_class', 'error_category'},
+                      'ollama_prompt_seconds', 'ollama_tokens_per_second', 'failure_class', 'error_category',
+                      'review_codes', 'review_findings', 'candidate_shape', 'response_sha256', 'proposal_valid',
+                      'planning_stage', 'task_planning_policy', 'target_feature_indexes'},
     'job_started': {'action', 'execute', 'runtime', 'max_repairs', 'milestones'},
     'job_finished': {'action', 'status', 'seconds', 'next_task', 'model_attempts',
                      'repairs_used', 'repair_count_total'},
@@ -76,7 +78,8 @@ EVENT_FIELDS = {
     'export_prepared': {'source_sha256', 'effective_status', 'file_count'},
     'stop_requested': {'in_flight_output_will_be_discarded'},
     'proposal_review': {'passed', 'findings'},
-    'guided_plan_checkpoint': {'stage', 'next_feature', 'tasks', 'features'},
+    'guided_plan_checkpoint': {'stage', 'next_feature', 'tasks', 'features',
+                               'features_planned', 'features_total', 'task_planning_policy'},
     'proposal_approved': {'tasks', 'http_checks', 'browser_checks', 'manual_checks'},
 }
 OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase', 'exception_type',
@@ -397,7 +400,7 @@ def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[
         path = str(check.get('path', ''))
         checks.append({'index': index,
                        'name_sha256': hashlib.sha256(str(check.get('name', '')).encode()).hexdigest(),
-                       **{key: check[key] for key in ('method', 'status', 'restart_before') if key in check},
+                       **{key: check[key] for key in ('method', 'status', 'restart_before', 'feature_indexes') if key in check},
                        'path': path.split('?', 1)[0], 'path_query_omitted': '?' in path})
     tasks = [sanitize_event_data('task_metadata', {key: task[key] for key in ('id', 'title', 'files', 'depends_on', 'feature_indexes', 'check_indexes') if key in task})
              for task in plan.get('tasks', [])[:200] if isinstance(task, dict)]
@@ -416,6 +419,11 @@ def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[
             'error_symptom_tags': _failure_signatures(state.get('error', '')),
             'tasks': tasks, 'acceptance_check_metadata': checks,
             'model_totals': totals_for(state), 'history': _safe_history(directory),
+            'attempts': [sanitize_event_data('model_attempt', {key: value for key, value in attempt.items()
+                         if key in EVENT_FIELDS['model_attempt']}) for attempt in state.get('model_calls', [])[-256:] if isinstance(attempt, dict)],
+            'attempt_coverage': {'retained_in_state': len(state.get('model_calls', [])),
+                                 'export_limit': 256, 'earlier_attempts_may_exist': True},
+            'planning': _planning_metadata(state),
             'verification': verification,
             'test_evidence': {**{key: result.get(key) for key in ('passed', 'runtime', 'failure_kind', 'exit_code',
                                                                'command_template', 'command_paths_redacted', 'execution_seconds')},
@@ -431,12 +439,31 @@ def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[
             'privacy': 'Idea, source, model transcripts, sample-data bodies and manual observation notes excluded.'}
 
 
+def _planning_metadata(state: dict[str, Any]) -> dict[str, Any]:
+    from .planning_diagnostics import candidate_shape
+    draft = state.get('guided_draft') or {}
+    outline = draft.get('outline') or {}
+    digest = draft.get('request_sha256')
+    return {'mode': state.get('planning_mode') if state.get('planning_mode') in {'guided', 'single'} else None,
+            'builder_profile': sanitize_event_data('builder_profile', {key: value for key, value in (state.get('builder_profile') or {}).items()
+                if key in {'schema', 'max_editable_files', 'max_feature_indexes', 'smallest_output_ceiling', 'available_files', 'protected_existing_files'}}),
+            'draft': {'task_planning_policy': 'compiled_v1' if draft.get('task_planning_policy') == 'compiled_v1' else None,
+                      'features_planned': draft.get('next_feature'),
+                      'feature_count': len(outline.get('features', [])),
+                      'request_sha256': digest if isinstance(digest, str) and re.fullmatch(r'[a-f0-9]{64}', digest) else None,
+                      **candidate_shape({**outline, 'tasks': draft.get('tasks', [])})},
+            'failed_candidate': candidate_shape(state.get('failed_candidate')),
+            'approved_plan': candidate_shape(state.get('plan')),
+            'meaning': 'Counts and declared references only. No prompt, source or free-text candidate content. Draft work is unapproved.'}
+
+
 def collect_report(bench: Any, program_root: Path, updater: Any = None,
                    project_id: str | None = None) -> dict[str, Any]:
     """Collect independent sections; any failed section remains explicitly unknown."""
     started = time.monotonic()
     report_id = uuid.uuid4().hex
-    evidence: dict[str, Any] = {}
+    from .planning_diagnostics import RULES
+    evidence: dict[str, Any] = {'validation_rules': RULES}
     findings: list[dict[str, Any]] = []
     missing: list[str] = []
     omissions: list[str] = []
@@ -473,7 +500,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
     if not evidence.get('workspace', {}).get('projects_readable', False):
         finding('workspace_access', 'confirmed_failure', 'workspace', 'The project directory did not pass its read-permission check.')
     section('resources', lambda: resource_snapshot(bench.root.parent))
-    recorder = section('recorder', lambda: _safe_recorder({**bench.diagnostics.snapshot(limit=5000), 'health': bench.diagnostics.health()}))
+    recorder = section('recorder', lambda: _safe_recorder({**bench.diagnostics.snapshot(limit=20000), 'health': bench.diagnostics.health()}))
     if isinstance(recorder, dict) and not recorder.get('available') is False:
         integrity = recorder.get('integrity', {})
         if integrity.get('valid') is False or integrity.get('ok') is False or integrity.get('passed') is False:
@@ -537,8 +564,10 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
         paths = paths[:MAX_PROJECTS]
         if project_id:
             selected = bench.root / project_id / 'state.json'
-            if selected not in paths:
-                paths.insert(0, selected)
+            paths = [selected, *[path for path in paths if path != selected]]
+            if len(paths) > MAX_PROJECTS:
+                paths = paths[:MAX_PROJECTS]
+                omissions.append('An older summary was displaced to include the selected project.')
         rows = []
         detailed = 0
         for path in paths:
@@ -546,7 +575,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                 state = _read_json(path, MAX_STATE_BYTES)
                 if not isinstance(state, dict) or state.get('id') != path.parent.name:
                     raise ValueError('Project identity does not match directory')
-                detail = state['id'] == project_id if project_id else detailed < MAX_DETAILS
+                detail = detailed < MAX_DETAILS
                 if detail:
                     row = _project_detail(bench, state, path.parent)
                     detailed += 1
@@ -561,7 +590,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                 finding('project_unavailable', 'missing_evidence', 'projects',
                         'Project ' + path.parent.name + ' could not be inspected (' + type(exc).__name__ + '). Its files were not changed.')
         if len(paths) > detailed:
-            omissions.append('Detailed project evidence is limited to the selected project or the 10 most recent projects.')
+            omissions.append('Detailed project evidence is limited to 25 projects, with the selected project first.')
         return rows
 
     project_rows = section('projects', projects)
@@ -656,10 +685,15 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
               'summary': {'headline': 'Diagnostic evidence collected; findings require review.',
                           'findings': len(findings), 'confirmed_failures': findings_count['confirmed_failure'],
                           'warnings': findings_count['warning'], 'missing_evidence': findings_count['missing_evidence'],
-                          'project_count': len(project_rows), 'collection_seconds': round(time.monotonic() - started, 3)},
+                          'project_count': len(project_rows), 'detailed_project_count': sum('history' in row for row in project_rows),
+                          'history_records': len(history_records), 'recorder_records': len(recorder.get('records', [])),
+                          'collection_seconds': round(time.monotonic() - started, 3)},
               'findings': findings, 'evidence': evidence,
               'completeness': {'complete': not missing and not omissions,
                                'scope': 'Bounded diagnostic collection only; never a claim of complete lifetime operation or full OS audit.',
+                               'limits': {'project_summaries': MAX_PROJECTS, 'project_details': MAX_DETAILS,
+                                          'history_bytes_per_project': MAX_HISTORY_BYTES, 'history_records_per_project': MAX_HISTORY_RECORDS,
+                                          'recorder_records': 20000, 'report_bytes': MAX_REPORT_BYTES},
                                'missing': sorted(set(missing)), 'omissions': omissions,
                                'limitations': ['No source files, original prompts, model transcripts, manual notes, credential files or free-text test/error logs included. Log digests and structured failure metadata remain available.',
                                                'No live cloud generation, generated-code execution or resource-heavy benchmark was performed.',
@@ -671,7 +705,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
     # findings and current state while shedding oldest exported record details.
     while len(_json(report)) > MAX_REPORT_BYTES:
         report['completeness']['complete'] = False
-        report['completeness']['omissions'] = list(dict.fromkeys([*omissions, 'Oldest exported evidence details removed to fit the 8 MB report limit; local history was not erased.']))
+        report['completeness']['omissions'] = list(dict.fromkeys([*omissions, 'Oldest exported evidence details removed to fit the 24 MB report limit; local history was not erased.']))
         candidates = [(len(row.get('history', {}).get('records', [])), row) for row in project_rows]
         largest, row = max(candidates, key=lambda pair: pair[0]) if candidates else (0, None)
         recorder_records = evidence.get('recorder', {}).get('records', [])
@@ -690,6 +724,9 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                 evidence['projects'] = [{'project_id': item['project_id'], 'status': item.get('status'),
                                          'detail_omitted': 'Report size limit'} for item in project_rows]
                 break
+    report['summary']['history_records'] = sum(len(row.get('history', {}).get('records', [])) for row in evidence.get('projects', []))
+    report['summary']['recorder_records'] = len(evidence.get('recorder', {}).get('records', []))
+    report['summary']['detailed_project_count'] = sum('history' in row for row in evidence.get('projects', []))
     scrubbed = _scrub(report)
     if not isinstance(scrubbed, dict):
         raise ValueError('Diagnostic report must be an object.')

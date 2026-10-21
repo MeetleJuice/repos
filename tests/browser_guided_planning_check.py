@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright, expect
 from forge.core import Workbench
 from forge.models import ModelError
 from forge.server import make_server
-from tests.test_guided_planning import responses
+from tests.test_guided_planning import responses,feature_batches
 from tests.test_workbench import ScriptedModels
 from tests.fixtures import APP, TEST
 
@@ -19,7 +19,7 @@ from tests.fixtures import APP, TEST
 def main():
     outline,batch,_=responses()
     # One outline, a failing batch route, then resume the same saved outline.
-    models=ScriptedModels([outline,ModelError('Fixture local socket timeout','transport',transport_kind='timeout'),batch,
+    models=ScriptedModels([outline,ModelError('Fixture local socket timeout','transport',transport_kind='timeout'),*feature_batches(batch['tasks']),
         {'files':{'app.py':APP}}, {'files':{'test_app.py':TEST}}])
     with tempfile.TemporaryDirectory() as temp:
         home=Path(temp);bench=Workbench(home/'projects',models);server=make_server(0,bench)
@@ -47,7 +47,7 @@ def main():
                 expect(page.locator('#guided-progress')).to_contain_text('Assembled proposal ready for review')
                 expect(page.locator('#proposal-review-status')).to_contain_text('small-step planning')
                 expect(page.locator('#proposal-review-status')).not_to_contain_text('recovered')
-                assert len(models.calls)==3 and models.calls[-1]['planning_stage']=='tasks'
+                assert len(models.calls)==4 and models.calls[-1]['planning_stage']=='feature_tasks'
                 ident=bench.list_projects()[0]['id']
                 state=bench.load(ident)
                 # Verify a settings save preserves an existing fallback's output/context/timeout.
@@ -66,7 +66,7 @@ def main():
                 page.locator('#runtime').select_option('local');page.locator('#execution-consent').check()
                 page.locator('#repairs').select_option('0');page.locator('#verify').click()
                 expect(page.locator('#project-status')).to_have_text('verified',timeout=25000)
-                assert len(models.calls)==5
+                assert len(models.calls)==6
                 page.get_by_role('tab',name='Project files').click()
                 with page.expect_download() as download:page.locator('#download').click()
                 path=home/'app.zip';download.value.save_as(path)

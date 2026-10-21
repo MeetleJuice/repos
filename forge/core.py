@@ -265,6 +265,9 @@ class Workbench:
             recoveries = {}
             correction_prompts = {}
             schema_retries = set()
+            stage_rejections = 0
+            stage_payload = json.loads(prompt) if role == 'planner' else {}
+            compiled_stage = stage_payload.get('task_planning_policy') == 'compiled_v1'
             budget_failed = False
             for index, (selected, is_fallback) in enumerate(choices):
                 if cancel.is_set():
@@ -296,6 +299,8 @@ class Workbench:
                     continue
                 if role == "planner" and state.get("job_inference_attempts", 0) >= 24:
                     raise ModelError("This job reached its 24-attempt inference limit. Review model history before retrying.", "attempt_budget")
+                if compiled_stage and stage_rejections >= 6:
+                    raise ModelError('This planning stage reached six rejected proposals. Validated draft work was kept. Review its rule codes or revise scope before resuming; no further model was called. Provider outages use the separate job allowance.', 'planning_stage_budget')
                 if state.get("job_max_model_calls") is not None and state.get("job_inference_attempts",0)>=state["job_max_model_calls"]:
                     raise ModelError("This run reached its model invocation allowance. Saved files were kept. Review the journal and resume with an appropriate allowance; no further model was called.", "attempt_budget")
                 capability = registry.get(selected['provider'], selected['model'], selected.get('options',{}), role=role)
@@ -318,6 +323,10 @@ class Workbench:
                           "recovery_path": 'task_response_correction' if only_model else recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
                           "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated, "transport_attempted":None, "timeout_seconds":selected.get("options", {}).get("timeout_seconds",120)}
                 started = time.monotonic()
+                if role == 'planner':
+                    record.update(planning_stage=stage_payload.get('planning_stage', 'single'),
+                                  task_planning_policy=stage_payload.get('task_planning_policy'),
+                                  target_feature_indexes=stage_payload.get('target_feature_indexes', []))
                 client = None
                 try:
                     state["status"] = previous
@@ -370,12 +379,15 @@ class Workbench:
                     self.transport_circuit.success(circuit_key)
                     if cancel.is_set(): raise InterruptedError("Stopped. Model output discarded.")
                     if role=='planner':
+                        from .planning_diagnostics import candidate_shape
+                        record['candidate_shape']=candidate_shape(result)
                         record['response_sha256']=hashlib.sha256(json.dumps(result,sort_keys=True).encode()).hexdigest()
                     if review_candidate is not None:
                         result, review_result = review_candidate(result)
                         record["proposal_valid"] = review_result.passed
                         record['review_findings']=history.redact(review_result.to_dict()['findings'])
                         if not review_result.passed:
+                            stage_rejections += 1
                             reasons='; '.join(f.path+': '+f.message for f in review_result.findings if f.severity=='error')
                             self.event(state,'Proposal rejected by review: '+reasons[:1800])
                             record["review_codes"] = [f.code for f in review_result.findings if f.severity == "error"]
@@ -1283,9 +1295,12 @@ class Workbench:
 
                 mode='guided' if state.get('evidence_planning') else options.get('plan_mode','single');state['planning_mode']=mode
                 if mode=='guided':
+                    # New drafts only: approved plans and legacy replay contracts stay intact.
+                    request['task_planning_policy']='compiled_v1'
                     def checkpoint(draft):
                         state['guided_draft']=draft
                         state['planning_progress']={'stage':'outline saved' if not draft['tasks'] else 'task batch saved',
+                            'task_planning_policy':draft.get('task_planning_policy'),
                             'features_planned':draft['next_feature'],'features_total':len(draft['outline']['features']),
                             'tasks':len(draft['tasks']),'meaning':'Unapproved draft only. Final full-proposal review is still required.'}
                         self.trace(state,'guided_plan_checkpoint',state['planning_progress'])

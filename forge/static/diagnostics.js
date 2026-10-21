@@ -28,6 +28,9 @@ function renderDiagnosticReport(report) {
   const warnings = summary.warnings ?? summary.warning ?? 0;
   facts.textContent = `${failures} confirmed failure(s) · ${warnings} warning(s) · ${summary.missing_evidence ?? 0} evidence gap(s). Findings describe recorded evidence, not guaranteed root causes.`;
   $("diag-summary").append(facts);
+  const coverage = document.createElement("p");
+  coverage.textContent = `${summary.detailed_project_count ?? "Unknown"} detailed projects · ${summary.history_records ?? "Unknown"} controller events · ${summary.recorder_records ?? "Unknown"} recorder events. Includes planning structure, validation rule codes and retained attempt metrics.`;
+  $("diag-summary").append(coverage);
   const classifications = {
     confirmed_failure: "Confirmed failure",
     warning: "Warning",

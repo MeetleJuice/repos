@@ -27,6 +27,12 @@ def responses():
     return {name:value for name,value in plan.items() if name!='tasks'},{'tasks':plan['tasks']},plan
 
 
+def feature_batches(tasks):
+    """Script the new semantic one-feature requests; preserve plan assertions."""
+    return [{'tasks': [{key: copy.deepcopy(value) for key, value in task.items()
+                       if key not in {'depends_on', 'feature_indexes', 'check_indexes'}}]} for task in tasks]
+
+
 class GuidedPlanningTests(unittest.TestCase):
     def test_single_pass_review_also_retains_response_digest(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -142,7 +148,7 @@ class GuidedPlanningTests(unittest.TestCase):
     def test_new_project_can_explicitly_choose_guided_planning(self):
         outline,batch,expected=responses()
         with tempfile.TemporaryDirectory() as temp:
-            models=ScriptedModels([outline,batch]);bench=Workbench(Path(temp)/'projects',models)
+            models=ScriptedModels([outline,*feature_batches(batch['tasks'])]);bench=Workbench(Path(temp)/'projects',models)
             config={'provider':'ollama','model':'fixture'}
             state=await_job(bench,bench.create('Build a local task tracker',config,config,plan_mode='guided',local_timeout=300)['id'])
             self.assertEqual(state['status'],'proposed',state.get('error'))
@@ -152,7 +158,7 @@ class GuidedPlanningTests(unittest.TestCase):
     def test_stopped_guided_job_resumes_after_workbench_restart(self):
         outline,batch,expected=responses()
         with tempfile.TemporaryDirectory() as temp:
-            root=Path(temp)/'projects';models=ScriptedModels([PLAN,outline,batch]);bench=Workbench(root,models)
+            root=Path(temp)/'projects';models=ScriptedModels([PLAN,outline,*feature_batches(batch['tasks'])]);bench=Workbench(root,models)
             config={'provider':'ollama','model':'fixture'}
             state=await_job(bench,bench.create('Build a local task tracker',config,config)['id'])
             event=bench.event
@@ -168,7 +174,7 @@ class GuidedPlanningTests(unittest.TestCase):
             resumed=Workbench(root,models);resumed.start(state['id'],'plan',{'plan_mode':'guided'})
             final=await_job(resumed,state['id'])
             self.assertEqual(final['plan'],expected);self.assertEqual(final['status'],'proposed')
-            self.assertEqual(len(models.calls),3)
+            self.assertEqual(len(models.calls),4)
 
     def test_guided_cloud_route_still_requires_explicit_consent(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -191,7 +197,7 @@ class GuidedPlanningTests(unittest.TestCase):
     def test_guided_mode_builds_full_reviewed_proposal_from_small_calls(self):
         outline,batch,expected=responses()
         with tempfile.TemporaryDirectory() as temp:
-            models=ScriptedModels([PLAN,outline,batch]);bench=Workbench(Path(temp)/'projects',models)
+            models=ScriptedModels([PLAN,outline,*feature_batches(batch['tasks'])]);bench=Workbench(Path(temp)/'projects',models)
             config={'provider':'ollama','model':'fixture'}
             state=await_job(bench,bench.create('Build a local task tracker',config,config)['id'])
             bench.start(state['id'],'plan',{'plan_mode':'guided','local_timeout':300})
@@ -199,7 +205,7 @@ class GuidedPlanningTests(unittest.TestCase):
             self.assertEqual(state['status'],'proposed',state.get('error'))
             self.assertEqual(state['plan'],expected)
             self.assertFalse(state['approved']);require_consistent(state['plan'])
-            self.assertEqual(len(models.calls),3)
+            self.assertEqual(len(models.calls),4)
             self.assertEqual(state['planning_stats']['mode'],'guided')
 
     def test_attempt_keeps_actionable_rejection_findings(self):

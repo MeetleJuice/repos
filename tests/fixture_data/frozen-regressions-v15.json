@@ -1,0 +1,71 @@
+{
+  "schema": 1,
+  "version": 15,
+  "sets": [
+    {
+      "file": "handoff-regressions-v1.json",
+      "sha256": "bbd15c652c4c919a51987a25a6a309320204e2e1f4ce62e27b904560744491f7"
+    },
+    {
+      "file": "planner-truncation-v1.json",
+      "sha256": "7f3cca7529ee88bbd18265881983835819cb84797cbfb146fc7f3b35cbe66aed"
+    },
+    {
+      "file": "completion-process-v1.json",
+      "sha256": "211c250505291c37288837021c0712b261ed5eb63bce34a05b3a1597d95a1312"
+    },
+    {
+      "file": "workflow-audit-v1.json",
+      "sha256": "901a04b683017c868144817ed4cc6d85c78b965ca6d09b2fee27187359007afe"
+    },
+    {
+      "file": "provider-pool-v1.json",
+      "sha256": "4e3d57891c112722a25f9bb9cc375b5db03cf03f208433cbf54b4b6ac1e1abfc"
+    },
+    {
+      "file": "planner-compaction-v1.json",
+      "sha256": "51bbe46efa36f106891c8f8c75bde11ac9110576dcb1518fcb53ed0512e291af"
+    },
+    {
+      "file": "planner-semantic-routing-v1.json",
+      "sha256": "bf82cecca1b3a51b64e5c2575d07c8d3f1d27e50eca91ef8a820765102ae2145"
+    },
+    {
+      "file": "build-ownership-v1.json",
+      "sha256": "ee0ee8b56887e81567e21b314df847d68e91b5c88b66c1bdbbc972a8f6f6811c"
+    },
+    {
+      "file": "workflow-five-pillars-v1.json",
+      "sha256": "5611bbbbd38cf56b32f2b548a3de5a102591f2e375b4c612b4507fbd4babceae"
+    },
+    {
+      "file": "groq-request-identity-v1.json",
+      "sha256": "112a7d4c8ebadded945a71eb4485ed61ed40e5a281e8a3200357491e2d2c900d"
+    },
+    {
+      "file": "execution-boundary-v1.json",
+      "sha256": "a72c0a4269d38fa26abcbd2106e69a76df136a1d72a1c374b84d7f94ebce1c78"
+    },
+    {
+      "file": "task-decomposition-v1.json",
+      "sha256": "110d906c762074373f536e9524799d03b98397489ef903303dc9fd73a9a40b60"
+    },
+    {
+      "file": "hybrid-execution-v1.json",
+      "sha256": "692274be11520231dfe82666a0d14ade55e5c77e12ba0657eae1dd877ad33f52"
+    },
+    {
+      "file": "delivery-control-v1.json",
+      "sha256": "b62dea142aee04ecf13ed7130350cbca0ffaa0d536ada38c8e822b38479ec9a5"
+    },
+    {
+      "file": "orchestration-v1.json",
+      "sha256": "ce6b7c02d3ef5e3c99441b4fefe6146be012ae4c0d8005f13cf045b8403322bb"
+    },
+    {
+      "file": "task-compiler-v1.json",
+      "sha256": "9081579a7827bcc983793161368700cf6eb8a5a7ffa9c38e156e10fc1aae3658"
+    }
+  ],
+  "note": "Append-only delivery-control research scenarios; no independent live benchmark."
+}

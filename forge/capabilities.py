@@ -126,7 +126,7 @@ class CapabilityRegistry:
         schema=planner_schema(system) or PLAN_SCHEMA
         if payload.get('planning_stage')=='outline':
             estimate=512+len(schema['required'])*40+min(checks,15)*240+min(features,12)*100
-        elif payload.get('planning_stage')=='tasks':
+        elif payload.get('planning_stage') in {'tasks','feature_tasks'}:
             maximum=payload.get('max_new_tasks',4)
             maximum=maximum if type(maximum) is int and 1<=maximum<=4 else 4
             estimate=512+maximum*800

@@ -86,7 +86,8 @@ _IDENTIFIERS = {'provider', 'model', 'role', 'status', 'category', 'error_catego
                 'request_sha256', 'handoff_sha256', 'sha256', 'task_id', 'source_event_id', 'file', 'path', 'function',
                 'id', 'time', 'started', 'finished', 'method', 'code', 'severity', 'outcome', 'state',
                 'failure_class', 'response_model', 'response_provider', 'current_version', 'release_version',
-                'previous_version', 'command_template', 'before_sha256', 'after_sha256', 'disposition'}
+                'previous_version', 'command_template', 'before_sha256', 'after_sha256', 'disposition',
+                'review_codes', 'planning_stage', 'task_planning_policy', 'response_sha256'}
 _FREE_TEXT = {'message', 'reason', 'meaning', 'notes', 'note', 'title', 'label', 'summary', 'description',
               'log', 'stdout', 'stderr', 'error', 'error_detail', 'detail', 'diagnosis', 'criteria',
               'done_when', 'expected', 'observed', 'outcome', 'issues', 'request', 'response',
