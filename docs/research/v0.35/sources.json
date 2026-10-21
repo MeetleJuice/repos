@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/svg/reference/element/animate/index.md",
+    "bytes": 2393,
+    "sha256": "1430757b01a935ee33f4b6906238ba6866da012b095835b11661e3acf304e652",
+    "accessed": "2026-10-21"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/capabilities/structured-outputs.mdx",
+    "bytes": 5024,
+    "sha256": "9b45a4c79461991e6e98e77669cbaf14e99c4e8ca5386e23d07ebcb956eba650",
+    "accessed": "2026-10-21"
+  }
+]

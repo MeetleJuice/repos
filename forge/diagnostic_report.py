@@ -468,6 +468,8 @@ def _planning_metadata(state: dict[str, Any]) -> dict[str, Any]:
             'draft': {'task_planning_policy': 'compiled_v1' if draft.get('task_planning_policy') == 'compiled_v1' else None,
                       'features_planned': draft.get('next_feature'),
                       'feature_count': len(outline.get('features', [])),
+                      'acceptance_features_planned': (draft.get('acceptance_draft') or {}).get('next_feature',0),
+                      'acceptance': candidate_shape({**outline,**(draft.get('acceptance_draft') or {}).get('fields',{})}),
                       'request_sha256': digest if isinstance(digest, str) and re.fullmatch(r'[a-f0-9]{64}', digest) else None,
                       **candidate_shape({**outline, 'tasks': draft.get('tasks', [])})},
             'failed_candidate': candidate_shape(state.get('failed_candidate')),

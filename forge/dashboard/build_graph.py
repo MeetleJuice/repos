@@ -162,6 +162,12 @@ show=node('local-model-show','POST OLLAMA_URL/api/show','api','Models & routing'
 flow('builder-sized-planning','Builder profile · unapproved guided tasks','Planning & approval',[root,start,job,profile,proc('run_guided()','forge/guided.py'),call,model,proc('validate_outline()','forge/guided.py'),call,model,proc('validate_batch()','forge/guided.py'),proposal,state_ids['proposed']])
 proof=proc('evidence_findings()','forge/acceptance.py','Planning & approval')
 flow('evidence-ready-planning','Evidence-ready plan · scenario and checkpoint review','Planning & approval',[root,start,job,proc('run_guided()','forge/guided.py'),call,model,proc('validate_outline()','forge/guided.py'),proof,call,model,proc('validate_batch()','forge/guided.py'),proof,proposal,state_ids['proposed']])
+feature_button=node('feature-plan-button','#plan-granular · click','ui','Planning & approval','forge/static/app.js','$("plan-granular").onclick')
+feature_saved=node('acceptance-feature-saved','Feature acceptance · saved unapproved','process','Planning & approval','forge/feature_acceptance.py','checkpoint(copy.deepcopy(draft))','A recorded checkpoint proves one validated acceptance prefix was saved, not that all features or the app are complete.')
+flow('feature-acceptance','Feature planning · saved acceptance batches before tasks','Planning & approval',
+     [root,feature_button,start,job,proc('run_compiled()','forge/task_planning.py'),proc('create_acceptance()','forge/feature_acceptance.py'),
+      call,model,proc('compile_feature()','forge/feature_acceptance.py'),feature_saved,
+      proc('run_compiled()','forge/task_planning.py'),call,model,proc('compile_tasks()','forge/task_planning.py'),proposal,state_ids['proposed']])
 flow('focused-builder','Focused Ollama task · native scoped JSON','Build & verification',[root,job,generate,handoff,call,model,native,response,apply])
 flow('model-metadata','Installed model limits · no generation','Models & routing',[root,inventory,show])
 trace=proc('Workbench.trace()')

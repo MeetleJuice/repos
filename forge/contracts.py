@@ -13,7 +13,9 @@ from .tasks import MAX_TASKS, validate_tasks
 
 Plan = dict[str, Any]
 
-def validate_structure(plan: dict[str, Any], *, outline: bool = False) -> dict[str, Any]:
+def validate_structure(plan: dict[str, Any], *, outline: bool = False, partial_acceptance: bool = False) -> dict[str, Any]:
+    if partial_acceptance and not outline:
+        raise ValueError('Partial acceptance is only an unapproved outline validation mode.')
     if not isinstance(plan, dict):
         raise ValueError("Proposal must be a JSON object.")
     if 'acceptance_policy' in plan and plan['acceptance_policy']!='evidence_v1':raise ValueError('Unsupported acceptance_policy.')
@@ -53,7 +55,7 @@ def validate_structure(plan: dict[str, Any], *, outline: bool = False) -> dict[s
         coverage(tasks, "task")
         validate_tasks(plan)
     checks = plan.get("checks")
-    if not isinstance(checks, list) or not 1 <= len(checks) <= 15:
+    if not isinstance(checks, list) or not (0 if partial_acceptance else 1) <= len(checks) <= 15:
         raise ValueError("Proposal must contain 1–15 behavioral HTTP checks.")
     behavior = False
     for check in checks:
@@ -80,7 +82,7 @@ def validate_structure(plan: dict[str, Any], *, outline: bool = False) -> dict[s
             raise ValueError("Invalid response assertion.")
         if path.split("?")[0] not in {"/", "/health"} and not re.search(r"\.(?:js|css|png|svg|ico|html)$", path.split("?")[0], re.I):
             behavior = True
-    if not behavior and not (plan.get("app_kind") == "browser" and (manual or browser)):
+    if not partial_acceptance and not behavior and not (plan.get("app_kind") == "browser" and (manual or browser)):
         raise ValueError("Add a check of actual app behavior beyond / and /health. For browser apps, set app_kind to browser and provide browser_checks or explicit manual_checks.")
     coverage(checks + manual + browser, "acceptance check")
     for task in tasks:
@@ -178,7 +180,7 @@ def _contains_body(expected: Any, body: Any) -> bool:
     return isinstance(expected, dict) and isinstance(body, dict) and bool(body) and all(expected.get(k) == v for k, v in body.items())
 
 
-def review_plan(plan: Plan, starter: str | None = None, *, outline: bool = False) -> Review:
+def review_plan(plan: Plan, starter: str | None = None, *, outline: bool = False, partial_acceptance: bool = False) -> Review:
     """Reject objective contradictions; leave ambiguous product decisions as warnings.
 
     Starter contracts are defaults. An explicit api_contracts entry may change one,
@@ -188,7 +190,7 @@ def review_plan(plan: Plan, starter: str | None = None, *, outline: bool = False
     try:
         if not isinstance(plan, dict):
             raise ValueError('Proposal must be a JSON object.')
-        validate_structure(plan, outline=outline)
+        validate_structure(plan, outline=outline, partial_acceptance=partial_acceptance)
         json.dumps(plan, allow_nan=False)
     except (ValueError, TypeError) as exc:
         return Review((Finding('structure', '/', str(exc)),))

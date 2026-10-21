@@ -32,10 +32,18 @@
             <linearGradient id="foundry-flame-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63f7ff"/><stop offset=".48" stop-color="#00bfff"/><stop offset="1" stop-color="#1654ff"/></linearGradient>
             <linearGradient id="foundry-flame-core" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcffff"/><stop offset="1" stop-color="#19ecff"/></linearGradient>
             <radialGradient id="foundry-flame-halo"><stop offset="0" stop-color="#00dfff" stop-opacity=".55"/><stop offset="1" stop-color="#0088ff" stop-opacity="0"/></radialGradient>
+            <filter id="foundry-fire-soft" x="-.35" y="-.3" width="1.7" height="1.6"><feGaussianBlur stdDeviation="10"/></filter>
           </defs>
-          <ellipse class="fire-halo" cx="627" cy="331" rx="148" ry="155" fill="url(#foundry-flame-halo)"/>
-          <g class="fire-outer"><path fill="url(#foundry-flame-blue)" d="M615 204 C646 222 659 250 658 281 C673 275 672 260 672 255 C699 282 706 315 693 347 C684 379 657 399 628 399 C589 399 562 373 559 341 C552 301 576 278 596 254 C611 235 618 220 615 204 Z"/></g>
-          <g class="fire-core"><path fill="url(#foundry-flame-core)" d="M620 294 C639 308 636 327 632 336 C650 342 649 330 652 325 C675 349 663 388 636 394 C609 401 589 385 591 365 C591 338 620 325 620 294 Z"/></g>
+          <ellipse class="fire-halo" cx="627" cy="300" rx="185" ry="205" fill="url(#foundry-flame-halo)"/>
+          <g class="fire-outer">
+            <use href="#foundry-fire-body" fill="#08cfff" opacity=".6" filter="url(#foundry-fire-soft)"/>
+            <path id="foundry-fire-body" fill="url(#foundry-flame-blue)" d="M618 150 C654 205 611 242 657 280 C667 256 675 230 674 211 C723 276 709 306 705 337 C699 378 667 408 628 408 C582 408 547 381 548 335 C545 283 596 262 596 219 C616 247 602 267 610 281 C646 240 606 200 618 150 Z">
+              <animate attributeName="d" dur="1.4s" repeatCount="indefinite" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1" values="M618 150 C654 205 611 242 657 280 C667 256 675 230 674 211 C723 276 709 306 705 337 C699 378 667 408 628 408 C582 408 547 381 548 335 C545 283 596 262 596 219 C616 247 602 267 610 281 C646 240 606 200 618 150 Z;M645 132 C656 195 604 231 648 279 C683 261 666 223 687 201 C708 267 723 310 703 342 C687 388 657 408 628 408 C578 408 551 378 549 335 C554 278 577 269 580 239 C613 264 599 279 613 291 C629 249 601 200 645 132 Z;M618 150 C654 205 611 242 657 280 C667 256 675 230 674 211 C723 276 709 306 705 337 C699 378 667 408 628 408 C582 408 547 381 548 335 C545 283 596 262 596 219 C616 247 602 267 610 281 C646 240 606 200 618 150 Z"/>
+            </path>
+          </g>
+          <g class="fire-core"><path fill="url(#foundry-flame-core)" d="M630 238 C653 293 609 314 643 345 C662 326 665 299 663 288 C704 353 672 398 633 402 C594 404 574 373 590 343 C612 308 629 283 630 238 Z">
+            <animate attributeName="d" dur=".95s" repeatCount="indefinite" values="M630 238 C653 293 609 314 643 345 C662 326 665 299 663 288 C704 353 672 398 633 402 C594 404 574 373 590 343 C612 308 629 283 630 238 Z;M651 225 C642 280 614 325 640 349 C655 322 676 307 666 282 C697 355 670 401 633 402 C595 404 577 372 593 344 C628 302 625 267 651 225 Z;M630 238 C653 293 609 314 643 345 C662 326 665 299 663 288 C704 353 672 398 633 402 C594 404 574 373 590 343 C612 308 629 283 630 238 Z"/>
+          </path></g>
         </svg></span><span>idea foundry<small>YOUR LOCAL BUILD STUDIO</small></span></a
       >
       <button id="brand-motion" class="quiet brand-motion" type="button" aria-pressed="true">Flame motion: on</button>
@@ -154,12 +162,12 @@
           </div>
           <div class="planning-controls">
             <label for="new-plan-mode">How should we plan?</label>
-            <select id="new-plan-mode"><option value="single">One complete proposal · fewer requests</option><option value="guided">Builder-sized stages</option><option value="proof">Evidence-ready stages · recommended</option></select>
+            <select id="new-plan-mode"><option value="single">One complete proposal · fewer requests</option><option value="granular">Feature by feature · local-model option</option><option value="guided">Builder-sized stages</option><option value="proof">Evidence-ready stages</option></select>
             <button id="plan-with-proof" type="button">Plan with proof →</button>
             <button id="plan-for-builder" type="button" class="secondary">Plan for my builder →</button>
             <div id="new-planning-timeout" hidden>
               <label for="new-local-timeout">Local planning socket timeout</label>
-              <select id="new-local-timeout"><option value="120">2 minutes</option><option value="300" selected>5 minutes</option><option value="600">10 minutes</option></select>
+              <select id="new-local-timeout"><option value="120" selected>2 minutes</option><option value="300">5 minutes</option><option value="600">10 minutes</option></select>
             </div>
             <p class="muted">Recommended: Plan with proof checks the plan’s example data, API contracts and early test checkpoints. It does not run or verify an app. For database apps, choose the SQLite collection foundation. Both staged modes keep tasks small; cloud calls may cost more. You approve the complete plan and execution separately.</p>
           </div>
@@ -277,7 +285,9 @@
           <h3 id="guided-title">A smaller step toward a complete plan</h3>
           <p>Save the scope, then validate acceptance checks before planning small task batches. Incorrect checks get a bounded correction or model fallback before task requests. A matching saved scope can resume. Nothing is approved or built until you review the complete proposal.</p>
           <label for="guided-local-timeout">Local planning socket timeout</label>
-          <select id="guided-local-timeout"><option value="120">2 minutes</option><option value="300" selected>5 minutes</option><option value="600">10 minutes</option></select>
+          <select id="guided-local-timeout"><option value="120" selected>2 minutes</option><option value="300">5 minutes</option><option value="600">10 minutes</option></select>
+          <button id="plan-granular" class="primary">Plan feature by feature</button>
+          <p class="muted">Recommended for local models: validate one feature’s checks at a time, save each batch, then plan tasks. Choosing this strategy starts a fresh unapproved draft. It overrides saved model socket timeouts for this run using the menu above; more calls may cost more.</p>
           <button id="plan-guided" class="secondary">Plan in smaller steps</button>
           <p class="muted">This timeout applies to local calls in this planning run. Cloud routes keep their settings. More calls can cost more; socket timeouts are not a job deadline.</p>
           <p id="guided-progress" role="status" aria-live="polite"></p>

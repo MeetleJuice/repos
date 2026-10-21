@@ -399,7 +399,7 @@ class Workbench:
                                 feedback.update(previous_proposal=result,
                                     validation_error="; ".join(f.path + ": " + f.message for f in review_result.findings if f.severity == "error"),
                                     correction_instruction="Return the complete requested stage object at the root, following its output schema. Correct the findings without dropping requirements or changing acceptance checks.")
-                                if compiled_stage and stage_payload.get('planning_stage') == 'acceptance':
+                                if compiled_stage and stage_payload.get('planning_stage') in {'acceptance','acceptance_feature'}:
                                     feedback['correction_instruction'] = (
                                         'Return the complete corrected UNAPPROVED ACCEPTANCE object, not a patch or full proposal. '
                                         'You may change rejected draft check names, methods, sample bodies, assertions, restart flags, '
@@ -409,6 +409,8 @@ class Workbench:
                                         'Create a concrete sample, GET the same saved value with restart_before:true, then delete it. '
                                         'Never alter any approved baseline checks or frozen tests in request.existing_project. '
                                         'No tasks, source code, invented execution results or silently dropped requirements.')
+                                    if stage_payload.get('planning_stage')=='acceptance_feature':
+                                        feedback['correction_instruction'] += ' Only correct the current target feature. Earlier acceptance is fixed. Do not return feature_indexes; the controller assigns them. Do not copy checks for other features.'
                                 choices.insert(index+1, (selected, is_fallback))
                                 correction_prompts[index+1] = json.dumps(feedback)
                                 recoveries[index+1] = ("schema_correction", "")
@@ -608,8 +610,8 @@ class Workbench:
     def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:
         if self.maintenance:
             raise ValueError("An update is being installed. Wait for the restart.")
-        if plan_mode not in {'single','guided','proof'}:
-            raise ValueError('Choose single, guided or proof planning.')
+        if plan_mode not in {'single','guided','proof','granular'}:
+            raise ValueError('Choose single, guided, proof or granular planning.')
         if local_timeout is not None and (type(local_timeout) is not int or local_timeout not in {120,300,600}):
             raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
         if type(use_reviewed_plan) is not bool or (use_reviewed_plan and starter != "arcade"):
@@ -668,7 +670,7 @@ class Workbench:
             options = dict(options)
             if action=='build' and (state.get('plan') or {}).get('acceptance_policy')=='evidence_v1' and options.get('execute') and options.get('milestones',True) is not True:
                 raise ValueError('This evidence-ready plan requires its approved checkpoints during execution. Enable Check runnable milestones during this build, or generate files without execution.')
-            if options.get('plan_mode','single') not in {'single','guided','proof'}:raise ValueError('Choose single, guided or proof planning.')
+            if options.get('plan_mode','single') not in {'single','guided','proof','granular'}:raise ValueError('Choose single, guided, proof or granular planning.')
             if options.get('local_timeout') is not None and (type(options['local_timeout']) is not int or options['local_timeout'] not in {120,300,600}):raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
             state['job_local_timeout']=options.get('local_timeout') if action=='plan' else None
             if type(options.get('stream_local',False)) is not bool:raise ValueError('Local streaming setting must be a JSON boolean.')
@@ -1257,7 +1259,9 @@ class Workbench:
                            "scope_priority": "The latest revision overrides conflicting original details. Preserve requested storage: localStorage must not become SQLite. Preserve UI/game requirements; HTTP delivery never proves gameplay.",
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
                 state['builder_profile']=request['builder_profile']
-                if options.get('plan_mode')=='proof':state['evidence_planning']=True
+                if options.get('plan_mode') in {'proof','granular'}:state['evidence_planning']=True
+                if options.get('plan_mode')=='granular':state['feature_acceptance']=True
+                elif options.get('plan_mode') in {'single','guided','proof'}:state.pop('feature_acceptance',None)
                 if state.get('evidence_planning'):
                     from .acceptance import GUIDANCE
                     request['acceptance_policy']='evidence_v1'
@@ -1309,21 +1313,25 @@ class Workbench:
                     # New drafts only: approved plans and legacy replay contracts stay intact.
                     request['task_planning_policy']='compiled_v1'
                     request['outline_planning_policy']='split_v1'
+                    if state.get('feature_acceptance'):request['acceptance_planning_policy']='feature_v1'
                     def checkpoint(draft):
                         state['guided_draft']=draft
                         outline=draft.get('outline') or draft.get('scope') or {}
                         stage='scope saved' if draft.get('outline') is None else 'outline saved' if not draft['tasks'] else 'task batch saved'
                         if draft.get('acceptance_recovery'):
                             stage='saved scope kept; correcting acceptance before rebuilding task batches'
+                        acceptance=(draft.get('acceptance_draft') or {}).get('next_feature',0)
+                        if draft.get('outline') is None and acceptance:stage='feature acceptance saved'
                         state['planning_progress']={'stage':stage,
                             'task_planning_policy':draft.get('task_planning_policy'),
                             'features_planned':draft['next_feature'],'features_total':len(outline.get('features',[])),
+                            'acceptance_features_planned':acceptance,
                             'tasks':len(draft['tasks']),'meaning':'Unapproved draft only. Final full-proposal review is still required.'}
                         self.trace(state,'guided_plan_checkpoint',state['planning_progress'])
                         self.event(state,'Guided planning: '+str(draft['next_feature'])+'/'+str(len(outline.get('features',[])))+' features assigned to '+str(len(draft['tasks']))+' tasks. '+stage+'. Draft saved; not approved.')
                     def generate_stage(system,payload,validate):
                         stage=payload.get('planning_stage')
-                        self.event(state,'Guided planning: '+({'scope':'define scope only','acceptance':'define acceptance against saved scope','outline':'define features and acceptance checks'}.get(stage,'plan feature indexes '+str(payload.get('target_feature_indexes',[]))))+'.')
+                        self.event(state,'Guided planning: '+({'scope':'define scope only','acceptance':'define acceptance against saved scope','outline':'define features and acceptance checks','acceptance_feature':'define acceptance for feature '+str(payload.get('target_feature_index'))}.get(stage,'plan feature indexes '+str(payload.get('target_feature_indexes',[]))))+'.')
                         def review_stage(candidate):
                             if state.get('evidence_planning') and payload.get('planning_stage')=='outline' and isinstance(candidate,dict):
                                 candidate={**candidate,'acceptance_policy':'evidence_v1'}

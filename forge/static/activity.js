@@ -5,12 +5,18 @@ let streamProject = null;
 const brandEmblem = $("brand-emblem");
 const brandMotion = $("brand-motion");
 let flameMotion = true;
+const flameReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 try { flameMotion = localStorage.getItem("foundry-flame-motion") !== "off"; } catch (_) { /* Storage is optional. */ }
 function renderFlameMotion() {
   brandEmblem.dataset.motion = String(flameMotion);
   brandEmblem.dataset.hidden = String(document.hidden);
+  const fire = brandEmblem.querySelector('svg');
+  if (fire && typeof fire.pauseAnimations === 'function') {
+    if (flameMotion && !document.hidden && !flameReducedMotion.matches) fire.unpauseAnimations();
+    else fire.pauseAnimations();
+  }
   brandMotion.setAttribute("aria-pressed", String(flameMotion));
-  brandMotion.textContent = "Flame motion: " + (flameMotion ? "on" : "off");
+  brandMotion.textContent = "Flame motion: " + (flameMotion ? (flameReducedMotion.matches ? "system reduced" : "on") : "off");
 }
 brandMotion.onclick = () => {
   flameMotion = !flameMotion;
@@ -18,6 +24,7 @@ brandMotion.onclick = () => {
   renderFlameMotion();
 };
 document.addEventListener("visibilitychange", renderFlameMotion);
+flameReducedMotion.addEventListener('change', renderFlameMotion);
 renderFlameMotion();
 async function refreshModelStatus() {
   if (statusPolling || document.hidden) return;

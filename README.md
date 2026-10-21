@@ -1,8 +1,8 @@
-# Idea Foundry 0.34.0
+# Idea Foundry 0.35.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
-**New: living forge and focused acceptance corrections.** A larger mascot has an animated blue/cyan flame, observed model activity and a motion toggle. Acceptance corrections may fix rejected unapproved checks while preserving scope and approved baseline evidence. Concrete examples and scope-bounded feature references guide smaller models. [v0.34.0 findings, known issues and test steps](docs/RELEASE-0.34.0.md).
+**New: Plan feature by feature.** An explicit new workflow saves acceptance for one feature at a time, gives bookkeeping to the controller and excludes obsolete rejected-plan context from feature requests. Final approval and behavioral tests remain required. The larger forge emblem has flowing blue/cyan flame contours and a pause control. [v0.35.0 audit, changes and test steps](docs/RELEASE-0.35.0.md).
 
 **Test → Diag.** Click **Test**, run quick storage/controller/catalogue checks, then optionally select local or explicitly consented cloud response probes. Close Test when finished, click **Diag**, and download its ZIP. Tiny probes do not establish project-building ability or change saved routes. [Test guide](docs/RELEASE-0.33.0.md).
 

@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "provenance": {
+    "kind": "synthetic-five-feature-regression",
+    "report_id": "beec18d6f5d94ed5a9d90200ac3a9ea1",
+    "observed_calls": 8,
+    "observed_rejections": 6,
+    "observed_timeouts": 2,
+    "observed_timeout_seconds": 600.18,
+    "observed_run_seconds": 767.064,
+    "original_model_candidates_available": false,
+    "live_model_generation": false
+  },
+  "scope": {
+    "title": "Synthetic Tiny Wins",
+    "summary": "A small SQLite accomplishment app.",
+    "app_kind": "server",
+    "features": [
+      "Create an entry",
+      "List entries",
+      "Delete an entry",
+      "Persist across restart",
+      "Use browser controls and timestamps"
+    ],
+    "out_of_scope": [
+      "Accounts"
+    ],
+    "risks": [
+      "Manual UI observations are still required."
+    ],
+    "task_contract_version": 1,
+    "context_policy": "focused_v1"
+  },
+  "packets": [
+    {
+      "checks": [
+        {
+          "name": "Create entry",
+          "method": "POST",
+          "path": "/api/tasks",
+          "status": 201,
+          "body": {
+            "title": "First sample"
+          },
+          "json_contains": {
+            "title": "First sample"
+          }
+        }
+      ],
+      "api_contracts": [
+        {
+          "method": "POST",
+          "path": "/api/tasks",
+          "status": 201,
+          "response_kind": "object",
+          "required_fields": [
+            "id",
+            "title"
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/api/tasks",
+          "status": 200,
+          "response_kind": "array",
+          "required_fields": [
+            "id",
+            "title"
+          ]
+        },
+        {
+          "method": "DELETE",
+          "path": "/api/tasks/{id}",
+          "status": 204,
+          "response_kind": "empty",
+          "required_fields": []
+        }
+      ]
+    },
+    {
+      "checks": [
+        {
+          "name": "Read entry",
+          "method": "GET",
+          "path": "/api/tasks",
+          "status": 200,
+          "json_contains": [
+            {
+              "title": "First sample"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "checks": [
+        {
+          "name": "Delete entry",
+          "method": "DELETE",
+          "path": "/api/tasks/1",
+          "status": 204,
+          "empty_body": true
+        }
+      ]
+    },
+    {
+      "checks": [
+        {
+          "name": "Create persistence sample",
+          "method": "POST",
+          "path": "/api/tasks",
+          "status": 201,
+          "body": {
+            "title": "Second sample"
+          },
+          "json_contains": {
+            "title": "Second sample"
+          }
+        },
+        {
+          "name": "Read sample after restart",
+          "method": "GET",
+          "path": "/api/tasks",
+          "status": 200,
+          "restart_before": true,
+          "json_contains": [
+            {
+              "title": "Second sample"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "checks": [],
+      "manual_checks": [
+        {
+          "name": "Use browser controls",
+          "steps": [
+            "Add an accomplishment using the form, inspect its timestamp, reload, then delete it."
+          ],
+          "expected": "The timestamp appears and saved entries remain until deleted."
+        }
+      ]
+    }
+  ],
+  "expected_http_feature_indexes": [
+    [
+      0
+    ],
+    [
+      1
+    ],
+    [
+      2
+    ],
+    [
+      3
+    ],
+    [
+      3
+    ]
+  ],
+  "expected_manual_feature_indexes": [
+    [
+      4
+    ]
+  ]
+}

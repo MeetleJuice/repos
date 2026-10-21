@@ -28,14 +28,19 @@ document.querySelector('#form').onsubmit=async event=>{event.preventDefault();co
 CSS='body{background:#111827;color:#f8fafc;font:16px system-ui;margin:0}main{max-width:650px;margin:3rem auto;padding:1rem}h1{color:#fbbf24}form{display:flex;gap:.5rem;flex-wrap:wrap}input{min-width:0;max-width:100%}li{padding:1rem;border:1px solid #475569;display:flex;justify-content:space-between;gap:1rem;overflow-wrap:anywhere}button{background:#fbbf24;color:#111827;border:0;padding:.6rem;border-radius:.4rem}span{min-width:0}'
 
 
-def main():
+def main(granular=False):
     plan=sqlite_plan();outline={k:v for k,v in plan.items() if k!='tasks'}
     claim={'already_satisfied':{'reason':'The reviewed starter already implements record creation, retrieval and SQLite persistence; retain it and run the approved prefix.',
         'evidence':[{'file':'storage.py','contains':'class Store:\n    def __init__(self, path):'}]}}
     scope,acceptance=outline_replies(outline)
     invalid=copy.deepcopy(acceptance)
     invalid['checks'][2].pop('restart_before')
-    models=ScriptedModels([scope,invalid,acceptance,*feature_batches(plan['tasks']),claim,{'files':{'index.html':HTML,'style.css':CSS}}])
+    if granular:
+        from tests.test_feature_acceptance import feature_replies
+        packets=feature_replies(acceptance,2);invalid=copy.deepcopy(packets[0]);invalid['checks'][0]['restart_before']=True
+        planning=[scope,invalid,*packets]
+    else:planning=[scope,invalid,acceptance]
+    models=ScriptedModels([*planning,*feature_batches(plan['tasks']),claim,{'files':{'index.html':HTML,'style.css':CSS}}])
     info={'ollama':{'connected':True,'models':['qwen2.5-coder:7b']}}
     with tempfile.TemporaryDirectory() as folder,patch('forge.server.connection_info',return_value=info),patch('forge.models.request_json',return_value={}):
         bench=Workbench(Path(folder)/'projects',models);server=make_server(0,bench)
@@ -46,13 +51,19 @@ def main():
                 page.on('pageerror',lambda error:errors.append(str(error)))
                 page.goto('http://127.0.0.1:'+str(server.server_port))
                 page.locator('#idea').fill('A local Tiny Wins tracker with tested SQLite storage and a simple browser interface')
-                page.locator('#starter').select_option('sqlite');page.locator('#plan-with-proof').click()
+                page.locator('#starter').select_option('sqlite')
+                if granular:
+                    page.locator('#new-plan-mode').select_option('granular')
+                    expect(page.locator('#new-local-timeout')).to_have_value('120')
+                    page.locator('#propose').click()
+                else:page.locator('#plan-with-proof').click()
                 expect(page.locator('#project-status')).to_have_text('proposed',timeout=15000)
                 state=bench.list_projects()[0];ident=state['id'];frozen=copy.deepcopy(state['plan'])
                 assert state['evidence_planning'] and frozen['acceptance_policy']=='evidence_v1'
-                assert [call['planning_stage'] for call in models.calls[:5]]==['scope','acceptance','acceptance','feature_tasks','feature_tasks']
+                expected=['scope','acceptance_feature','acceptance_feature','acceptance_feature','feature_tasks','feature_tasks'] if granular else ['scope','acceptance','acceptance','feature_tasks','feature_tasks']
+                assert [call['planning_stage'] for call in models.calls[:len(expected)]]==expected
                 assert state['model_calls'][1]['failure_class']=='schema_error'
-                assert 'false_restart' in state['model_calls'][1]['review_codes']
+                assert ('restart_evidence' if granular else 'false_restart') in state['model_calls'][1]['review_codes']
                 expect(page.locator('#builder-profile')).to_contain_text('Evidence-ready')
                 page.locator('#approve').click();page.locator('#runtime').select_option('local')
                 page.locator('#execution-consent').check();page.locator('#repairs').select_option('0');page.locator('#milestone-checks').check();page.locator('#verify').click()

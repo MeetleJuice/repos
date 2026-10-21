@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "baseline": "core 0.34.0 \u00b7 source excerpts checked by tests",
+  "baseline": "core 0.35.0 \u00b7 source excerpts checked by tests",
   "nodes": [
     {
       "id": "document",
@@ -58,7 +58,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1047,
+      "line": 1052,
       "excerpt": "async function saveDownload(path, name) {",
       "description": ""
     },
@@ -158,7 +158,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 608,
+      "line": 610,
       "excerpt": "    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -238,7 +238,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 657,
+      "line": 659,
       "excerpt": "    def start(self, ident, action, options):",
       "description": ""
     },
@@ -258,7 +258,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1154,
+      "line": 1159,
       "excerpt": "  const saved = await api(`/api/projects/${id}/proposal`, { plan });",
       "description": "saveReviewedProposal()"
     },
@@ -278,7 +278,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 789,
+      "line": 791,
       "excerpt": "    def save_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -288,7 +288,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1154,
+      "line": 1159,
       "excerpt": "  const saved = await api(`/api/projects/${id}/proposal`, { plan });",
       "description": "Returns to saveReviewedProposal(). This is UI/controller progress, not behavioral verification."
     },
@@ -298,7 +298,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/planning.js",
-      "line": 180,
+      "line": 182,
       "excerpt": "    result = await api(`/api/projects/${id}/review`, { plan });",
       "description": "reviewEditor()"
     },
@@ -318,7 +318,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 846,
+      "line": 848,
       "excerpt": "    def review_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -328,7 +328,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/planning.js",
-      "line": 180,
+      "line": 182,
       "excerpt": "    result = await api(`/api/projects/${id}/review`, { plan });",
       "description": "Returns to reviewEditor(). This is UI/controller progress, not behavioral verification."
     },
@@ -338,7 +338,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1128,
+      "line": 1133,
       "excerpt": "  current = await api(`/api/projects/${id}/starter-plan`, {});",
       "description": "recover-standard-game.onclick"
     },
@@ -358,7 +358,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 806,
+      "line": 808,
       "excerpt": "    def load_starter_plan(self, ident: str) -> dict[str, Any]:",
       "description": ""
     },
@@ -368,7 +368,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1128,
+      "line": 1133,
       "excerpt": "  current = await api(`/api/projects/${id}/starter-plan`, {});",
       "description": "Returns to recover-standard-game.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -378,7 +378,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 635,
+      "line": 640,
       "excerpt": "  current = await api(`/api/projects/${current.id}/approve`, {",
       "description": "approve.onclick"
     },
@@ -398,7 +398,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 763,
+      "line": 765,
       "excerpt": "    def approve(self, ident, plan):",
       "description": ""
     },
@@ -408,7 +408,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 635,
+      "line": 640,
       "excerpt": "  current = await api(`/api/projects/${current.id}/approve`, {",
       "description": "Returns to approve.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -478,7 +478,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 659,
+      "line": 664,
       "excerpt": "  const result = await api(`/api/projects/${current.id}/stop`, {});",
       "description": "stop.onclick; scoped live stop in activity.js"
     },
@@ -498,7 +498,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 755,
+      "line": 757,
       "excerpt": "    def stop(self, ident):",
       "description": ""
     },
@@ -508,7 +508,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 659,
+      "line": 664,
       "excerpt": "  const result = await api(`/api/projects/${current.id}/stop`, {});",
       "description": "Returns to stop.onclick; scoped live stop in activity.js. This is UI/controller progress, not behavioral verification."
     },
@@ -558,7 +558,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1185,
+      "line": 1190,
       "excerpt": "  const journal = await api(`/api/projects/${id}/history`);",
       "description": "loadHistory(); download-history reuses same endpoint"
     },
@@ -588,7 +588,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1185,
+      "line": 1190,
       "excerpt": "  const journal = await api(`/api/projects/${id}/history`);",
       "description": "Returns to loadHistory(); download-history reuses same endpoint. This is UI/controller progress, not behavioral verification."
     },
@@ -618,7 +618,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 886,
+      "line": 888,
       "excerpt": "    def files(self, ident):",
       "description": ""
     },
@@ -638,7 +638,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 708,
+      "line": 713,
       "excerpt": "  const response = await fetch(`/api/projects/${current.id}/download`, {",
       "description": "download.onclick \u2192 fetch / Blob"
     },
@@ -668,7 +668,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 708,
+      "line": 713,
       "excerpt": "  const response = await fetch(`/api/projects/${current.id}/download`, {",
       "description": "Returns to download.onclick \u2192 fetch / Blob. This is UI/controller progress, not behavioral verification."
     },
@@ -678,7 +678,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1110,
+      "line": 1115,
       "excerpt": "  const files = await api(\"/api/projects/\" + current.id + \"/diff\");",
       "description": "review-diff.onclick"
     },
@@ -698,7 +698,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 589,
+      "line": 591,
       "excerpt": "    def diff(self, ident):",
       "description": ""
     },
@@ -708,7 +708,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1110,
+      "line": 1115,
       "excerpt": "  const files = await api(\"/api/projects/\" + current.id + \"/diff\");",
       "description": "Returns to review-diff.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -718,7 +718,7 @@
       "kind": "action",
       "category": "Build & verification",
       "source": "forge/static/app.js",
-      "line": 881,
+      "line": 886,
       "excerpt": "  current = await api(`/api/projects/${current.id}/manual`, {",
       "description": "save-manual.onclick"
     },
@@ -738,7 +738,7 @@
       "kind": "process",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 825,
+      "line": 827,
       "excerpt": "    def record_manual(self, ident: str, results: list[bool], notes: list[str] | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -748,7 +748,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/static/app.js",
-      "line": 881,
+      "line": 886,
       "excerpt": "  current = await api(`/api/projects/${current.id}/manual`, {",
       "description": "Returns to save-manual.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -778,7 +778,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 924,
+      "line": 926,
       "excerpt": "    def restore(self, ident, snapshot):",
       "description": ""
     },
@@ -798,7 +798,7 @@
       "kind": "action",
       "category": "Models & routing",
       "source": "forge/static/app.js",
-      "line": 1089,
+      "line": 1094,
       "excerpt": "  current = await api(\"/api/projects/\" + current.id + \"/models\", models);",
       "description": "model-form.onsubmit; cloud.js applyCloud"
     },
@@ -818,7 +818,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 509,
+      "line": 511,
       "excerpt": "    def configure_models(self, ident: str, planner: dict[str, Any], coder: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -828,7 +828,7 @@
       "kind": "state",
       "category": "Models & routing",
       "source": "forge/static/app.js",
-      "line": 1089,
+      "line": 1094,
       "excerpt": "  current = await api(\"/api/projects/\" + current.id + \"/models\", models);",
       "description": "Returns to model-form.onsubmit; cloud.js applyCloud. This is UI/controller progress, not behavioral verification."
     },
@@ -838,7 +838,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1099,
+      "line": 1104,
       "excerpt": "    const next = await api(\"/api/projects/\" + current.id + \"/change\", {",
       "description": "request-change.onclick"
     },
@@ -858,7 +858,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 520,
+      "line": 522,
       "excerpt": "    def fork(self, ident: str, request: str, cloud_consent: bool = False) -> dict[str, Any]:",
       "description": ""
     },
@@ -868,7 +868,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1099,
+      "line": 1104,
       "excerpt": "    const next = await api(\"/api/projects/\" + current.id + \"/change\", {",
       "description": "Returns to request-change.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -898,7 +898,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 742,
+      "line": 744,
       "excerpt": "    def adopt_resume_baseline(self, ident):",
       "description": ""
     },
@@ -958,7 +958,7 @@
       "kind": "action",
       "category": "Models & routing",
       "source": "forge/static/activity.js",
-      "line": 26,
+      "line": 33,
       "excerpt": "    const snapshot = await api(\"/api/model-status\");",
       "description": "1000 ms poll; skips hidden page"
     },
@@ -988,7 +988,7 @@
       "kind": "state",
       "category": "Models & routing",
       "source": "forge/static/activity.js",
-      "line": 26,
+      "line": 33,
       "excerpt": "    const snapshot = await api(\"/api/model-status\");",
       "description": "Returns to 1000 ms poll; skips hidden page. This is UI/controller progress, not behavioral verification."
     },
@@ -1258,7 +1258,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 731,
+      "line": 733,
       "excerpt": "    def calibrate_local(self, model):",
       "description": ""
     },
@@ -1278,7 +1278,7 @@
       "kind": "action",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1021,
+      "line": 1026,
       "excerpt": "  const info = await api(\"/api/info\");",
       "description": "workspaceInfo(); updates.js update-button"
     },
@@ -1308,7 +1308,7 @@
       "kind": "state",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1021,
+      "line": 1026,
       "excerpt": "  const info = await api(\"/api/info\");",
       "description": "Returns to workspaceInfo(); updates.js update-button. This is UI/controller progress, not behavioral verification."
     },
@@ -1318,7 +1318,7 @@
       "kind": "action",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1022,
+      "line": 1027,
       "excerpt": "  const insights = await api(\"/api/insights\");",
       "description": "workspaceInfo()"
     },
@@ -1338,7 +1338,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 639,
+      "line": 641,
       "excerpt": "    def insights(self):",
       "description": ""
     },
@@ -1348,7 +1348,7 @@
       "kind": "state",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1022,
+      "line": 1027,
       "excerpt": "  const insights = await api(\"/api/insights\");",
       "description": "Returns to workspaceInfo(). This is UI/controller progress, not behavioral verification."
     },
@@ -1358,7 +1358,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1068,
+      "line": 1073,
       "excerpt": "  saveDownload(\"/api/backup\", \"Idea-Foundry-workspace-backup.zip\"),",
       "description": "saveDownload(); direct fetch"
     },
@@ -1378,7 +1378,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 571,
+      "line": 573,
       "excerpt": "    def backup(self):",
       "description": ""
     },
@@ -1388,7 +1388,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1068,
+      "line": 1073,
       "excerpt": "  saveDownload(\"/api/backup\", \"Idea-Foundry-workspace-backup.zip\"),",
       "description": "Returns to saveDownload(); direct fetch. This is UI/controller progress, not behavioral verification."
     },
@@ -1578,7 +1578,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostic_report.py",
-      "line": 480,
+      "line": 482,
       "excerpt": "def collect_report(bench: Any, program_root: Path, updater: Any = None,",
       "description": ""
     },
@@ -1618,7 +1618,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostic_report.py",
-      "line": 767,
+      "line": 769,
       "excerpt": "def export_report(report: dict[str, Any]) -> bytes:",
       "description": ""
     },
@@ -1908,7 +1908,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 757,
+      "line": 762,
       "excerpt": "}, 1800);",
       "description": ""
     },
@@ -1918,7 +1918,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/activity.js",
-      "line": 70,
+      "line": 77,
       "excerpt": "setInterval(refreshModelStatus, 1000);",
       "description": ""
     },
@@ -1948,7 +1948,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/planning.js",
-      "line": 310,
+      "line": 312,
       "excerpt": "    proposalReviewTimer = setTimeout(reviewEditor, 500);",
       "description": ""
     },
@@ -1958,7 +1958,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 723,
+      "line": 728,
       "excerpt": "  setTimeout(() => URL.revokeObjectURL(url), 1000);",
       "description": ""
     },
@@ -1978,7 +1978,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1263,
+      "line": 1268,
       "excerpt": "$(\"history-details\").addEventListener(\"toggle\", () => {",
       "description": ""
     },
@@ -1988,7 +1988,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/planning.js",
-      "line": 199,
+      "line": 201,
       "excerpt": "window.addEventListener(\"DOMContentLoaded\", () => {",
       "description": ""
     },
@@ -2058,7 +2058,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1145,
+      "line": 1147,
       "excerpt": "            state[\"status\"] = \"repairing\"",
       "description": ""
     },
@@ -2078,7 +2078,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 528,
+      "line": 530,
       "excerpt": "            state.update(id=uuid.uuid4().hex, parent_id=ident, parent_title=parent[\"title\"],",
       "description": ""
     },
@@ -2088,7 +2088,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 749,
+      "line": 751,
       "excerpt": "            state.update(status='approved',error=None,checks=None,manual_results={},verification_fingerprint=None)",
       "description": ""
     },
@@ -2098,7 +2098,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 799,
+      "line": 801,
       "excerpt": "            state.update(plan=candidate, title=candidate[\"title\"], status=\"proposed\", error=None,",
       "description": ""
     },
@@ -2108,7 +2108,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1135,
+      "line": 1137,
       "excerpt": "                state[\"status\"] = \"needs_attention\"",
       "description": ""
     },
@@ -2118,7 +2118,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1402,
+      "line": 1410,
       "excerpt": "                state[\"status\"] = \"building\"",
       "description": ""
     },
@@ -2128,7 +2128,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1424,
+      "line": 1432,
       "excerpt": "                state[\"status\"] = \"generated\"",
       "description": ""
     },
@@ -2138,7 +2138,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1432,
+      "line": 1440,
       "excerpt": "                state[\"status\"] = \"checking\"",
       "description": ""
     },
@@ -2148,7 +2148,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1480,
+      "line": 1488,
       "excerpt": "            state[\"status\"] = \"stopped\"",
       "description": ""
     },
@@ -2158,7 +2158,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 719,
+      "line": 721,
       "excerpt": "            state[\"status\"] = \"planning\" if action == \"plan\" else \"building\"",
       "description": ""
     },
@@ -2168,7 +2168,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1484,
+      "line": 1492,
       "excerpt": "            state[\"status\"], state[\"error\"] = \"error\", str(exc)[:2000]",
       "description": ""
     },
@@ -2178,7 +2178,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1460,
+      "line": 1468,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2188,7 +2188,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1460,
+      "line": 1468,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2208,7 +2208,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1105,
+      "line": 1107,
       "excerpt": "    def _inspect_and_repair(self, state, cancel, remaining, complete=True, repair_task=None):",
       "description": ""
     },
@@ -2228,7 +2228,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1222,
+      "line": 1224,
       "excerpt": "    def _job(self, state, action, options, cancel):",
       "description": ""
     },
@@ -2248,7 +2248,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/contracts.py",
-      "line": 283,
+      "line": 285,
       "excerpt": "def require_consistent(plan: Plan, starter: str | None = None) -> Review:",
       "description": ""
     },
@@ -2258,7 +2258,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 948,
+      "line": 950,
       "excerpt": "    def apply(self, state, response, repair=False):",
       "description": ""
     },
@@ -2268,7 +2268,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1010,
+      "line": 1012,
       "excerpt": "    def generate_and_apply(self, state, payload, cancel, repair=False):",
       "description": ""
     },
@@ -2328,7 +2328,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 905,
+      "line": 907,
       "excerpt": "    def checkpoint(self, state, label):",
       "description": ""
     },
@@ -2338,7 +2338,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/guided.py",
-      "line": 120,
+      "line": 122,
       "excerpt": "def run_guided(request: dict[str,Any], generate: Callable[[str,dict[str,Any],Callable[[dict[str,Any]],None]],dict[str,Any]],",
       "description": ""
     },
@@ -2348,7 +2348,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/guided.py",
-      "line": 48,
+      "line": 50,
       "excerpt": "def validate_outline(candidate: dict[str,Any]) -> None:",
       "description": ""
     },
@@ -2358,7 +2358,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/guided.py",
-      "line": 69,
+      "line": 71,
       "excerpt": "def validate_batch(candidate: dict[str,Any], outline: dict[str,Any], earlier: list[dict[str,Any]], targets: list[int], maximum: int, profile: dict[str,Any] | None = None) -> None:",
       "description": ""
     },
@@ -2570,6 +2570,46 @@
       "source": "forge/acceptance.py",
       "line": 20,
       "excerpt": "def evidence_findings(plan: dict[str,Any], *, outline: bool = False, partial: bool = False) -> list[tuple[str,str,str]]:",
+      "description": ""
+    },
+    {
+      "id": "feature-plan-button",
+      "label": "#plan-granular \u00b7 click",
+      "kind": "ui",
+      "category": "Planning & approval",
+      "source": "forge/static/app.js",
+      "line": 634,
+      "excerpt": "$(\"plan-granular\").onclick = handle(() => job(\"plan\", {",
+      "description": ""
+    },
+    {
+      "id": "acceptance-feature-saved",
+      "label": "Feature acceptance \u00b7 saved unapproved",
+      "kind": "process",
+      "category": "Planning & approval",
+      "source": "forge/feature_acceptance.py",
+      "line": 104,
+      "excerpt": "        checkpoint(copy.deepcopy(draft))",
+      "description": "A recorded checkpoint proves one validated acceptance prefix was saved, not that all features or the app are complete."
+    },
+    {
+      "id": "proc-create-acceptance",
+      "label": "create_acceptance()",
+      "kind": "process",
+      "category": "Workbench & session",
+      "source": "forge/feature_acceptance.py",
+      "line": 79,
+      "excerpt": "def create_acceptance(request: dict[str,Any], scope: dict[str,Any], generate: Callable[...,dict[str,Any]],",
+      "description": ""
+    },
+    {
+      "id": "proc-compile-feature",
+      "label": "compile_feature()",
+      "kind": "process",
+      "category": "Workbench & session",
+      "source": "forge/feature_acceptance.py",
+      "line": 50,
+      "excerpt": "def compile_feature(scope: dict[str,Any], earlier: dict[str,Any], candidate: dict[str,Any],",
       "description": ""
     },
     {
@@ -5187,6 +5227,54 @@
       "label": "recorded call / continuation"
     },
     {
+      "id": "document--feature-plan-button",
+      "source": "document",
+      "target": "feature-plan-button",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "feature-plan-button--proc-workbench-start",
+      "source": "feature-plan-button",
+      "target": "proc-workbench-start",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-run-compiled--proc-create-acceptance",
+      "source": "proc-run-compiled",
+      "target": "proc-create-acceptance",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-create-acceptance--proc-workbench-call-model",
+      "source": "proc-create-acceptance",
+      "target": "proc-workbench-call-model",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-modelclient-complete--proc-compile-feature",
+      "source": "proc-modelclient-complete",
+      "target": "proc-compile-feature",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-compile-feature--acceptance-feature-saved",
+      "source": "proc-compile-feature",
+      "target": "acceptance-feature-saved",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "acceptance-feature-saved--proc-run-compiled",
+      "source": "acceptance-feature-saved",
+      "target": "proc-run-compiled",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-compile-tasks--proc-require-consistent",
+      "source": "proc-compile-tasks",
+      "target": "proc-require-consistent",
+      "label": "recorded call / continuation"
+    },
+    {
       "id": "proc-workbench-job--proc-workbench-generate-and-apply",
       "source": "proc-workbench-job",
       "target": "proc-workbench-generate-and-apply",
@@ -7756,6 +7844,30 @@
         "proc-modelclient-complete",
         "proc-validate-batch",
         "proc-evidence-findings",
+        "proc-require-consistent",
+        "state-proposed"
+      ],
+      "failures": []
+    },
+    {
+      "id": "feature-acceptance",
+      "label": "Feature planning \u00b7 saved acceptance batches before tasks",
+      "category": "Planning & approval",
+      "path": [
+        "document",
+        "feature-plan-button",
+        "proc-workbench-start",
+        "proc-workbench-job",
+        "proc-run-compiled",
+        "proc-create-acceptance",
+        "proc-workbench-call-model",
+        "proc-modelclient-complete",
+        "proc-compile-feature",
+        "acceptance-feature-saved",
+        "proc-run-compiled",
+        "proc-workbench-call-model",
+        "proc-modelclient-complete",
+        "proc-compile-tasks",
         "proc-require-consistent",
         "state-proposed"
       ],

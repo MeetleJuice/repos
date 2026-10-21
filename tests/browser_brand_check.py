@@ -30,12 +30,13 @@ def main():
                 page.goto('http://127.0.0.1:'+str(server.server_port))
                 emblem=page.locator('#brand-emblem');outer=page.locator('.fire-outer');button=page.locator('#brand-motion')
                 expect(emblem).to_have_attribute('data-working','false')
-                assert emblem.bounding_box()['width']==144
+                assert emblem.bounding_box()['width']==192
                 assert outer.evaluate('(e)=>getComputedStyle(e).animationName')=='forge-flame'
                 expect(page.locator('.brand-mark')).to_have_attribute('src','/icon.png')
                 page.locator('.brand').screenshot(path='/tmp/034-brand-desktop.png')
                 button.click();expect(button).to_have_attribute('aria-pressed','false')
                 assert outer.evaluate('(e)=>getComputedStyle(e).animationPlayState')=='paused'
+                assert page.locator('.brand-fire').evaluate('(e)=>e.animationsPaused()')
                 page.reload();expect(emblem).to_have_attribute('data-motion','false')
                 button.click();expect(emblem).to_have_attribute('data-motion','true')
                 config={'provider':'ollama','model':'fixture'}
@@ -45,6 +46,7 @@ def main():
                 assert outer.evaluate('(e)=>getComputedStyle(e).animationDuration')=='1.4s'
                 page.emulate_media(reduced_motion='reduce')
                 assert outer.evaluate('(e)=>getComputedStyle(e).animationName')=='none'
+                assert page.locator('.brand-fire').evaluate('(e)=>e.animationsPaused()')
                 expect(emblem).to_have_attribute('data-working','true')
                 release.set();assert await_job(bench,state['id'])['status']=='proposed'
                 expect(emblem).to_have_attribute('data-working','false',timeout=5000)
@@ -55,9 +57,11 @@ def main():
                 expect(emblem).to_have_attribute('data-working','false',timeout=5000)
                 page.unroute('**/api/model-status')
                 page.set_viewport_size({'width':390,'height':844})
-                assert emblem.bounding_box()['width']==110
+                assert emblem.bounding_box()['width']==144
                 assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
                 page.locator('.brand').screenshot(path='/tmp/034-brand-mobile.png')
+                page.set_viewport_size({'width':320,'height':740})
+                assert page.evaluate('document.documentElement.scrollWidth<=innerWidth')
                 assert not errors,errors
                 browser.close()
         finally:release.set();server.shutdown();server.server_close()

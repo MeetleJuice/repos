@@ -45,7 +45,10 @@ export class ReadOnlyObserver {
             static_inspection:'Workbench._inspect_and_repair()',checkpoint_saved:'Workbench.checkpoint()',
             task_saved:'finish_task()',verification_finished:'verify()',job_finished:'Workbench._job()',
             code_response_rejected:'Workbench.generate_and_apply()'};
-          const label=byKind[record.kind];const node=this.graph.nodes.find(node=>node.label===label);
+          const label=byKind[record.kind];
+          const node=record.kind==='guided_plan_checkpoint' && record.data.stage==='feature acceptance saved'
+            ?this.graph.nodes.find(node=>node.id==='acceptance-feature-saved')
+            :this.graph.nodes.find(node=>node.label===label);
           if(node)this.engine.publish(node.id,record.kind==='model_request_started'?'running':record.kind==='code_response_rejected'||record.data.passed===false||record.data.success===false||record.data.status==='error'?'failed':'completed','observed',record.kind+' · '+String(record.data.reason||record.time).slice(0,500));
         }
         first=false;

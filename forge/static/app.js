@@ -631,6 +631,11 @@ $("plan-guided").onclick = handle(() => job("plan", {
   local_timeout: Number($("guided-local-timeout").value),
   revision: $("revision").value || (current.guided_draft ? current.last_revision || "" : ""),
 }));
+$("plan-granular").onclick = handle(() => job("plan", {
+  plan_mode: "granular",
+  local_timeout: Number($("guided-local-timeout").value),
+  revision: $("revision").value || current.last_revision || "",
+}));
 $("approve").onclick = handle(async () => {
   current = await api(`/api/projects/${current.id}/approve`, {
     plan: JSON.parse($("plan-editor").value),
