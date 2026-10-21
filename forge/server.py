@@ -5,8 +5,11 @@ import json
 import os
 from pathlib import Path
 import secrets
+import signal
 import webbrowser
 import threading
+import time
+import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 import zipfile
@@ -24,6 +27,10 @@ from . import __version__
 from .storage import data_home, import_legacy, workspace_lock
 from .runner import runtime_diagnostics
 from .updates import UpdateManager, atomic_json
+from .diagnostics import FlightRecorder, ResourceSampler
+from .diagnostic_report import collect_report, export_report
+from .ideas import generate_idea
+from .lifecycle import exception_hooks, record_exception
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -43,6 +50,8 @@ def make_server(port=8765, workbench=None, credentials=None):
     local_info = {}
     token = secrets.token_urlsafe(32)
     updater = UpdateManager(bench.root.parent, ROOT, bench)
+    diagnostic_lock = threading.Lock()
+    diagnostic_cache = {}
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -79,9 +88,10 @@ def make_server(port=8765, workbench=None, credentials=None):
             self.dispatch(True)
 
         def dispatch(self, post):
+            started = time.monotonic()
+            path = urlsplit(self.path).path
             try:
                 self.check_request()
-                path = urlsplit(self.path).path
                 if path.startswith("/api/"):
                     if not secrets.compare_digest(self.headers.get("X-Foundry-Token", ""), token):
                         raise PermissionError("Session expired. Refresh this page.")
@@ -96,7 +106,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                             raise ValueError("Request body must be a JSON object.")
                     else:
                         body = {}
-                    if post and path == "/api/updates/check":
+                    if post and path in {"/api/updates/check", "/api/diagnostics", "/api/diagnostics/export", "/api/ideas/generate"}:
                         self.api(path, post, body)
                     elif post:
                         with bench.lock:
@@ -114,20 +124,68 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
                 elif path == "/icon.png":
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "image/png")
-                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/activity.js", "/workflow.js", "/studio.js", "/studio.css", "/style.css"}:
+                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/activity.js", "/workflow.js", "/studio.js", "/diagnostics.js", "/studio.css", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
                     self.json({"error": "Not found."}, 404)
             except PermissionError as exc:
+                bench.diagnostics.record('http_request_rejected', {'status': 403, 'exception_type': type(exc).__name__})
                 self.json({"error": str(exc)}, 403)
             except (ValueError, KeyError, TypeError) as exc:
+                record_exception(bench.diagnostics, 'http_request_invalid', exc)
                 self.json({"error": str(exc)}, 400)
             except (BrokenPipeError, ConnectionResetError):
                 pass
-            except Exception:
-                self.json({"error": "Internal error. Check the workbench terminal and local project data."}, 500)
+            except Exception as exc:
+                record_exception(bench.diagnostics, 'http_request_failed', exc)
+                self.json({"error": "Internal error. Open Diag to collect the available evidence."}, 500)
+            finally:
+                elapsed = round(time.monotonic() - started, 3)
+                if post or elapsed >= 2:
+                    # Do not retain arbitrary URL values, request bodies or headers.
+                    bench.diagnostics.record('http_operation_finished', {'method': 'POST' if post else 'GET',
+                        'seconds': elapsed, 'diagnostic_operation': path.startswith('/api/diagnostics')})
 
         def api(self, path, post, body):
+            if path in {'/api/diagnostics', '/api/diagnostics/export'} and post:
+                ident = body.get('project_id')
+                if ident is not None:
+                    bench.directory(ident)
+                if not diagnostic_lock.acquire(blocking=False):
+                    raise ValueError('A diagnostic collection is already running. Wait for it to finish.')
+                try:
+                    report_id = body.get('report_id')
+                    cached = diagnostic_cache.get('report')
+                    if path.endswith('/export') and report_id and cached and cached['id'] == report_id and diagnostic_cache.get('project_id') == ident:
+                        report = cached
+                    else:
+                        bench.diagnostics.record('diagnostic_collection_started', {'safe_checks_only': True}, project_id=ident)
+                        report = collect_report(bench, ROOT, updater, ident)
+                        diagnostic_cache.update(report=report, project_id=ident)
+                        bench.diagnostics.record('diagnostic_collection_finished', {'report_id': report['id'],
+                            'findings': len(report['findings'])}, project_id=ident)
+                    if path.endswith('/export'):
+                        content = export_report(report)
+                        bench.diagnostics.record('diagnostic_exported', {'report_id': report['id'], 'bytes': len(content)}, project_id=ident)
+                        self.send_bytes(200, content, 'application/zip', 'Idea-Foundry-Diag-' + report['id'][:12] + '.zip')
+                    else:
+                        self.json(report)
+                    return
+                finally:
+                    diagnostic_lock.release()
+            if path == '/api/ideas/generate' and post:
+                ident = body.get('project_id')
+                requested = body.get('profiles', [])
+                if not isinstance(requested, list) or len(requested) > 2:
+                    raise ValueError('Generate Idea accepts the two current model selections only.')
+                profiles = [validate_config(config) for config in requested]
+                if ident is not None:
+                    state = bench.load(ident)
+                    profiles.extend([state['planner'], state['coder']])
+                saved = cloud.saved_profiles()
+                profiles.extend([saved.get('planner', {}), saved.get('coder', {})])
+                self.json(generate_idea(bench, profiles, ident))
+                return
             if path == "/api/model-status" and not post:
                 self.json(bench.model_status.snapshot(cloud.checked,local_info)); return
             if path == "/api/updates" and not post:
@@ -192,6 +250,9 @@ def make_server(port=8765, workbench=None, credentials=None):
                 from .browser_runner import diagnostics
                 runtime = runtime_diagnostics()
                 provider_info = connection_info()
+                bench.diagnostics.record('connections_checked', {'providers': {name: {
+                    key: value.get(key) for key in ('connected', 'configured', 'configuration_detail') if key in value}
+                    for name, value in provider_info.items()}})
                 local_info.update(provider_info.get("ollama",{}))
                 bench.installed_ollama_models=list(local_info.get('models',[]))
                 local_info['compatible']=provider_info.get('local',{})
@@ -292,16 +353,33 @@ def main():
     parser.add_argument("--open", action="store_true", help="Open the workbench in your default browser")
     args = parser.parse_args()
     home = data_home(ROOT, args.data_dir)
+    diagnostics = FlightRecorder(home / 'diagnostics')
+    diagnostics.record('application_starting', {'version': __version__, 'pid': os.getpid(),
+        'supervised': os.getenv('FOUNDRY_SUPERVISED') == '1'})
+    sampler = None
+    previous_sigint = None
+    nonce = os.environ.setdefault('FOUNDRY_BOOT_NONCE', uuid.uuid4().hex)
     try:
-        with workspace_lock(home):
+        with exception_hooks(diagnostics), workspace_lock(home):
             migration_warnings = []
             imported = import_legacy(ROOT, home, migration_warnings)
             roots = [ROOT]
             if os.getenv("FOUNDRY_LAUNCH_ROOT"): roots.append(Path(os.environ["FOUNDRY_LAUNCH_ROOT"]))
             credentials = CredentialStore(home, roots)
-            bench = Workbench(home / "projects")
+            bench = Workbench(home / "projects", diagnostics=diagnostics)
             bench.warnings.extend(migration_warnings)
             server = make_server(args.port, bench, credentials)
+            try:
+                from desktop_launcher import install_shortcut, publish_instance
+                shortcut = install_shortcut(ROOT, home)
+                diagnostics.record('desktop_shortcut_status', shortcut)
+                publish_instance(home, server.server_port, __version__, nonce)
+            except Exception as exc:
+                record_exception(diagnostics, 'desktop_setup_failed', exc)
+            sampler = ResourceSampler(diagnostics, home)
+            sampler.start()
+            diagnostics.record('application_ready', {'version': __version__, 'port': server.server_port,
+                'pid': os.getpid(), 'warnings': len(bench.warnings)})
             print(f"Idea Foundry {__version__} is running locally on port {server.server_port}.\nOpen http://127.0.0.1:{server.server_port}\nYour workspace: {home}", flush=True)
             ready_file = os.getenv("FOUNDRY_READY_FILE")
             if ready_file:
@@ -315,6 +393,10 @@ def main():
             except KeyboardInterrupt:
                 pass
             finally:
+                # Console interrupts can reach both supervisor and child. A
+                # second signal must not interrupt source/instance cleanup.
+                previous_sigint = signal.signal(signal.SIGINT, signal.SIG_IGN)
+                diagnostics.record('application_stopping', {'update_restart': server.updater.restart})
                 jobs = list(server.workbench.jobs.values())
                 for _, cancel in jobs:
                     cancel.set()
@@ -322,10 +404,26 @@ def main():
                 for thread, _ in jobs:
                     thread.join()
                 server.server_close()
+                try:
+                    from desktop_launcher import clear_instance
+                    clear_instance(home, nonce)
+                except Exception as exc:
+                    record_exception(diagnostics, 'instance_cleanup_failed', exc)
+                diagnostics.record('application_stopped', {'update_restart': server.updater.restart})
             if server.updater.restart:
                 raise SystemExit(75)
     except (ValueError, OSError) as exc:
+        record_exception(diagnostics, 'application_start_failed', exc)
         parser.exit(1, f"Idea Foundry could not start: {exc}\n")
+    except Exception as exc:
+        record_exception(diagnostics, 'application_exception', exc)
+        raise
+    finally:
+        if sampler:
+            sampler.stop()
+        diagnostics.close()
+        if previous_sigint is not None:
+            signal.signal(signal.SIGINT, previous_sigint)
 
 
 if __name__ == "__main__":

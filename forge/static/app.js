@@ -97,6 +97,7 @@ function tab(name) {
 }
 async function listProjects() {
   const projects = await api("/api/projects");
+  if (typeof refreshIdeaHelper === "function") refreshIdeaHelper(projects);
   $("projects").replaceChildren();
   $("workspace-project-count").textContent =
     projects.length + " saved projects";

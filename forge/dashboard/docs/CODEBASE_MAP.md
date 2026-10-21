@@ -1,6 +1,6 @@
 # Application Execution Map — Idea Foundry
 
-Current core v0.30.0: `#plan-with-proof` selects the opt-in evidence-ready guided path. `evidence_findings()` reviews concrete mutation/restart scenarios, API contracts and declared checkpoint readiness before approval. The separate SQLite collection starter reuses tested storage. Milestone verification marks the cursor unverified before invoking workers and keeps the original task packet through repairs/static corrections. Legacy approvals and explicit execution consent remain intact. The generated graph includes this policy branch; observation still shows only actual retained events and snapshots.
+Current core v0.31.0: Master Diag mirrors existing controller history IDs into a separate bounded recorder, investigates available evidence without execution/inference, and exports a redacted snapshot with a manifest. The Dashboard remains a read-only observer of project history; retained-ID comparisons cannot prove what a browser rendered. The source map adds Diag/export and isolated local Generate Idea paths, while preserving evidence-ready planning, consent, frozen checks and milestone scope. Current graph: 270 nodes, 412 edges, 170 scenarios.
 
 Baseline: v0.26.1, commit 531fe15. Inspected before dashboard implementation. All 351 tracked files were read/hash-inventoried (318 UTF-8 text, 33 binary including prior archives); this is not a claim of manually reviewing every archived binary. Deep source reads: forge/server.py, core.py, models.py, cloud.py, providers.py, history.py, execution.py, guided.py, planning.py, workflow.py, updates.py, runner.py, static/index.html and every static JavaScript module; package.py, run.py, bootstrap.py, AGENTS.md and existing tests/research contracts. Source hashes and research access records ship inside the isolated dashboard directory.
 
@@ -51,10 +51,13 @@ Identifiers below use {id} for the existing project identifier. GET is the api()
 | POST `/api/updates/check` | #check-update — check-update.onclick | `forge/static/updates.js` | UpdateManager.check() → renderUpdate() |
 | POST `/api/updates/install` | #install-update — install-update.onclick; supervised installation | `forge/static/updates.js` | UpdateManager.install() → renderUpdate() |
 | GET `/health` | reconnect() / #update-button — fetch /health; reconnect max attempts | `forge/static/updates.js` | Handler.dispatch(): /health → reconnect() |
+| POST `/api/diagnostics` | #diag-button — read-only local investigation | `forge/static/diagnostics.js` | collect_report() → renderDiagnosticReport() |
+| POST `/api/diagnostics/export` | #diag-export — cached displayed report or a new bounded collection | `forge/static/diagnostics.js` | export_report() → diagnostic ZIP download |
+| POST `/api/ideas/generate` | #generate-idea — one local request, no project submission | `forge/static/diagnostics.js` | generate_idea() → editable idea-field insertion |
 
 ## Static delivery and navigation
 
-GET / serves static/index.html after substituting __TOKEN__; GET /icon.png serves the existing mascot. GET /app.js, /planning.js, /updates.js, /cloud.js, /activity.js, /workflow.js, /studio.js, /studio.css and /style.css serve local assets. These are browser document/deferred-script/stylesheet loads, not API mutations. tab(name) updates selected/aria-selected and hides proposal/build/files panels; opening files calls loadFiles(). New project clears current, shows create-view and refreshes listProjects(). Dialog showModal()/close() controls models, connections, workspace and updates; they are DOM state, not route transitions. URLs outside the explicit routes return 404.
+GET / serves static/index.html after substituting __TOKEN__; GET /icon.png serves the existing mascot. GET /app.js, /planning.js, /updates.js, /cloud.js, /activity.js, /workflow.js, /studio.js, /diagnostics.js, /studio.css and /style.css serve local assets. These are browser document/deferred-script/stylesheet loads, not API mutations. tab(name) updates selected/aria-selected and hides proposal/build/files panels; opening files calls loadFiles(). New project clears current, shows create-view and refreshes listProjects(). Dialog showModal()/close() controls models, connections, workspace, diagnostics and updates; they are DOM state, not route transitions. URLs outside the explicit routes return 404.
 
 ## Representative complete trace: a proposed idea to an app ZIP
 

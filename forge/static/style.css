@@ -1764,3 +1764,30 @@ a:focus-visible {
 .planning-controls select { max-width: 100%; margin: 8px 12px 8px 0; }
 .planning-controls p, .planning-controls li { overflow-wrap: anywhere; }
 .planning-controls li + li { margin-top: 12px; }
+
+/* Local helpers keep the main workflow intact and evidence readable. */
+.idea-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.idea-heading button { font-size:12px; padding:8px 12px; }
+#idea-generation-status { font-size:12px; line-height:1.6; margin:8px 0 14px; }
+#diag-dialog { width:min(820px,calc(100% - 28px)); }
+#diag-status { line-height:1.6; overflow-wrap:anywhere; }
+.diag-summary { padding:14px 16px; margin:16px 0; border:1px solid #3c617a; border-radius:12px; background:#102332; }
+.diag-summary:empty { display:none; }
+.diag-summary p { margin:6px 0 0; font-size:13px; color:var(--muted); line-height:1.6; }
+#diag-findings { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr)); gap:10px; }
+.diag-finding { min-width:0; padding:15px; border:1px solid #304054; border-radius:12px; background:#101c29; overflow-wrap:anywhere; }
+.diag-finding small,.diag-finding strong { display:block; }
+.diag-finding>small:first-child { text-transform:uppercase; font-size:10px; letter-spacing:.07em; color:#94acc4; margin-bottom:8px; }
+.diag-finding p { font-size:13px; line-height:1.6; margin:9px 0; }
+.diag-finding[data-classification="confirmed_failure"] { border-color:#975765; }
+.diag-finding[data-classification="confirmed_failure"]>small:first-child { color:#ffb7c8; }
+.diag-finding[data-classification="warning"],.diag-finding[data-classification="hypothesis"] { border-color:#7a683f; }
+.diag-finding[data-classification="warning"]>small:first-child,.diag-finding[data-classification="hypothesis"]>small:first-child { color:#f4d48b; }
+.diag-finding[data-classification="healthy"]>small:first-child { color:#8ce6cc; }
+.diag-evidence { font:11px/1.5 ui-monospace,monospace; color:#a5b9cc; }
+#diag-coverage { margin:16px 0; }
+#diag-completeness { max-height:16rem; padding:12px; overflow:auto; font-size:12px; }
+.diag-privacy { margin:18px 0; padding:14px 16px; border:1px solid #304054; border-radius:12px; }
+.diag-privacy p { margin:7px 0 0; font-size:12px; line-height:1.6; color:var(--muted); }
+#diag-export-status { font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+@media(max-width:540px) { #diag-dialog {padding:18px;} .diag-finding {padding:12px;} }

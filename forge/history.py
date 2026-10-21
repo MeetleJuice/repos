@@ -80,7 +80,7 @@ def ensure(directory: Path, state: dict[str, Any]) -> None:
         os.fsync(stream.fileno())
 
 
-def append(directory: Path, state: dict[str, Any], kind: str, data: dict[str, Any], origin: str = 'controller') -> None:
+def append(directory: Path, state: dict[str, Any], kind: str, data: dict[str, Any], origin: str = 'controller') -> dict[str, Any]:
     ensure(directory, state)
     path = _path(directory)
     record = {'schema':1, 'id':uuid.uuid4().hex, 'time':datetime.now(timezone.utc).isoformat(),
@@ -98,6 +98,7 @@ def append(directory: Path, state: dict[str, Any], kind: str, data: dict[str, An
         stream.write(line)
         stream.flush()
         os.fsync(stream.fileno())
+    return record
 
 
 def document(directory: Path, state: dict[str, Any]) -> dict[str, Any]:

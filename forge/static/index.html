@@ -12,6 +12,7 @@
     <script src="/planning.js" defer></script>
     <script src="/workflow.js" defer></script>
     <script src="/app.js" defer></script>
+    <script src="/diagnostics.js" defer></script>
     <script src="/activity.js" defer></script>
     <script src="/cloud.js" defer></script>
     <script src="/updates.js" defer></script>
@@ -54,6 +55,7 @@
         >
         <aside id="model-status-panel" aria-label="Model activity"><span class="muted">Model activity · green = observed/catalogue, not app verification</span><div id="model-status-icons"></div></aside>
         <div class="topbar-actions">
+          <button id="diag-button" class="quiet" type="button" title="Inspect local evidence and download a private diagnostic report">Diag</button>
           <button id="update-button" class="update-button">↻ Update</button
           ><button id="connections-button" class="quiet">Models</button
           ><button id="sound-toggle" class="quiet" aria-pressed="false" title="Optional completion sounds">Sound off</button><button id="workspace-button" class="quiet">
@@ -83,7 +85,7 @@
           </p>
         </div>
         <form id="idea-form" class="idea-card">
-          <label for="idea" class="eyebrow">THE IDEA</label>
+          <div class="idea-heading"><label for="idea" class="eyebrow">THE IDEA</label><button id="generate-idea" type="button" class="quiet" title="Ask your local Ollama model for a small project prompt">✧ Generate Idea</button></div>
           <textarea
             id="idea"
             required
@@ -91,6 +93,7 @@
             maxlength="12000"
             placeholder="I want a simple app to track my houseplants, remember watering dates, and show me what needs attention…"
           ></textarea>
+          <p id="idea-generation-status" class="muted" role="status" aria-live="polite">Generate Idea uses Ollama on this PC. It fills this field for you to review; it does not start a project.</p>
           <div class="examples">
             <span>Need a starting point?</span
             ><button
@@ -788,6 +791,21 @@ Generated files will appear here after approval.</pre
         <label for="studio-volume">Sound volume</label><input id="studio-volume" type="range" min="0" max="100" value="25" />
         <button id="studio-sound-test" class="secondary" type="button">Try sound</button><p id="studio-sound-status" role="status">Sounds are off by default. No downloads, microphone, or cloud connection.</p>
       </details>
+    </dialog>
+
+    <dialog id="diag-dialog" aria-labelledby="diag-title">
+      <div class="results-heading">
+        <div><span class="eyebrow">MASTER DIAG</span><h2 id="diag-title">Evidence, ready to investigate.</h2></div>
+        <button id="close-diag" type="button" class="quiet" aria-label="Close diagnostics">✕</button>
+      </div>
+      <p class="muted">The flight recorder works in the background. These checks inspect saved evidence and local services without running your app or sending content to cloud models.</p>
+      <p id="diag-status" role="status" aria-live="polite"></p>
+      <div id="diag-summary" class="diag-summary"></div>
+      <div id="diag-findings" aria-label="Diagnostic findings"></div>
+      <details id="diag-coverage"><summary>What this report covers</summary><pre id="diag-completeness"></pre></details>
+      <div class="diag-privacy"><strong>You choose what to share.</strong><p>The ZIP contains sanitized operational evidence. Credentials, original idea text, and source bodies are excluded. Review the files before attaching them here or to a GitHub Issue. Nothing is uploaded automatically.</p></div>
+      <button id="diag-export" type="button" class="primary" disabled>Download diagnostic ZIP ↓</button>
+      <p id="diag-export-status" class="muted" role="status"></p>
     </dialog>
 
     <dialog id="update-dialog" aria-labelledby="update-title">

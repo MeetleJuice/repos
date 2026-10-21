@@ -1,0 +1,202 @@
+[
+  {
+    "name": "codex_harness",
+    "url": "https://openai.com/index/harness-engineering/",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "codex_unlocking",
+    "url": "https://openai.com/index/unlocking-the-codex-harness/",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "codex_platform",
+    "url": "https://developers.openai.com/blog/codex-as-a-platform",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "anthropic_harness",
+    "url": "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "aider_edits",
+    "url": "https://aider.chat/docs/more/edit-formats.html",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "aider_lint",
+    "url": "https://aider.chat/docs/usage/lint-test.html",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "continue_agent",
+    "url": "https://docs.continue.dev/ide-extensions/agent/quick-start",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "opencode_permissions",
+    "url": "https://opencode.ai/docs/permissions/",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "cline_local",
+    "url": "https://docs.cline.bot/running-models-locally/overview",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "python_faulthandler",
+    "url": "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/faulthandler.rst",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/faulthandler.rst",
+    "bytes": 6751,
+    "sha256": "6ca105599408cf2ad04efede7c2906b15cc78fffb8b7d9124027bf009c9a4875"
+  },
+  {
+    "name": "ms_shortcut",
+    "url": "https://learn.microsoft.com/en-us/troubleshoot/windows-client/admin-development/create-desktop-shortcut-with-wsh",
+    "retrieved_at_utc": "2026-10-21T07:22:49Z",
+    "error": "URLError",
+    "detail": "<urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+    "name": "codex_exec",
+    "url": "https://raw.githubusercontent.com/openai/codex/main/docs/exec.md",
+    "retrieved_at_utc": "2026-10-21T07:23:08Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/openai/codex/main/docs/exec.md",
+    "bytes": 146,
+    "sha256": "49eac6fd452d21763683c9f224075d6c5c74ffa28217fbe50c279fa6a543200b"
+  },
+  {
+    "name": "codex_events",
+    "url": "https://raw.githubusercontent.com/openai/codex/main/codex-rs/exec/src/exec_events.rs",
+    "retrieved_at_utc": "2026-10-21T07:23:08Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/openai/codex/main/codex-rs/exec/src/exec_events.rs",
+    "bytes": 10713,
+    "sha256": "dafa872d7e86a099e56e28a329dcb9c03db90ed768c3b88cca8c91d46dc1d0e5"
+  },
+  {
+    "name": "anthropic_sdk",
+    "url": "https://raw.githubusercontent.com/anthropics/claude-agent-sdk-python/main/README.md",
+    "retrieved_at_utc": "2026-10-21T07:23:08Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/anthropics/claude-agent-sdk-python/main/README.md",
+    "bytes": 13250,
+    "sha256": "c38a933bf8fef26316ea38635989b254e69a26d21d80b96bf5731cba4e88bcc6"
+  },
+  {
+    "name": "aider_edit_source",
+    "url": "https://raw.githubusercontent.com/Aider-AI/aider/main/aider/coders/editblock_coder.py",
+    "retrieved_at_utc": "2026-10-21T07:23:08Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/Aider-AI/aider/main/aider/coders/editblock_coder.py",
+    "bytes": 19616,
+    "sha256": "244df08f5ccd19928bcdac1901ae591a7a786d12a6f70d31400baaefb5a136a3"
+  },
+  {
+    "name": "aider_test_doc",
+    "url": "https://raw.githubusercontent.com/Aider-AI/aider/main/aider/website/docs/usage/lint-test.md",
+    "retrieved_at_utc": "2026-10-21T07:23:08Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/Aider-AI/aider/main/aider/website/docs/usage/lint-test.md",
+    "bytes": 3359,
+    "sha256": "b7ac6076b5801b5bd38d4b5ff552d1948dcdab7eba8acf353662eec5cfe5472e"
+  },
+  {
+    "name": "continue_tools",
+    "url": "https://raw.githubusercontent.com/continuedev/continue/main/core/tools/index.ts",
+    "retrieved_at_utc": "2026-10-21T07:23:08Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/continuedev/continue/main/core/tools/index.ts",
+    "bytes": 1828,
+    "sha256": "b3e6179ec65c10a03caf7f42c5410e066d762c52f800413f678156fd689cfd59"
+  },
+  {
+    "name": "opencode_session",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/dev/packages/opencode/src/session/index.ts",
+    "retrieved_at_utc": "2026-10-21T07:23:09Z",
+    "error": "HTTPError",
+    "detail": "HTTP Error 404: Not Found"
+  },
+  {
+    "name": "opencode_permission",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/dev/packages/opencode/src/permission/next.ts",
+    "retrieved_at_utc": "2026-10-21T07:23:09Z",
+    "error": "HTTPError",
+    "detail": "HTTP Error 404: Not Found"
+  },
+  {
+    "name": "cline_task",
+    "url": "https://raw.githubusercontent.com/cline/cline/main/src/core/task/index.ts",
+    "retrieved_at_utc": "2026-10-21T07:23:09Z",
+    "error": "HTTPError",
+    "detail": "HTTP Error 404: Not Found"
+  },
+  {
+    "name": "ollama_api",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "retrieved_at_utc": "2026-10-21T07:23:09Z",
+    "http_status": 200,
+    "final_url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "bytes": 54614,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5"
+  },
+  {
+    "name": "opencode_readme",
+    "url": "https://raw.githubusercontent.com/anomalyco/opencode/dev/README.md",
+    "retrieved_at_utc": "2026-10-21T07:23:55Z",
+    "http_status": 200,
+    "bytes": 5123,
+    "sha256": "977e6c3f56bca4e93c44309dc61fa3988d43913ee8b747a47af2e9717b8b86f6"
+  },
+  {
+    "name": "opencode_old_permissions",
+    "url": "https://raw.githubusercontent.com/sst/opencode/dev/packages/opencode/src/permission/next.ts",
+    "retrieved_at_utc": "2026-10-21T07:23:55Z",
+    "error": "HTTPError",
+    "detail": "HTTP Error 404: Not Found"
+  },
+  {
+    "name": "cline_readme",
+    "url": "https://raw.githubusercontent.com/cline/cline/main/README.md",
+    "retrieved_at_utc": "2026-10-21T07:23:55Z",
+    "http_status": 200,
+    "bytes": 9244,
+    "sha256": "d41926dd54fe79c610af4569d236675def9c62806cdea94c14056b3df1597caf"
+  },
+  {
+    "name": "cline_controller",
+    "url": "https://raw.githubusercontent.com/cline/cline/main/src/core/controller/index.ts",
+    "retrieved_at_utc": "2026-10-21T07:23:55Z",
+    "error": "HTTPError",
+    "detail": "HTTP Error 404: Not Found"
+  },
+  {
+    "name": "continue_docs",
+    "url": "https://raw.githubusercontent.com/continuedev/continue/main/docs/docs/ide-extensions/agent/quick-start.mdx",
+    "retrieved_at_utc": "2026-10-21T07:23:55Z",
+    "error": "HTTPError",
+    "detail": "HTTP Error 404: Not Found"
+  }
+]

@@ -368,5 +368,17 @@
     "fetch /health; reconnect max attempts",
     "reconnect()",
     "Delivery & recovery"
+  ],
+  [
+    "POST", "/api/diagnostics", "#diag-button", "collect_report()", "diagnostics.js",
+    "Read-only local investigation; no inference or generated code execution", "renderDiagnosticReport()", "Delivery & recovery"
+  ],
+  [
+    "POST", "/api/diagnostics/export", "#diag-export", "export_report()", "diagnostics.js",
+    "Export the displayed evidence snapshot through direct authenticated fetch", "Diagnostic ZIP download", "Delivery & recovery"
+  ],
+  [
+    "POST", "/api/ideas/generate", "#generate-idea", "generate_idea()", "diagnostics.js",
+    "One isolated local inference request; edit existing input only", "Idea field insertion", "Planning & approval"
   ]
 ]

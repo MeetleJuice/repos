@@ -48,7 +48,8 @@ ui=proc('render()')
 flow('startup','Document & deferred scripts','Workbench & session',[root,deferred])
 
 backend_files={'Workbench':'forge/core.py','ModelStatus':'forge/model_status.py','CloudSetup':'forge/cloud.py',
-               'CredentialStore':'forge/credentials.py','UpdateManager':'forge/updates.py'}
+               'CredentialStore':'forge/credentials.py','UpdateManager':'forge/updates.py',
+               'collect_report':'forge/diagnostic_report.py','export_report':'forge/diagnostic_report.py','generate_idea':'forge/ideas.py'}
 endpoints=json.loads((FEATURE/'docs/endpoints.json').read_text())
 for index,(method,path,trigger,backend,frontend,detail,after,category) in enumerate(endpoints):
     file='forge/static/'+frontend;text=(ROOT/file).read_text()
@@ -61,13 +62,14 @@ for index,(method,path,trigger,backend,frontend,detail,after,category) in enumer
     if backend.startswith('Handler.'):
         business=node('backend-'+str(index),backend,'process',category,'forge/server.py',path)
     elif backend=='connection_info()':business=proc(backend,'forge/models.py',category)
+    elif backend.split('(')[0] in backend_files:business=proc(backend,backend_files[backend.split('(')[0]],category)
     else:business=proc(backend,backend_files[backend.split('.')[0]],category)
     # The continuation resumes the actual caller; labels use real statements/functions.
     end_id=node('return-'+str(index),after+' · response continuation','state',category,file,needle,
                 'Returns to '+detail+'. This is UI/controller progress, not behavioral verification.')
     # Health and inline ZIP downloads fetch directly; do not invent a call
     # through saveDownload() or the JSON wrapper for those sites.
-    transports=[direct] if path=='/api/backup' else [] if path=='/health' or path.endswith('/download') else [api_wrapper]
+    transports=[direct] if path=='/api/backup' else [] if path=='/health' or path.endswith('/download') or path=='/api/diagnostics/export' else [api_wrapper]
     checks=[guard] if path=='/health' else [guard,token]
     flow('endpoint-'+str(index),method+' '+path,category,[root,deferred,trigger_id,*transports,api_id,*checks,business,end_id])
     flow('rejection-'+str(index),method+' '+path+' · rejected request',category,
@@ -79,7 +81,7 @@ approve_request=next(item for item in flows if item['id']=='rejection-7')
 flow('ui-permission-notice','Approval request rejected · handle() / notice()','Planning & approval',
      [*approve_request['path'],notice],[error])
 
-for asset in ['app.js','planning.js','updates.js','cloud.js','activity.js','workflow.js','studio.js','studio.css','style.css','icon.png']:
+for asset in ['app.js','planning.js','updates.js','cloud.js','activity.js','workflow.js','studio.js','diagnostics.js','studio.css','style.css','icon.png']:
     asset_id=node('static-'+slug(asset),'GET /'+asset,'api','Workbench & session','forge/server.py','"/'+asset+'"' if asset!='icon.png' else '"/icon.png"')
     flow('static-'+slug(asset),'Local asset · '+asset,'Workbench & session',[root,asset_id])
 
@@ -159,6 +161,16 @@ proof=proc('evidence_findings()','forge/acceptance.py','Planning & approval')
 flow('evidence-ready-planning','Evidence-ready plan · scenario and checkpoint review','Planning & approval',[root,start,job,proc('run_guided()','forge/guided.py'),call,model,proc('validate_outline()','forge/guided.py'),proof,call,model,proc('validate_batch()','forge/guided.py'),proof,proposal,state_ids['proposed']])
 flow('focused-builder','Focused Ollama task · native scoped JSON','Build & verification',[root,job,generate,handoff,call,model,native,response,apply])
 flow('model-metadata','Installed model limits · no generation','Models & routing',[root,inventory,show])
+trace=proc('Workbench.trace()')
+persist=proc('FlightRecorder.record()','forge/diagnostics.py','Delivery & recovery')
+investigate=proc('collect_report()','forge/diagnostic_report.py','Delivery & recovery')
+flow('diagnostic-recorder','Controller event · shared IDs and independent persistence','Delivery & recovery',
+     [root,job,trace,proc('append()','forge/history.py','Delivery & recovery'),persist])
+flow('diagnostic-investigation','Diag · read-only local evidence export','Delivery & recovery',
+     [root,investigate,proc('FlightRecorder.snapshot()','forge/diagnostics.py','Delivery & recovery'),proc('export_report()','forge/diagnostic_report.py','Delivery & recovery')])
+flow('local-idea-helper','Generate Idea · local request without a project','Planning & approval',
+     [root,proc('generate_idea()','forge/ideas.py','Planning & approval'),proc('choose_model()','forge/ideas.py','Planning & approval'),model,
+      node('idea-prompt-insertion','Insert editable idea; no project submission','state','Planning & approval','forge/static/diagnostics.js','value = result.idea.trim()')])
 
 provider_ast=ast.parse((ROOT/'forge/providers.py').read_text());providers={}
 for statement in provider_ast.body:

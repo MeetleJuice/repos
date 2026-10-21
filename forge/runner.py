@@ -77,6 +77,7 @@ def verify(project, mode, cancel, timeout=120, test_timeout=30):
 
 
 def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30, milestone=False):
+    execution_started = time.monotonic()
     project = Path(project).resolve()
     harness = (harness or Path(__file__).with_name("harness.py")).resolve()
     name = "foundry-" + uuid.uuid4().hex
@@ -153,6 +154,10 @@ def _execute(project, mode, cancel, timeout, harness=None, test_timeout=30, mile
             log += "\nVerification did not produce a complete test and HTTP-check report. A zero exit code alone is insufficient.\n"
     passed = proc.returncode == 0 and not stopped and reported
     return {"passed": passed, "exit_code": proc.returncode,
+            "execution_seconds": round(time.monotonic() - execution_started, 3),
+            "command_template": [argument.replace(str(harness), '<verification-harness>').replace(str(project), '<project-source>').replace(sys.executable, '<python>')
+                                 if isinstance(argument, str) else argument for argument in cmd],
+            "command_paths_redacted": True,
             "diagnosis": report.get("diagnosis") or ("Verification stopped before completion." if stopped else None),
             "phases": report.get("phases", []),
             "failure_kind": None if passed else "environment" if report.get("failure_kind") == "environment" or (mode == "docker" and proc.returncode in {125, 126, 127}) else "application",

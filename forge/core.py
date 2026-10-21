@@ -41,6 +41,8 @@ from .runner import verify, require_runtime, verify_milestone, require_browser_r
 from .scaffolds import CATALOG, starter_files
 from .evidence import manual_document
 from .context import SOURCE_LIMIT, source_map, failure_feedback, fingerprint, planning_context, same_tasks
+from .diagnostics import FlightRecorder
+from .lifecycle import record_exception
 
 ACTIVE = {"planning", "building", "checking", "repairing", "queued"}
 
@@ -67,7 +69,7 @@ def safe_file(root, name):
 
 
 class Workbench:
-    def __init__(self, root, client_factory=ModelClient, verifier=verify):
+    def __init__(self, root, client_factory=ModelClient, verifier=verify, diagnostics=None):
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.client_factory, self.verifier = client_factory, verifier
@@ -80,12 +82,16 @@ class Workbench:
         self.jobs = {}
         self.warnings = []
         self.maintenance = False
+        self.idea_busy = False
+        self.diagnostics = diagnostics or FlightRecorder(self.root.parent / 'diagnostics')
+        self.diagnostics.record('workbench_initialized', {'version': __version__})
         self.milestone_verifier = verify_milestone
         for path in self.root.glob("*/state.json"):
             try:
                 state = self.load(path.parent.name)
-            except (ValueError, OSError):
+            except (ValueError, OSError) as exc:
                 self.warnings.append(f"Could not read project {path.parent.name}. Its files were preserved. Restore from a workspace backup.")
+                self.diagnostics.record('project_state_unreadable', {'exception_type': type(exc).__name__}, project_id=path.parent.name)
                 continue
             if not (path.parent / "source").exists():
                 recoverable = sorted(path.parent.glob(".source-before-*"), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -146,10 +152,19 @@ class Workbench:
 
     def trace(self, state, kind, data, origin="controller"):
         with self.lock:
+            record = None
             try:
-                history.append(self.directory(state["id"]), state, kind, data, origin)
+                record = history.append(self.directory(state["id"]), state, kind, data, origin)
             except (OSError, ValueError) as exc:
                 state["history_warning"] = "History incomplete: " + str(exc)[:500]
+                record_exception(self.diagnostics, 'workflow_history_write_failed', exc, project_id=state['id'], run_id=state.get('active_run_id'))
+            # The Dashboard's history ID and the independent recorder ID agree.
+            # Recorder health is separate from the success of the observed work.
+            try:
+                self.diagnostics.record(kind, data, project_id=state['id'], run_id=state.get('active_run_id'),
+                    origin=origin, event_id=record['id'] if record else None, time_utc=record['time'] if record else None)
+            except Exception:
+                state['diagnostic_warning'] = 'The independent recorder is unavailable; project history remains separate.'
 
     def history(self, ident):
         with self.lock:
@@ -619,6 +634,8 @@ class Workbench:
 
     def start(self, ident, action, options):
         with self.lock:
+            if self.idea_busy:
+                raise ValueError('Wait for Generate Idea to finish before starting a project job.')
             if self.maintenance:
                 raise ValueError("An update is being installed. Wait for the restart.")
             state = self.load(ident)
@@ -948,6 +965,11 @@ class Workbench:
                 prepared.parent.mkdir(parents=True, exist_ok=True)
                 prepared.write_text(content, encoding="utf-8")
             self._swap_source(state["id"], staging)
+        except OSError as exc:
+            self.trace(state, 'file_operation_failed', {'operation': 'replace_source', 'task': state['next_task'] + 1,
+                'files': [target.relative_to(root).as_posix() for target, _ in targets],
+                'exception_type': type(exc).__name__, 'errno': exc.errno})
+            raise
         finally:
             if staging.exists():
                 shutil.rmtree(staging)
@@ -1388,6 +1410,8 @@ class Workbench:
                 state["checks"] = result
                 self.trace(state, "verification_finished", {"passed":result.get("passed"), "runtime":result.get("runtime"),
                            "failure_kind":result.get("failure_kind"), "source_sha256":checked_fingerprint,
+                           "exit_code":result.get('exit_code'), 'execution_seconds':result.get('execution_seconds'),
+                           'command_template':result.get('command_template'), 'command_paths_redacted':True,
                            "phases":[{k:v for k,v in phase.items() if k in {"phase","passed","behavior_passed","workspace_cleanup","tests_run","http_checks","asset_checks","app_calls","failure_kind","timed_out"}} for phase in result.get("phases", [])]})
                 self.save(state)
                 if cancel.is_set():
@@ -1424,6 +1448,7 @@ class Workbench:
             state["status"] = "stopped"
             self.event(state, str(exc))
         except Exception as exc:
+            record_exception(self.diagnostics, 'pipeline_exception', exc, project_id=state['id'], run_id=state.get('active_run_id'))
             state["status"], state["error"] = "error", str(exc)[:2000]
             self.event(state, "Stopped with error: " + state["error"])
         finally:

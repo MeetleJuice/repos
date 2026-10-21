@@ -22,7 +22,7 @@ class DashboardRoutesTests(unittest.TestCase):
         endpoints=json.loads((feature/'docs/endpoints.json').read_text())
         labels={node['label'] for node in graph['nodes']}
         for method,path,*_ in endpoints:self.assertIn(method+' '+path,labels)
-        self.assertEqual(len(endpoints),37)
+        self.assertEqual(len(endpoints),40)
 
     def test_exact_allowlist_host_guard_and_unchanged_api(self):
         with tempfile.TemporaryDirectory() as temp:

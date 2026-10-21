@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "baseline": "core 0.30.0 \u00b7 source excerpts checked by tests",
+  "baseline": "core 0.31.0 \u00b7 source excerpts checked by tests",
   "nodes": [
     {
       "id": "document",
@@ -8,7 +8,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 112,
+      "line": 122,
       "excerpt": "                elif path == \"/\":",
       "description": "Browser document request; no framework lifecycle is assumed."
     },
@@ -28,7 +28,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 67,
+      "line": 76,
       "excerpt": "        def check_request(self):",
       "description": ""
     },
@@ -38,7 +38,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 86,
+      "line": 96,
       "excerpt": "                    if not secrets.compare_digest(self.headers.get(\"X-Foundry-Token\", \"\"), token):",
       "description": ""
     },
@@ -58,7 +58,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1046,
+      "line": 1047,
       "excerpt": "async function saveDownload(path, name) {",
       "description": ""
     },
@@ -68,7 +68,7 @@
       "kind": "state",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 121,
+      "line": 131,
       "excerpt": "            except PermissionError as exc:",
       "description": "Possible Host/Origin/token rejection, not a fabricated provider failure."
     },
@@ -88,7 +88,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 172,
+      "line": 173,
       "excerpt": "function render() {",
       "description": ""
     },
@@ -108,7 +108,7 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 154,
+      "line": 212,
       "excerpt": "            if path == \"/api/projects\":",
       "description": "workspace list / browser bootstrap"
     },
@@ -118,7 +118,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 218,
+      "line": 233,
       "excerpt": "    def list_projects(self):",
       "description": ""
     },
@@ -148,7 +148,7 @@
       "kind": "api",
       "category": "Planning & approval",
       "source": "forge/server.py",
-      "line": 154,
+      "line": 212,
       "excerpt": "            if path == \"/api/projects\":",
       "description": "idea-form.onsubmit / create-standard-game"
     },
@@ -158,7 +158,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 571,
+      "line": 586,
       "excerpt": "    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -188,7 +188,7 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 215,
+      "line": 276,
       "excerpt": "            if len(pieces) == 3 and not post:",
       "description": "openProject / 1800 ms polling"
     },
@@ -198,7 +198,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 170,
+      "line": 185,
       "excerpt": "    def present(self, ident):",
       "description": ""
     },
@@ -228,7 +228,7 @@
       "kind": "api",
       "category": "Planning & approval",
       "source": "forge/server.py",
-      "line": 248,
+      "line": 309,
       "excerpt": "                self.json(bench.save_proposal(ident, body[\"plan\"]))",
       "description": "job('plan')"
     },
@@ -238,7 +238,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 620,
+      "line": 635,
       "excerpt": "    def start(self, ident, action, options):",
       "description": ""
     },
@@ -258,7 +258,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1153,
+      "line": 1154,
       "excerpt": "  const saved = await api(`/api/projects/${id}/proposal`, { plan });",
       "description": "saveReviewedProposal()"
     },
@@ -268,7 +268,7 @@
       "kind": "api",
       "category": "Planning & approval",
       "source": "forge/server.py",
-      "line": 247,
+      "line": 308,
       "excerpt": "            elif post and action == \"proposal\":",
       "description": "saveReviewedProposal()"
     },
@@ -278,7 +278,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 749,
+      "line": 766,
       "excerpt": "    def save_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -288,7 +288,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1153,
+      "line": 1154,
       "excerpt": "  const saved = await api(`/api/projects/${id}/proposal`, { plan });",
       "description": "Returns to saveReviewedProposal(). This is UI/controller progress, not behavioral verification."
     },
@@ -308,7 +308,7 @@
       "kind": "api",
       "category": "Planning & approval",
       "source": "forge/server.py",
-      "line": 249,
+      "line": 310,
       "excerpt": "            elif post and action == \"review\":",
       "description": "reviewEditor()"
     },
@@ -318,7 +318,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 806,
+      "line": 823,
       "excerpt": "    def review_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -338,7 +338,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1127,
+      "line": 1128,
       "excerpt": "  current = await api(`/api/projects/${id}/starter-plan`, {});",
       "description": "recover-standard-game.onclick"
     },
@@ -348,7 +348,7 @@
       "kind": "api",
       "category": "Planning & approval",
       "source": "forge/server.py",
-      "line": 245,
+      "line": 306,
       "excerpt": "            elif post and action == \"starter-plan\":",
       "description": "recover-standard-game.onclick"
     },
@@ -358,7 +358,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 766,
+      "line": 783,
       "excerpt": "    def load_starter_plan(self, ident: str) -> dict[str, Any]:",
       "description": ""
     },
@@ -368,7 +368,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 1127,
+      "line": 1128,
       "excerpt": "  current = await api(`/api/projects/${id}/starter-plan`, {});",
       "description": "Returns to recover-standard-game.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -378,7 +378,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 634,
+      "line": 635,
       "excerpt": "  current = await api(`/api/projects/${current.id}/approve`, {",
       "description": "approve.onclick"
     },
@@ -388,7 +388,7 @@
       "kind": "api",
       "category": "Planning & approval",
       "source": "forge/server.py",
-      "line": 251,
+      "line": 312,
       "excerpt": "            elif post and action == \"approve\":",
       "description": "approve.onclick"
     },
@@ -398,7 +398,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 723,
+      "line": 740,
       "excerpt": "    def approve(self, ident, plan):",
       "description": ""
     },
@@ -408,7 +408,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/app.js",
-      "line": 634,
+      "line": 635,
       "excerpt": "  current = await api(`/api/projects/${current.id}/approve`, {",
       "description": "Returns to approve.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -428,7 +428,7 @@
       "kind": "api",
       "category": "Build & verification",
       "source": "forge/server.py",
-      "line": 264,
+      "line": 325,
       "excerpt": "            elif post and action in {\"plan\", \"build\", \"repair\"}:",
       "description": "job('build'); execution flag distinguishes generation/verification"
     },
@@ -458,7 +458,7 @@
       "kind": "api",
       "category": "Build & verification",
       "source": "forge/server.py",
-      "line": 264,
+      "line": 325,
       "excerpt": "            elif post and action in {\"plan\", \"build\", \"repair\"}:",
       "description": "repairManual() \u2192 job('repair')"
     },
@@ -478,7 +478,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 658,
+      "line": 659,
       "excerpt": "  const result = await api(`/api/projects/${current.id}/stop`, {});",
       "description": "stop.onclick; scoped live stop in activity.js"
     },
@@ -488,7 +488,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 253,
+      "line": 314,
       "excerpt": "            elif post and action == \"stop\":",
       "description": "stop.onclick; scoped live stop in activity.js"
     },
@@ -498,7 +498,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 715,
+      "line": 732,
       "excerpt": "    def stop(self, ident):",
       "description": ""
     },
@@ -508,7 +508,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 658,
+      "line": 659,
       "excerpt": "  const result = await api(`/api/projects/${current.id}/stop`, {});",
       "description": "Returns to stop.onclick; scoped live stop in activity.js. This is UI/controller progress, not behavioral verification."
     },
@@ -528,7 +528,7 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 222,
+      "line": 283,
       "excerpt": "            if action == \"workflow\" and not post:",
       "description": "render() \u2192 refreshWorkflow()"
     },
@@ -538,7 +538,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 162,
+      "line": 177,
       "excerpt": "    def workflow(self, ident):",
       "description": ""
     },
@@ -558,7 +558,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1184,
+      "line": 1185,
       "excerpt": "  const journal = await api(`/api/projects/${id}/history`);",
       "description": "loadHistory(); download-history reuses same endpoint"
     },
@@ -568,7 +568,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 224,
+      "line": 285,
       "excerpt": "            if action == \"history\" and not post:",
       "description": "loadHistory(); download-history reuses same endpoint"
     },
@@ -578,7 +578,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 154,
+      "line": 169,
       "excerpt": "    def history(self, ident):",
       "description": ""
     },
@@ -588,7 +588,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1184,
+      "line": 1185,
       "excerpt": "  const journal = await api(`/api/projects/${id}/history`);",
       "description": "Returns to loadHistory(); download-history reuses same endpoint. This is UI/controller progress, not behavioral verification."
     },
@@ -598,7 +598,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 470,
+      "line": 471,
       "excerpt": "  fileCache = await api(`/api/projects/${current.id}/files`);",
       "description": "loadFiles()"
     },
@@ -608,7 +608,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 227,
+      "line": 288,
       "excerpt": "            if action in {\"files\", \"download\"} and not post:",
       "description": "loadFiles()"
     },
@@ -618,7 +618,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 846,
+      "line": 863,
       "excerpt": "    def files(self, ident):",
       "description": ""
     },
@@ -628,7 +628,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 470,
+      "line": 471,
       "excerpt": "  fileCache = await api(`/api/projects/${current.id}/files`);",
       "description": "Returns to loadFiles(). This is UI/controller progress, not behavioral verification."
     },
@@ -638,7 +638,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 707,
+      "line": 708,
       "excerpt": "  const response = await fetch(`/api/projects/${current.id}/download`, {",
       "description": "download.onclick \u2192 fetch / Blob"
     },
@@ -648,7 +648,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 227,
+      "line": 288,
       "excerpt": "            if action in {\"files\", \"download\"} and not post:",
       "description": "download.onclick \u2192 fetch / Blob"
     },
@@ -658,7 +658,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 182,
+      "line": 197,
       "excerpt": "    def export_snapshot(self, ident):",
       "description": ""
     },
@@ -668,7 +668,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 707,
+      "line": 708,
       "excerpt": "  const response = await fetch(`/api/projects/${current.id}/download`, {",
       "description": "Returns to download.onclick \u2192 fetch / Blob. This is UI/controller progress, not behavioral verification."
     },
@@ -678,7 +678,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1109,
+      "line": 1110,
       "excerpt": "  const files = await api(\"/api/projects/\" + current.id + \"/diff\");",
       "description": "review-diff.onclick"
     },
@@ -688,7 +688,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 257,
+      "line": 318,
       "excerpt": "            elif not post and action == \"diff\":",
       "description": "review-diff.onclick"
     },
@@ -698,7 +698,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 552,
+      "line": 567,
       "excerpt": "    def diff(self, ident):",
       "description": ""
     },
@@ -708,7 +708,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1109,
+      "line": 1110,
       "excerpt": "  const files = await api(\"/api/projects/\" + current.id + \"/diff\");",
       "description": "Returns to review-diff.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -718,7 +718,7 @@
       "kind": "action",
       "category": "Build & verification",
       "source": "forge/static/app.js",
-      "line": 880,
+      "line": 881,
       "excerpt": "  current = await api(`/api/projects/${current.id}/manual`, {",
       "description": "save-manual.onclick"
     },
@@ -728,7 +728,7 @@
       "kind": "api",
       "category": "Build & verification",
       "source": "forge/server.py",
-      "line": 243,
+      "line": 304,
       "excerpt": "            elif post and action == \"manual\":",
       "description": "save-manual.onclick"
     },
@@ -738,7 +738,7 @@
       "kind": "process",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 785,
+      "line": 802,
       "excerpt": "    def record_manual(self, ident: str, results: list[bool], notes: list[str] | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -748,7 +748,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/static/app.js",
-      "line": 880,
+      "line": 881,
       "excerpt": "  current = await api(`/api/projects/${current.id}/manual`, {",
       "description": "Returns to save-manual.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -758,7 +758,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 443,
+      "line": 444,
       "excerpt": "            current = await api(`/api/projects/${p.id}/restore`, {",
       "description": "render() creates restore callback"
     },
@@ -768,7 +768,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 255,
+      "line": 316,
       "excerpt": "            elif post and action == \"restore\":",
       "description": "render() creates restore callback"
     },
@@ -778,7 +778,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 884,
+      "line": 901,
       "excerpt": "    def restore(self, ident, snapshot):",
       "description": ""
     },
@@ -788,7 +788,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 443,
+      "line": 444,
       "excerpt": "            current = await api(`/api/projects/${p.id}/restore`, {",
       "description": "Returns to render() creates restore callback. This is UI/controller progress, not behavioral verification."
     },
@@ -798,7 +798,7 @@
       "kind": "action",
       "category": "Models & routing",
       "source": "forge/static/app.js",
-      "line": 1088,
+      "line": 1089,
       "excerpt": "  current = await api(\"/api/projects/\" + current.id + \"/models\", models);",
       "description": "model-form.onsubmit; cloud.js applyCloud"
     },
@@ -808,7 +808,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 259,
+      "line": 320,
       "excerpt": "            elif post and action == \"models\":",
       "description": "model-form.onsubmit; cloud.js applyCloud"
     },
@@ -818,7 +818,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 472,
+      "line": 487,
       "excerpt": "    def configure_models(self, ident: str, planner: dict[str, Any], coder: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -828,7 +828,7 @@
       "kind": "state",
       "category": "Models & routing",
       "source": "forge/static/app.js",
-      "line": 1088,
+      "line": 1089,
       "excerpt": "  current = await api(\"/api/projects/\" + current.id + \"/models\", models);",
       "description": "Returns to model-form.onsubmit; cloud.js applyCloud. This is UI/controller progress, not behavioral verification."
     },
@@ -838,7 +838,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1098,
+      "line": 1099,
       "excerpt": "    const next = await api(\"/api/projects/\" + current.id + \"/change\", {",
       "description": "request-change.onclick"
     },
@@ -848,7 +848,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 261,
+      "line": 322,
       "excerpt": "            elif post and action == \"change\":",
       "description": "request-change.onclick"
     },
@@ -858,7 +858,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 483,
+      "line": 498,
       "excerpt": "    def fork(self, ident: str, request: str, cloud_consent: bool = False) -> dict[str, Any]:",
       "description": ""
     },
@@ -868,7 +868,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1098,
+      "line": 1099,
       "excerpt": "    const next = await api(\"/api/projects/\" + current.id + \"/change\", {",
       "description": "Returns to request-change.onclick. This is UI/controller progress, not behavioral verification."
     },
@@ -888,7 +888,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 219,
+      "line": 280,
       "excerpt": "            if action == 'resume-baseline' and post:",
       "description": "explicit source adoption confirmation"
     },
@@ -898,7 +898,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 702,
+      "line": 719,
       "excerpt": "    def adopt_resume_baseline(self, ident):",
       "description": ""
     },
@@ -918,7 +918,7 @@
       "kind": "action",
       "category": "Models & routing",
       "source": "forge/static/app.js",
-      "line": 498,
+      "line": 499,
       "excerpt": "  const info = await api(\"/api/connections\");",
       "description": "connections()"
     },
@@ -928,7 +928,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 191,
+      "line": 249,
       "excerpt": "            if path == \"/api/connections\" and not post:",
       "description": "connections()"
     },
@@ -948,7 +948,7 @@
       "kind": "state",
       "category": "Models & routing",
       "source": "forge/static/app.js",
-      "line": 498,
+      "line": 499,
       "excerpt": "  const info = await api(\"/api/connections\");",
       "description": "Returns to connections(). This is UI/controller progress, not behavioral verification."
     },
@@ -968,7 +968,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 131,
+      "line": 189,
       "excerpt": "            if path == \"/api/model-status\" and not post:",
       "description": "1000 ms poll; skips hidden page"
     },
@@ -1008,7 +1008,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 163,
+      "line": 221,
       "excerpt": "            if path in {\"/api/cloud/import\", \"/api/cloud/reload\", \"/api/cloud/check\", \"/api/cloud/select\", \"/api/cloud/automatic\"} and post:",
       "description": "file import; values stay private"
     },
@@ -1048,7 +1048,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 163,
+      "line": 221,
       "excerpt": "            if path in {\"/api/cloud/import\", \"/api/cloud/reload\", \"/api/cloud/check\", \"/api/cloud/select\", \"/api/cloud/automatic\"} and post:",
       "description": "cloud-reload.onclick"
     },
@@ -1088,7 +1088,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 163,
+      "line": 221,
       "excerpt": "            if path in {\"/api/cloud/import\", \"/api/cloud/reload\", \"/api/cloud/check\", \"/api/cloud/select\", \"/api/cloud/automatic\"} and post:",
       "description": "cloud-check.onclick; catalogue only"
     },
@@ -1128,7 +1128,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 163,
+      "line": 221,
       "excerpt": "            if path in {\"/api/cloud/import\", \"/api/cloud/reload\", \"/api/cloud/check\", \"/api/cloud/select\", \"/api/cloud/automatic\"} and post:",
       "description": "applyCloud()"
     },
@@ -1168,7 +1168,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 163,
+      "line": 221,
       "excerpt": "            if path in {\"/api/cloud/import\", \"/api/cloud/reload\", \"/api/cloud/check\", \"/api/cloud/select\", \"/api/cloud/automatic\"} and post:",
       "description": "setupAutomaticModels()"
     },
@@ -1208,7 +1208,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 204,
+      "line": 265,
       "excerpt": "            if path == '/api/local/setup' and post:",
       "description": "explicit loopback-compatible setup"
     },
@@ -1248,7 +1248,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/server.py",
-      "line": 186,
+      "line": 244,
       "excerpt": "            if path == '/api/local/calibrate' and post:",
       "description": "two fixed local response checks"
     },
@@ -1258,7 +1258,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 691,
+      "line": 708,
       "excerpt": "    def calibrate_local(self, model):",
       "description": ""
     },
@@ -1278,7 +1278,7 @@
       "kind": "action",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1020,
+      "line": 1021,
       "excerpt": "  const info = await api(\"/api/info\");",
       "description": "workspaceInfo(); updates.js update-button"
     },
@@ -1288,7 +1288,7 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 145,
+      "line": 203,
       "excerpt": "            if path == \"/api/info\" and not post:",
       "description": "workspaceInfo(); updates.js update-button"
     },
@@ -1298,7 +1298,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 145,
+      "line": 203,
       "excerpt": "            if path == \"/api/info\" and not post:",
       "description": ""
     },
@@ -1308,7 +1308,7 @@
       "kind": "state",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1020,
+      "line": 1021,
       "excerpt": "  const info = await api(\"/api/info\");",
       "description": "Returns to workspaceInfo(); updates.js update-button. This is UI/controller progress, not behavioral verification."
     },
@@ -1318,7 +1318,7 @@
       "kind": "action",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1021,
+      "line": 1022,
       "excerpt": "  const insights = await api(\"/api/insights\");",
       "description": "workspaceInfo()"
     },
@@ -1328,7 +1328,7 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 142,
+      "line": 200,
       "excerpt": "            if path == \"/api/insights\" and not post:",
       "description": "workspaceInfo()"
     },
@@ -1338,7 +1338,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 602,
+      "line": 617,
       "excerpt": "    def insights(self):",
       "description": ""
     },
@@ -1348,7 +1348,7 @@
       "kind": "state",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1021,
+      "line": 1022,
       "excerpt": "  const insights = await api(\"/api/insights\");",
       "description": "Returns to workspaceInfo(). This is UI/controller progress, not behavioral verification."
     },
@@ -1358,7 +1358,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1067,
+      "line": 1068,
       "excerpt": "  saveDownload(\"/api/backup\", \"Idea-Foundry-workspace-backup.zip\"),",
       "description": "saveDownload(); direct fetch"
     },
@@ -1368,7 +1368,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 151,
+      "line": 209,
       "excerpt": "            if path == \"/api/backup\" and not post:",
       "description": "saveDownload(); direct fetch"
     },
@@ -1378,7 +1378,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 534,
+      "line": 549,
       "excerpt": "    def backup(self):",
       "description": ""
     },
@@ -1388,7 +1388,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/app.js",
-      "line": 1067,
+      "line": 1068,
       "excerpt": "  saveDownload(\"/api/backup\", \"Idea-Foundry-workspace-backup.zip\"),",
       "description": "Returns to saveDownload(); direct fetch. This is UI/controller progress, not behavioral verification."
     },
@@ -1408,8 +1408,8 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 99,
-      "excerpt": "                    if post and path == \"/api/updates/check\":",
+      "line": 109,
+      "excerpt": "                    if post and path in {\"/api/updates/check\", \"/api/diagnostics\", \"/api/diagnostics/export\", \"/api/ideas/generate\"}:",
       "description": "pollUpdate(); 1200 ms while dialog open"
     },
     {
@@ -1418,7 +1418,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/updates.py",
-      "line": 140,
+      "line": 146,
       "excerpt": "    def status(self):",
       "description": ""
     },
@@ -1448,8 +1448,8 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 99,
-      "excerpt": "                    if post and path == \"/api/updates/check\":",
+      "line": 109,
+      "excerpt": "                    if post and path in {\"/api/updates/check\", \"/api/diagnostics\", \"/api/diagnostics/export\", \"/api/ideas/generate\"}:",
       "description": "check-update.onclick"
     },
     {
@@ -1458,7 +1458,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/updates.py",
-      "line": 153,
+      "line": 159,
       "excerpt": "    def check(self, current):",
       "description": ""
     },
@@ -1488,7 +1488,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 139,
+      "line": 197,
       "excerpt": "            if path == \"/api/updates/install\" and post:",
       "description": "install-update.onclick; supervised installation"
     },
@@ -1498,7 +1498,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/updates.py",
-      "line": 202,
+      "line": 218,
       "excerpt": "    def install(self, current, shutdown):",
       "description": ""
     },
@@ -1528,7 +1528,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 110,
+      "line": 120,
       "excerpt": "                elif path == \"/health\":",
       "description": "fetch /health; reconnect max attempts"
     },
@@ -1538,7 +1538,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/server.py",
-      "line": 110,
+      "line": 120,
       "excerpt": "                elif path == \"/health\":",
       "description": ""
     },
@@ -1553,13 +1553,133 @@
       "description": "Returns to fetch /health; reconnect max attempts. This is UI/controller progress, not behavioral verification."
     },
     {
+      "id": "action-37",
+      "label": "#diag-button",
+      "kind": "action",
+      "category": "Delivery & recovery",
+      "source": "forge/static/diagnostics.js",
+      "line": 82,
+      "excerpt": "    const report = await api(\"/api/diagnostics\", {project_id: diagProjectId});",
+      "description": "Read-only local investigation; no inference or generated code execution"
+    },
+    {
+      "id": "api-post-api-diagnostics",
+      "label": "POST /api/diagnostics",
+      "kind": "api",
+      "category": "Delivery & recovery",
+      "source": "forge/server.py",
+      "line": 109,
+      "excerpt": "                    if post and path in {\"/api/updates/check\", \"/api/diagnostics\", \"/api/diagnostics/export\", \"/api/ideas/generate\"}:",
+      "description": "Read-only local investigation; no inference or generated code execution"
+    },
+    {
+      "id": "proc-collect-report",
+      "label": "collect_report()",
+      "kind": "process",
+      "category": "Delivery & recovery",
+      "source": "forge/diagnostic_report.py",
+      "line": 434,
+      "excerpt": "def collect_report(bench: Any, program_root: Path, updater: Any = None,",
+      "description": ""
+    },
+    {
+      "id": "return-37",
+      "label": "renderDiagnosticReport() \u00b7 response continuation",
+      "kind": "state",
+      "category": "Delivery & recovery",
+      "source": "forge/static/diagnostics.js",
+      "line": 82,
+      "excerpt": "    const report = await api(\"/api/diagnostics\", {project_id: diagProjectId});",
+      "description": "Returns to Read-only local investigation; no inference or generated code execution. This is UI/controller progress, not behavioral verification."
+    },
+    {
+      "id": "action-38",
+      "label": "#diag-export",
+      "kind": "action",
+      "category": "Delivery & recovery",
+      "source": "forge/static/diagnostics.js",
+      "line": 99,
+      "excerpt": "    const response = await fetch(\"/api/diagnostics/export\", {",
+      "description": "Export the displayed evidence snapshot through direct authenticated fetch"
+    },
+    {
+      "id": "api-post-api-diagnostics-export",
+      "label": "POST /api/diagnostics/export",
+      "kind": "api",
+      "category": "Delivery & recovery",
+      "source": "forge/server.py",
+      "line": 109,
+      "excerpt": "                    if post and path in {\"/api/updates/check\", \"/api/diagnostics\", \"/api/diagnostics/export\", \"/api/ideas/generate\"}:",
+      "description": "Export the displayed evidence snapshot through direct authenticated fetch"
+    },
+    {
+      "id": "proc-export-report",
+      "label": "export_report()",
+      "kind": "process",
+      "category": "Delivery & recovery",
+      "source": "forge/diagnostic_report.py",
+      "line": 699,
+      "excerpt": "def export_report(report: dict[str, Any]) -> bytes:",
+      "description": ""
+    },
+    {
+      "id": "return-38",
+      "label": "Diagnostic ZIP download \u00b7 response continuation",
+      "kind": "state",
+      "category": "Delivery & recovery",
+      "source": "forge/static/diagnostics.js",
+      "line": 99,
+      "excerpt": "    const response = await fetch(\"/api/diagnostics/export\", {",
+      "description": "Returns to Export the displayed evidence snapshot through direct authenticated fetch. This is UI/controller progress, not behavioral verification."
+    },
+    {
+      "id": "action-39",
+      "label": "#generate-idea",
+      "kind": "action",
+      "category": "Planning & approval",
+      "source": "forge/static/diagnostics.js",
+      "line": 153,
+      "excerpt": "    const result = await api(\"/api/ideas/generate\", {project_id: projectId,",
+      "description": "One isolated local inference request; edit existing input only"
+    },
+    {
+      "id": "api-post-api-ideas-generate",
+      "label": "POST /api/ideas/generate",
+      "kind": "api",
+      "category": "Planning & approval",
+      "source": "forge/server.py",
+      "line": 109,
+      "excerpt": "                    if post and path in {\"/api/updates/check\", \"/api/diagnostics\", \"/api/diagnostics/export\", \"/api/ideas/generate\"}:",
+      "description": "One isolated local inference request; edit existing input only"
+    },
+    {
+      "id": "proc-generate-idea",
+      "label": "generate_idea()",
+      "kind": "process",
+      "category": "Planning & approval",
+      "source": "forge/ideas.py",
+      "line": 44,
+      "excerpt": "def generate_idea(bench: Any, profiles: list[dict[str, Any]], project_id: str | None = None) -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "return-39",
+      "label": "Idea field insertion \u00b7 response continuation",
+      "kind": "state",
+      "category": "Planning & approval",
+      "source": "forge/static/diagnostics.js",
+      "line": 153,
+      "excerpt": "    const result = await api(\"/api/ideas/generate\", {project_id: projectId,",
+      "description": "Returns to One isolated local inference request; edit existing input only. This is UI/controller progress, not behavioral verification."
+    },
+    {
       "id": "static-app-js",
       "label": "GET /app.js",
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1568,8 +1688,8 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1578,8 +1698,8 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1588,8 +1708,8 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1598,8 +1718,8 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1608,8 +1728,8 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1618,8 +1738,18 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
+      "description": ""
+    },
+    {
+      "id": "static-diagnostics-js",
+      "label": "GET /diagnostics.js",
+      "kind": "api",
+      "category": "Workbench & session",
+      "source": "forge/server.py",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1628,8 +1758,8 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1638,8 +1768,8 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 117,
-      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/studio.css\", \"/style.css\"}:",
+      "line": 127,
+      "excerpt": "                elif path in {\"/app.js\", \"/planning.js\", \"/updates.js\", \"/cloud.js\", \"/activity.js\", \"/workflow.js\", \"/studio.js\", \"/diagnostics.js\", \"/studio.css\", \"/style.css\"}:",
       "description": ""
     },
     {
@@ -1648,7 +1778,7 @@
       "kind": "api",
       "category": "Workbench & session",
       "source": "forge/server.py",
-      "line": 115,
+      "line": 125,
       "excerpt": "                elif path == \"/icon.png\":",
       "description": ""
     },
@@ -1658,7 +1788,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 756,
+      "line": 757,
       "excerpt": "}, 1800);",
       "description": ""
     },
@@ -1708,7 +1838,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 722,
+      "line": 723,
       "excerpt": "  setTimeout(() => URL.revokeObjectURL(url), 1000);",
       "description": ""
     },
@@ -1728,7 +1858,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/app.js",
-      "line": 1262,
+      "line": 1263,
       "excerpt": "$(\"history-details\").addEventListener(\"toggle\", () => {",
       "description": ""
     },
@@ -1798,7 +1928,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 232,
+      "line": 247,
       "excerpt": "            state[\"status\"] = \"queued\"",
       "description": ""
     },
@@ -1808,7 +1938,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1100,
+      "line": 1122,
       "excerpt": "            state[\"status\"] = \"repairing\"",
       "description": ""
     },
@@ -1818,7 +1948,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 111,
+      "line": 117,
       "excerpt": "                state[\"status\"] = \"interrupted\"",
       "description": ""
     },
@@ -1828,7 +1958,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 491,
+      "line": 506,
       "excerpt": "            state.update(id=uuid.uuid4().hex, parent_id=ident, parent_title=parent[\"title\"],",
       "description": ""
     },
@@ -1838,7 +1968,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 709,
+      "line": 726,
       "excerpt": "            state.update(status='approved',error=None,checks=None,manual_results={},verification_fingerprint=None)",
       "description": ""
     },
@@ -1848,7 +1978,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 759,
+      "line": 776,
       "excerpt": "            state.update(plan=candidate, title=candidate[\"title\"], status=\"proposed\", error=None,",
       "description": ""
     },
@@ -1858,7 +1988,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1090,
+      "line": 1112,
       "excerpt": "                state[\"status\"] = \"needs_attention\"",
       "description": ""
     },
@@ -1868,7 +1998,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1348,
+      "line": 1370,
       "excerpt": "                state[\"status\"] = \"building\"",
       "description": ""
     },
@@ -1878,7 +2008,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1370,
+      "line": 1392,
       "excerpt": "                state[\"status\"] = \"generated\"",
       "description": ""
     },
@@ -1888,7 +2018,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1378,
+      "line": 1400,
       "excerpt": "                state[\"status\"] = \"checking\"",
       "description": ""
     },
@@ -1898,7 +2028,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1424,
+      "line": 1448,
       "excerpt": "            state[\"status\"] = \"stopped\"",
       "description": ""
     },
@@ -1908,7 +2038,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 679,
+      "line": 696,
       "excerpt": "            state[\"status\"] = \"planning\" if action == \"plan\" else \"building\"",
       "description": ""
     },
@@ -1918,7 +2048,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1427,
+      "line": 1452,
       "excerpt": "            state[\"status\"], state[\"error\"] = \"error\", str(exc)[:2000]",
       "description": ""
     },
@@ -1928,7 +2058,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1404,
+      "line": 1428,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -1938,7 +2068,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1404,
+      "line": 1428,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -1948,7 +2078,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 228,
+      "line": 243,
       "excerpt": "    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True, review_candidate: Callable[[dict[str, Any]], tuple[dict[str, Any], Review]] | None = None, only_model: tuple[str,str]",
       "description": ""
     },
@@ -1958,7 +2088,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1060,
+      "line": 1082,
       "excerpt": "    def _inspect_and_repair(self, state, cancel, remaining, complete=True, repair_task=None):",
       "description": ""
     },
@@ -1968,8 +2098,8 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 70,
-      "excerpt": "    def __init__(self, root, client_factory=ModelClient, verifier=verify):",
+      "line": 72,
+      "excerpt": "    def __init__(self, root, client_factory=ModelClient, verifier=verify, diagnostics=None):",
       "description": ""
     },
     {
@@ -1978,7 +2108,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1177,
+      "line": 1199,
       "excerpt": "    def _job(self, state, action, options, cancel):",
       "description": ""
     },
@@ -2008,7 +2138,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 908,
+      "line": 925,
       "excerpt": "    def apply(self, state, response, repair=False):",
       "description": ""
     },
@@ -2018,7 +2148,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 965,
+      "line": 987,
       "excerpt": "    def generate_and_apply(self, state, payload, cancel, repair=False):",
       "description": ""
     },
@@ -2078,7 +2208,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 865,
+      "line": 882,
       "excerpt": "    def checkpoint(self, state, label):",
       "description": ""
     },
@@ -2250,6 +2380,66 @@
       "source": "forge/acceptance.py",
       "line": 20,
       "excerpt": "def evidence_findings(plan: dict[str,Any], *, outline: bool = False, partial: bool = False) -> list[tuple[str,str,str]]:",
+      "description": ""
+    },
+    {
+      "id": "proc-workbench-trace",
+      "label": "Workbench.trace()",
+      "kind": "process",
+      "category": "Workbench & session",
+      "source": "forge/core.py",
+      "line": 153,
+      "excerpt": "    def trace(self, state, kind, data, origin=\"controller\"):",
+      "description": ""
+    },
+    {
+      "id": "proc-flightrecorder-record",
+      "label": "FlightRecorder.record()",
+      "kind": "process",
+      "category": "Delivery & recovery",
+      "source": "forge/diagnostics.py",
+      "line": 219,
+      "excerpt": "    def record(self, kind: str, data: dict[str, Any] | None = None, *, project_id: str | None = None, run_id: str | None = None, origin: str = 'controller', event_id: str | None = None, time_utc: str | None = None) -> str | None:",
+      "description": ""
+    },
+    {
+      "id": "proc-append",
+      "label": "append()",
+      "kind": "process",
+      "category": "Delivery & recovery",
+      "source": "forge/history.py",
+      "line": 83,
+      "excerpt": "def append(directory: Path, state: dict[str, Any], kind: str, data: dict[str, Any], origin: str = 'controller') -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "proc-flightrecorder-snapshot",
+      "label": "FlightRecorder.snapshot()",
+      "kind": "process",
+      "category": "Delivery & recovery",
+      "source": "forge/diagnostics.py",
+      "line": 256,
+      "excerpt": "    def snapshot(self, limit: int = 5000) -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "proc-choose-model",
+      "label": "choose_model()",
+      "kind": "process",
+      "category": "Planning & approval",
+      "source": "forge/ideas.py",
+      "line": 35,
+      "excerpt": "def choose_model(installed: list[str], profiles: list[dict[str, Any]]) -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "idea-prompt-insertion",
+      "label": "Insert editable idea; no project submission",
+      "kind": "state",
+      "category": "Planning & approval",
+      "source": "forge/static/diagnostics.js",
+      "line": 160,
+      "excerpt": "    $(\"idea\").value = result.idea.trim();",
       "description": ""
     },
     {
@@ -2488,7 +2678,7 @@
       "kind": "api",
       "category": "Delivery & recovery",
       "source": "forge/updates.py",
-      "line": 176,
+      "line": 188,
       "excerpt": "        content = self.downloader(release['url'], MAX_ARCHIVE)",
       "description": ""
     },
@@ -3841,6 +4031,108 @@
       "label": "recorded call / continuation"
     },
     {
+      "id": "deferred--action-37",
+      "source": "deferred",
+      "target": "action-37",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "action-37--proc-api-path-body",
+      "source": "action-37",
+      "target": "proc-api-path-body",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-api-path-body--api-post-api-diagnostics",
+      "source": "proc-api-path-body",
+      "target": "api-post-api-diagnostics",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "api-post-api-diagnostics--guard",
+      "source": "api-post-api-diagnostics",
+      "target": "guard",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "token--proc-collect-report",
+      "source": "token",
+      "target": "proc-collect-report",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-collect-report--return-37",
+      "source": "proc-collect-report",
+      "target": "return-37",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "deferred--action-38",
+      "source": "deferred",
+      "target": "action-38",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "action-38--api-post-api-diagnostics-export",
+      "source": "action-38",
+      "target": "api-post-api-diagnostics-export",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "api-post-api-diagnostics-export--guard",
+      "source": "api-post-api-diagnostics-export",
+      "target": "guard",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "token--proc-export-report",
+      "source": "token",
+      "target": "proc-export-report",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-export-report--return-38",
+      "source": "proc-export-report",
+      "target": "return-38",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "deferred--action-39",
+      "source": "deferred",
+      "target": "action-39",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "action-39--proc-api-path-body",
+      "source": "action-39",
+      "target": "proc-api-path-body",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-api-path-body--api-post-api-ideas-generate",
+      "source": "proc-api-path-body",
+      "target": "api-post-api-ideas-generate",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "api-post-api-ideas-generate--guard",
+      "source": "api-post-api-ideas-generate",
+      "target": "guard",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "token--proc-generate-idea",
+      "source": "token",
+      "target": "proc-generate-idea",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-generate-idea--return-39",
+      "source": "proc-generate-idea",
+      "target": "return-39",
+      "label": "recorded call / continuation"
+    },
+    {
       "id": "http-error--proc-notice-message",
       "source": "http-error",
       "target": "proc-notice-message",
@@ -3886,6 +4178,12 @@
       "id": "document--static-studio-js",
       "source": "document",
       "target": "static-studio-js",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "document--static-diagnostics-js",
+      "source": "document",
+      "target": "static-diagnostics-js",
       "label": "recorded call / continuation"
     },
     {
@@ -4540,6 +4838,66 @@
       "id": "proc-refresh-local-limits--local-model-show",
       "source": "proc-refresh-local-limits",
       "target": "local-model-show",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-workbench-job--proc-workbench-trace",
+      "source": "proc-workbench-job",
+      "target": "proc-workbench-trace",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-workbench-trace--proc-append",
+      "source": "proc-workbench-trace",
+      "target": "proc-append",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-append--proc-flightrecorder-record",
+      "source": "proc-append",
+      "target": "proc-flightrecorder-record",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "document--proc-collect-report",
+      "source": "document",
+      "target": "proc-collect-report",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-collect-report--proc-flightrecorder-snapshot",
+      "source": "proc-collect-report",
+      "target": "proc-flightrecorder-snapshot",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-flightrecorder-snapshot--proc-export-report",
+      "source": "proc-flightrecorder-snapshot",
+      "target": "proc-export-report",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "document--proc-generate-idea",
+      "source": "document",
+      "target": "proc-generate-idea",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-generate-idea--proc-choose-model",
+      "source": "proc-generate-idea",
+      "target": "proc-choose-model",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-choose-model--proc-modelclient-complete",
+      "source": "proc-choose-model",
+      "target": "proc-modelclient-complete",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-modelclient-complete--idea-prompt-insertion",
+      "source": "proc-modelclient-complete",
+      "target": "idea-prompt-insertion",
       "label": "recorded call / continuation"
     },
     {
@@ -6084,6 +6442,106 @@
       ]
     },
     {
+      "id": "endpoint-37",
+      "label": "POST /api/diagnostics",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "deferred",
+        "action-37",
+        "proc-api-path-body",
+        "api-post-api-diagnostics",
+        "guard",
+        "token",
+        "proc-collect-report",
+        "return-37"
+      ],
+      "failures": []
+    },
+    {
+      "id": "rejection-37",
+      "label": "POST /api/diagnostics \u00b7 rejected request",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "deferred",
+        "action-37",
+        "proc-api-path-body",
+        "api-post-api-diagnostics",
+        "guard",
+        "http-error"
+      ],
+      "failures": [
+        "http-error"
+      ]
+    },
+    {
+      "id": "endpoint-38",
+      "label": "POST /api/diagnostics/export",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "deferred",
+        "action-38",
+        "api-post-api-diagnostics-export",
+        "guard",
+        "token",
+        "proc-export-report",
+        "return-38"
+      ],
+      "failures": []
+    },
+    {
+      "id": "rejection-38",
+      "label": "POST /api/diagnostics/export \u00b7 rejected request",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "deferred",
+        "action-38",
+        "api-post-api-diagnostics-export",
+        "guard",
+        "http-error"
+      ],
+      "failures": [
+        "http-error"
+      ]
+    },
+    {
+      "id": "endpoint-39",
+      "label": "POST /api/ideas/generate",
+      "category": "Planning & approval",
+      "path": [
+        "document",
+        "deferred",
+        "action-39",
+        "proc-api-path-body",
+        "api-post-api-ideas-generate",
+        "guard",
+        "token",
+        "proc-generate-idea",
+        "return-39"
+      ],
+      "failures": []
+    },
+    {
+      "id": "rejection-39",
+      "label": "POST /api/ideas/generate \u00b7 rejected request",
+      "category": "Planning & approval",
+      "path": [
+        "document",
+        "deferred",
+        "action-39",
+        "proc-api-path-body",
+        "api-post-api-ideas-generate",
+        "guard",
+        "http-error"
+      ],
+      "failures": [
+        "http-error"
+      ]
+    },
+    {
       "id": "ui-permission-notice",
       "label": "Approval request rejected \u00b7 handle() / notice()",
       "category": "Planning & approval",
@@ -6168,6 +6626,16 @@
       "path": [
         "document",
         "static-studio-js"
+      ],
+      "failures": []
+    },
+    {
+      "id": "static-diagnostics-js",
+      "label": "Local asset \u00b7 diagnostics.js",
+      "category": "Workbench & session",
+      "path": [
+        "document",
+        "static-diagnostics-js"
       ],
       "failures": []
     },
@@ -6781,6 +7249,44 @@
         "document",
         "proc-refresh-local-limits",
         "local-model-show"
+      ],
+      "failures": []
+    },
+    {
+      "id": "diagnostic-recorder",
+      "label": "Controller event \u00b7 shared IDs and independent persistence",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "proc-workbench-job",
+        "proc-workbench-trace",
+        "proc-append",
+        "proc-flightrecorder-record"
+      ],
+      "failures": []
+    },
+    {
+      "id": "diagnostic-investigation",
+      "label": "Diag \u00b7 read-only local evidence export",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "proc-collect-report",
+        "proc-flightrecorder-snapshot",
+        "proc-export-report"
+      ],
+      "failures": []
+    },
+    {
+      "id": "local-idea-helper",
+      "label": "Generate Idea \u00b7 local request without a project",
+      "category": "Planning & approval",
+      "path": [
+        "document",
+        "proc-generate-idea",
+        "proc-choose-model",
+        "proc-modelclient-complete",
+        "idea-prompt-insertion"
       ],
       "failures": []
     },

@@ -137,6 +137,12 @@ class UpdateManager:
         self.state = {'status': 'idle', 'message': 'Check for a newer release from GitHub.', 'repository': REPOSITORY}
         self.restart = False
 
+    def record(self, kind, data):
+        try:
+            self.bench.diagnostics.record(kind, data)
+        except Exception:
+            pass
+
     def status(self):
         with self.lock:
             result = dict(self.state)
@@ -155,6 +161,7 @@ class UpdateManager:
             if self.state['status'] in {'checking', 'installing', 'restarting'}:
                 raise ValueError('An update operation is already running.')
             self.state.update(status='checking', message='Checking the release repository…')
+        self.record('update_check_started', {'current_version': current})
         try:
             release = validate_manifest(json.loads(self.downloader(MANIFEST_URL, 30000)))
             available = version_tuple(release['version']) > version_tuple(current)
@@ -164,15 +171,20 @@ class UpdateManager:
                 self.state['completion_event'] = {'type':'update_ready','version':release['version'],
                     'requires_user_action':True,'message':'Version '+release['version']+' is ready. Press the Update button in the app to apply changes.'} if available else None
             if available:print(self.state['completion_event']['message'],flush=True)
+            self.record('update_check_finished', {'current_version': current, 'release_version': release['version'],
+                'available': available, 'success': True})
         except Exception as exc:
             with self.lock:
                 self.release = None
                 self.state['completion_event'] = None
                 self.state.update(status='error', message=f'Could not check for updates: {exc}. Your current installation is unchanged.')
+            self.record('update_check_finished', {'current_version': current, 'success': False,
+                'exception_type': type(exc).__name__})
         return self.status()
 
     def prepare(self, backup):
         release = dict(self.release)
+        self.record('update_download_started', {'version': release['version']})
         content = self.downloader(release['url'], MAX_ARCHIVE)
         versions = self.directory / 'versions'
         versions.mkdir(parents=True, exist_ok=True)
@@ -183,6 +195,8 @@ class UpdateManager:
         with tempfile.TemporaryDirectory(prefix='.stage-', dir=versions) as temp:
             staged = Path(temp) / 'program'
             extract_release(content, staged, release)
+            self.record('update_download_verified', {'version': release['version'], 'bytes': len(content),
+                'sha256': hashlib.sha256(content).hexdigest()})
             backup_path = self.directory / 'backups' / (time.strftime('%Y%m%d-%H%M%S') + '-' + uuid.uuid4().hex[:6] + '.zip')
             backup_path.parent.mkdir(parents=True, exist_ok=True)
             backup_path.write_bytes(backup)
@@ -197,6 +211,8 @@ class UpdateManager:
                 (self.directory / 'pending.json').unlink(missing_ok=True)
                 shutil.rmtree(target)
                 raise
+        self.record('update_prepared', {'version': release['version'], 'backup_saved': backup_path.is_file(),
+            'previous_version': (previous or {}).get('version'), 'pending_health_check': True})
         return backup_path
 
     def install(self, current, shutdown):
@@ -207,8 +223,11 @@ class UpdateManager:
                 raise ValueError('Check for a newer release first.')
             if any(t.is_alive() for t, _ in self.bench.jobs.values()):
                 raise ValueError('Finish or stop running jobs before updating.')
+            if getattr(self.bench, 'idea_busy', False):
+                raise ValueError('Wait for Generate Idea to finish before updating.')
             self.bench.maintenance = True
             self.state.update(status='installing', message='Validating download and backing up projects. Keep this terminal open.')
+            self.record('update_install_started', {'current_version': current, 'release_version': self.release['version']})
 
         def work():
             try:
@@ -217,10 +236,12 @@ class UpdateManager:
                 with self.lock:
                     self.state.update(status='restarting', message='Update installed. Restarting; this page will reconnect.', backup=str(backup_path))
                     self.restart = True
+                self.record('update_restart_requested', {'version': self.release['version']})
                 shutdown()
             except Exception as exc:
                 with self.lock:
                     self.state.update(status='error', message=f'Update stopped: {exc}. Your projects were preserved.')
                 self.bench.maintenance = False
+                self.record('update_install_failed', {'exception_type': type(exc).__name__, 'projects_preserved': True})
         threading.Thread(target=work, daemon=True).start()
         return self.status()
