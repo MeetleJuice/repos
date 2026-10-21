@@ -1,0 +1,507 @@
+{
+  "schema": 1,
+  "version": "0.36.0",
+  "theme": "Planning coherence and actionable read-only Test/Diag",
+  "archive": {
+    "file": "Idea-Foundry-0.36.0.zip",
+    "bytes": 2919518,
+    "sha256": "a98af0f2e99e2512aa6677f2f0f6d322ff8f58865a92a43850a780c6781b7807",
+    "build_identity": {
+      "schema": 1,
+      "version": "0.36.0",
+      "source_commit": "7ff0fd4206f6107cbcbd045e414df20138328e6b",
+      "tracked_modified_files": 0,
+      "meaning": "Git identity at packaging time; source_tree_sha256 identifies packaged file bytes excluding this metadata.",
+      "source_tree_sha256": "044f10d1fc5bdd2bda56ec8f986133ca3b42a12b57e0c2152205eb029551b698",
+      "source_file_count": 440
+    },
+    "all_440_source_bytes_match_checkout": true,
+    "production_extract_release": "passed"
+  },
+  "uploaded_diagnostic": {
+    "report_id": "a515ba01c43042139eb0a5b8105ed614",
+    "manifest_members_verified": 18,
+    "application_version": "0.35.0",
+    "latest_planning_run": {
+      "available": true,
+      "run_id": "0f664b845f4c44e7b728aaf102dcec82",
+      "started": "2026-10-21T23:07:07.957253+00:00",
+      "status": "proposed",
+      "seconds": 381.174,
+      "recorded_attempts": 16,
+      "reported_attempts": 16,
+      "stages": {
+        "scope": {
+          "attempts": 1,
+          "accepted": 1,
+          "rejected": 0,
+          "seconds": 13.85,
+          "unknown_timings": 0
+        },
+        "acceptance_feature": {
+          "attempts": 11,
+          "accepted": 4,
+          "rejected": 7,
+          "seconds": 332.94,
+          "unknown_timings": 0
+        },
+        "feature_tasks": {
+          "attempts": 4,
+          "accepted": 4,
+          "rejected": 0,
+          "seconds": 32.74,
+          "unknown_timings": 0
+        }
+      },
+      "timeout_seconds": 240.19,
+      "review_codes": [
+        "persistence_evidence",
+        "restart_evidence",
+        "structure"
+      ],
+      "history_may_be_partial": false
+    },
+    "original_model_transcripts_available": false,
+    "app_source_available": false
+  },
+  "regressions": {
+    "uploaded_plan": {
+      "command": "python -m unittest tests.test_planning_coherence -q",
+      "before": {
+        "tests": 3,
+        "failures": 3,
+        "output": "======================================================================\nFAIL: test_browser_api_checks_are_scheduled_like_server_checks (tests.test_planning_coherence.PlanningCoherenceTests.test_browser_api_checks_are_scheduled_like_server_checks)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_planning_coherence.py\", line 29, in test_browser_api_checks_are_scheduled_like_server_checks\n    self.assertEqual(tasks[0].get('check_indexes'),[0,1,2])\nAssertionError: None != [0, 1, 2]\n\n======================================================================\nFAIL: test_uploaded_browser_plan_cannot_pass_full_reviewer (tests.test_planning_coherence.PlanningCoherenceTests.test_uploaded_browser_plan_cannot_pass_full_reviewer)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_planning_coherence.py\", line 19, in test_uploaded_browser_plan_cannot_pass_full_reviewer\n    self.assertFalse(review.passed,'The uploaded contradictory plan must not be approvable.')\nAssertionError: True is not false : The uploaded contradictory plan must not be approvable.\n\n======================================================================\nFAIL: test_wrong_endpoint_is_rejected_before_saving_a_task_batch (tests.test_planning_coherence.PlanningCoherenceTests.test_wrong_endpoint_is_rejected_before_saving_a_task_batch)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_planning_coherence.py\", line 36, in test_wrong_endpoint_is_rejected_before_saving_a_task_batch\n    with self.assertRaisesRegex(ValueError,'endpoint|API'):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 3 tests in 0.004s\n\nFAILED (failures=3)\n",
+        "independent_old_reviewer_passed": true
+      },
+      "after": {
+        "tests": 15,
+        "passed": true,
+        "log_sha256": "41b1a52e57dad514233d68c4e12f1e33972f58d0c0780f3be1c611aac7546719",
+        "output": "OK"
+      },
+      "current_review": {
+        "available": true,
+        "reviewer_version": "0.36.0",
+        "passed": false,
+        "plan_sha256": "3ace4e38acf07c12ed8844063706bfa017ea5d2677a81d317dbec1dd583d4815",
+        "review_codes": [
+          "duplicate_create_id",
+          "duplicate_task",
+          "missing_api_contract",
+          "missing_milestone",
+          "missing_persistence_scenario",
+          "missing_ui_task",
+          "ordering_scenario",
+          "task_endpoint_mismatch"
+        ],
+        "findings": [
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/1",
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/3",
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/4",
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/6",
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/7",
+            "severity": "error"
+          },
+          {
+            "code": "missing_milestone",
+            "path": "/tasks",
+            "severity": "error"
+          },
+          {
+            "code": "missing_persistence_scenario",
+            "path": "/features/3",
+            "severity": "error"
+          },
+          {
+            "code": "ordering_scenario",
+            "path": "/features/1",
+            "severity": "error"
+          },
+          {
+            "code": "duplicate_create_id",
+            "path": "/checks/2",
+            "severity": "error"
+          },
+          {
+            "code": "duplicate_task",
+            "path": "/tasks/3",
+            "severity": "error"
+          },
+          {
+            "code": "duplicate_task",
+            "path": "/tasks/6",
+            "severity": "error"
+          },
+          {
+            "code": "duplicate_task",
+            "path": "/tasks/9",
+            "severity": "error"
+          },
+          {
+            "code": "duplicate_task",
+            "path": "/tasks/7",
+            "severity": "error"
+          },
+          {
+            "code": "duplicate_task",
+            "path": "/tasks/8",
+            "severity": "error"
+          },
+          {
+            "code": "duplicate_task",
+            "path": "/tasks/11",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/0",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/1",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/2",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/3",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/4",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/5",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/6",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/7",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/8",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/9",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/10",
+            "severity": "error"
+          },
+          {
+            "code": "task_endpoint_mismatch",
+            "path": "/tasks/11",
+            "severity": "error"
+          },
+          {
+            "code": "missing_ui_task",
+            "path": "/tasks",
+            "severity": "error"
+          }
+        ],
+        "restart_check_indexes": [],
+        "duplicate_task_groups": [
+          [
+            0,
+            3,
+            6,
+            9
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            8,
+            11
+          ]
+        ],
+        "business_http_checks": 8,
+        "executed": false,
+        "approval_changed": false
+      }
+    },
+    "truncated_probe": {
+      "command": "python -m unittest tests.test_system_tests.SystemTestTests.test_truncated_probe_distinguishes_received_reply_from_accepted_json -q",
+      "before": "======================================================================\nFAIL: test_truncated_probe_distinguishes_received_reply_from_accepted_json (tests.test_system_tests.SystemTestTests.test_truncated_probe_distinguishes_received_reply_from_accepted_json)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_system_tests.py\", line 23, in test_truncated_probe_distinguishes_received_reply_from_accepted_json\n    self.assertTrue(row['response_received'])\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 1 test in 0.060s\n\nFAILED (failures=1)\n",
+      "after": "Same regression passes in 26 focused guard/Test tests and full source/archive suites; reply received true, accepted false, HTTP response received true."
+    },
+    "invalid_checkpoint_resume": {
+      "command": "python -m unittest tests.test_planning_coherence.PlanningCoherenceTests.test_invalid_saved_outline_discards_its_invalid_acceptance_prefix_but_keeps_scope -q",
+      "before": "======================================================================\nERROR: test_invalid_saved_outline_discards_its_invalid_acceptance_prefix_but_keeps_scope (tests.test_planning_coherence.PlanningCoherenceTests.test_invalid_saved_outline_discards_its_invalid_acceptance_prefix_but_keeps_scope)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_planning_coherence.py\", line 61, in test_invalid_saved_outline_discards_its_invalid_acceptance_prefix_but_keeps_scope\n    result=run_compiled(request,generate,lambda draft:None,threading.Event(),saved)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/repos/forge/task_planning.py\", line 116, in run_compiled\n    outline = create_outline(request,generate,checkpoint,draft,cancel)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/repos/forge/outline_planning.py\", line 82, in create_outline\n    return create_acceptance(request,scope,generate,checkpoint,draft,cancel)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspace/repos/forge/feature_acceptance.py\", line 87, in create_acceptance\n    _review(scope,fields,request,first)\n  File \"/workspace/repos/forge/feature_acceptance.py\", line 48, in _review\n    raise StageValidationError([(f.code,f.path,f.message) for f in result.findings if f.severity=='error'])\nforge.guided.StageValidationError: /checks/2/name: This check claims a restart but never restarts the server. Add restart_before: true to a GET of saved data, or describe the check accurately.; /features/0: This feature promises server persistence/restart, but has no mapped GET with restart_before:true reading a seeded value. Correct the unapproved scenario, not the requirement.\n\n----------------------------------------------------------------------\nRan 1 test in 0.003s\n\nFAILED (errors=1)\n",
+      "after": "Validated scope reused; rejected acceptance prefix/dependent tasks cleared; two acceptance-feature then two task calls produce unchanged valid checks."
+    }
+  },
+  "source_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 557,
+    "seconds": 134.057,
+    "output": "Ran 557 tests in 134.057s\n\nOK",
+    "passed": true,
+    "log_sha256": "5408caf2fcd516a50addfc4fa731e5b8fb141de551bf4a168db769f58ef21016"
+  },
+  "archive_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 557,
+    "seconds": 135.936,
+    "output": "Ran 557 tests in 135.936s\n\nOK",
+    "passed": true,
+    "log_sha256": "4a8edbb368028f35f220b4f7f0ef4d002a188aa78a8245d8f0bfe90358d68bc2"
+  },
+  "focused_guards": {
+    "command": "python -m unittest tests.test_planning_coherence tests.test_system_tests -q",
+    "tests": 26,
+    "passed": true,
+    "log_sha256": "eea307d40e5b9c600f6e9824b1aac3cd4dadde6f6aac9d77bf691f3158c09da2",
+    "output": "OK"
+  },
+  "resume_focused": {
+    "tests": 58,
+    "passed": true,
+    "log_sha256": "e12310c50342acf807fc32d95ba01f3300309d62b6dbf57ff78552b6ede02bcb",
+    "output": "OK"
+  },
+  "types": {
+    "command": "PYTHONPATH=/tmp/foundry-typecheck python -m mypy --strict <38 modules from tools.validate.TYPED>",
+    "output": "Success: no issues found in 38 source files"
+  },
+  "workbench_browsers": [
+    {
+      "name": "planning_coherence",
+      "exit_code": 0,
+      "output": "PASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures."
+    },
+    {
+      "name": "feature_acceptance",
+      "exit_code": 0,
+      "output": "PASS: granular creation through feature acceptance correction, scoped task generation, unchanged human approval, actual SQLite/server/browser checks and verified ZIP. Model replies are fixtures."
+    },
+    {
+      "name": "brand",
+      "exit_code": 0,
+      "output": "PASS: larger desktop/mobile emblem; independent flame animation; true in-flight controller activity and completion; status-error clearing; persistent motion pause; reduced motion; no horizontal overflow or JavaScript errors. No live model quality tested."
+    },
+    {
+      "name": "system_tests",
+      "exit_code": 0,
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity."
+    },
+    {
+      "name": "diagnostics",
+      "exit_code": 0,
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested."
+    },
+    {
+      "name": "evidence_planning",
+      "exit_code": 0,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence."
+    },
+    {
+      "name": "capacity_delivery",
+      "exit_code": 0,
+      "output": "PASS: Plan for my builder -> validated outline/scoped tasks -> unchanged approval -> rejected Python -> same-model exact-edit correction -> sequential build -> real acceptance/tests/launch -> verified ZIP; frozen foundation retained; metadata-only model limits and embedding exclusion; mobile/no JS errors. Model replies are fixtures, not live-model quality evidence."
+    },
+    {
+      "name": "workflow_overview",
+      "exit_code": 0,
+      "output": "PASS: fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "task_contract",
+      "exit_code": 0,
+      "output": "PASS: structured task UI, scope rejection/correction and protected ZIP export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "hybrid_execution",
+      "exit_code": 0,
+      "output": "PASS: hybrid mode setup, cloud planner/local builder dispatch, source-supported no-change receipt and real verification/ZIP; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "delivery_control",
+      "exit_code": 0,
+      "output": "PASS: explicit local-only calibration, focused source request, task readiness/evidence and source-bound export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "orchestration",
+      "exit_code": 0,
+      "output": "PASS: explicit orchestration preset; primary/secondary cloud failures reach local planning; no pre-consent inference; sequential local-only coding without unused cloud consent; task outcome/criteria/checklist; real milestone/final HTTP, unit and launch checks; invocation allowance; verified ZIP/work checklist; mobile/privacy/no JS errors. Model replies are fixtures, not live quality measurements."
+    },
+    {
+      "name": "local_harness",
+      "exit_code": 0,
+      "output": "PASS: local-compatible setup/discovery choices persist; no cloud requests/consent; actual local SSE preview; scoped Stop control; finish gate; real generated-app verification and ZIP; human-controlled update-ready event/banner; mobile/reduced motion/no JS errors. Model responses are fixtures."
+    },
+    {
+      "name": "guided_planning",
+      "exit_code": 0,
+      "output": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence."
+    },
+    {
+      "name": "local_failover",
+      "exit_code": 0,
+      "output": "PASS: fresh project automatically detects local backups without model setup; two transport failures advance to third distinct Ollama model; two rejected code responses advance to third distinct builder; unchanged saved primary/approved plan; actual app verification and ZIP; no cloud calls/mobile overflow/JS errors. Model replies are fixtures."
+    },
+    {
+      "name": "model_studio",
+      "exit_code": 0,
+      "output": "PASS: local-only no-cloud setup, two-local failover, existing plan/files preservation, separate route previews, keyboard details, persistent accents/volume/mute, user-gesture audio with silent reload/history, one cue per observed terminal transition, reduced-motion/mobile and real generated-app verification/ZIP. No live provider or GPU claims."
+    },
+    {
+      "name": "model_activity",
+      "exit_code": 0,
+      "output": "PASS: seven provider icons and installed local models, embedding distinction, true in-flight animation, reduced-motion state, success and quota transitions, working cleared, model dialog navigation, mobile, privacy and no JS errors."
+    },
+    {
+      "name": "automatic_routing",
+      "exit_code": 0,
+      "output": "PASS: automatic catalogue setup, role routes persisted, missing Cloudflare config skipped, no pre-consent inference, model error and invalid proposals advance without restart, actual app verification, current project preservation, mobile, no secret values or JavaScript errors."
+    },
+    {
+      "name": "proposal_import",
+      "exit_code": 0,
+      "output": "PASS: five-task stale proposal \u2192 imported two-task reviewed repair \u2192 persistent reload/cards \u2192 explicit editor save/check feedback \u2192 approval; no inference, source mutation or execution; token and recycled-plan guards; mobile."
+    },
+    {
+      "name": "upgrade",
+      "exit_code": 0,
+      "output": "PASS: tested foundation, clear missing-Docker state, consent, actual verification, protected test export, project search, update dialog, desktop/mobile and no JS errors."
+    },
+    {
+      "name": "arcade",
+      "exit_code": 0,
+      "output": "PASS: real plan/build/HTTP/tests/launch/Chromium/manual/export pipeline; rendered keyboard/pointer movement, pause freeze, collision/game-over, restart, high-score refresh persistence; mobile layout; broken JS rejected."
+    },
+    {
+      "name": "cloud",
+      "exit_code": 0,
+      "output": "PASS: UTF-16 Notepad .env.txt \u2192 private key import \u2192 checked catalogues \u2192 persisted cloud route \u2192 consent gate \u2192 Gemini/Groq/OpenRouter failover \u2192 real generated-app HTTP/tests/launch \u2192 cooldown skip \u2192 saved project settings; no secret responses, auth boundary, mobile and no JS errors."
+    },
+    {
+      "name": "provider_pool",
+      "exit_code": 0,
+      "output": "PASS: seven-key private import; missing Cloudflare account then local configuration import; seven catalogues; reordered route; timeout/JSON settings persisted; seven-tier failover; actual app verification/export; mobile; no exposed keys or JS errors."
+    },
+    {
+      "name": "repair",
+      "exit_code": 0,
+      "output": "PASS: actual uploaded shield collision fails in Chromium \u2192 bounded exact-edit repair \u2192 same frozen browser/HTTP/regression checks pass; collection/pause/consumption/second collision/restart verified; failed format recovery retains notes and enables retry; direct successful repair makes one coder request, no planning/execution, mobile and no JavaScript errors."
+    },
+    {
+      "name": "starter_recovery",
+      "exit_code": 0,
+      "output": "PASS: actual failed empty-plan screen \u2192 explicit standard-plan recovery \u2192 approval; direct standard creation; zero extra model calls; no code execution; authenticated endpoint; mobile layout."
+    },
+    {
+      "name": "planning",
+      "exit_code": 0,
+      "output": "PASS: semantic recovery in 3 requests, explicit fallback, context/output controls, cloud consent visibility, live edit review with no inference, approval gate, restart evidence and mobile layout."
+    }
+  ],
+  "extracted_browsers": [
+    {
+      "name": "planning_coherence",
+      "exit_code": 0,
+      "output": "PASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures."
+    },
+    {
+      "name": "guided_planning",
+      "exit_code": 0,
+      "output": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence."
+    },
+    {
+      "name": "system_tests",
+      "exit_code": 0,
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity."
+    },
+    {
+      "name": "diagnostics",
+      "exit_code": 0,
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested."
+    }
+  ],
+  "dashboard_browsers": {
+    "browser_check": {
+      "log_sha256": "af3c58530eded14b13886fae4c055ba4baee55618aa4736fd38c871b206f092e",
+      "output": "PASS: Chromium desktop/mobile; local ELK worker; 302 disjoint HTML nodes / 469 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors."
+    },
+    "launcher_check": {
+      "log_sha256": "646d50f84819563728b934f742a8b978e03933054f101a2abfab5f577f9c952b",
+      "output": "PASS: visible top workbench Dashboard button; distinct Chromium browser window; graph loads; opener detached; repeated clicks reuse window; blocked popup exposes keyboard-focusable fallback; reopen works; unsaved idea preserved; mobile has no overflow; no project/model job or JavaScript error."
+    }
+  },
+  "dashboard_build": {
+    "typescript": "passed",
+    "node_tests_passed": 4,
+    "production_assets": "passed",
+    "nodes": 302,
+    "edges": 469,
+    "scenarios": 182
+  },
+  "frozen_sets": {
+    "count": 21,
+    "hashes_match": true,
+    "prior_20_entries_unchanged": true
+  },
+  "test_button": {
+    "fixed_adversarial_planning_cases": 8,
+    "current_selected_proposal_audit": true,
+    "generated_code_executed": false,
+    "extra_inference_for_guard_or_project_review": false,
+    "routes_changed": false,
+    "approval_changed": false,
+    "diag_exports_current_and_stored_review_separately": true
+  },
+  "existing_test_corrections": [
+    "Scheduling fixture now describes distinct second-task persistence tests; original last-producer assertions retained",
+    "Browser evidence fixture requires missing_persistence_scenario because rejection now precedes the old false_restart rule; correction/approval/execution assertions retained"
+  ],
+  "live_model_quality_claim": false,
+  "remaining_known_limits": [
+    "Explicit route/duplicate/selected-English requirement checks cannot prove arbitrary semantics",
+    "Declared UI and check coverage still require actual execution and user/browser acceptance",
+    "Both previously slow local models may still time out; no GPU/latency/paid-cost improvement established",
+    "Existing routes, cloud consent and request/repair caps retained",
+    "Tiny fixed JSON probe remains insufficient to prove project fitness or remaining quota",
+    "Approved legacy plans/source are not migrated; current read-only audit can warn about historical declarations",
+    "Custom identity or migration semantics can need explicit human review"
+  ],
+  "publication": "Pre-publication evidence. Public manifest, byte-identical ZIP and production UpdateManager check verified separately after push."
+}
