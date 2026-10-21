@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.33.2",
+  "version": "0.34.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.33.2.zip",
-  "sha256": "a88dd6339d36f49d204551972e276d456e009fa66de735d3f016e3c58b56e046",
-  "notes": "Acceptance before tasks: staged planning now uses the same task-independent consistency rules as final review, catching incorrect restart placement, false restart claims, response-shape contradictions and placeholders before task-generation calls. Existing bounded correction and fallback handle these failures without extra retry loops. Matching saved split-stage drafts retain validated scope but regenerate invalid acceptance and dependent tasks; complete-request identity and final approval checks remain enforced. Diagnostics expose distinct restart findings. Approved projects, source, checks, routes and consent are unchanged. Frozen synthetic regressions reproduce the observed failure class; live-model quality and Windows performance remain untested."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.34.0.zip",
+  "sha256": "1082dbea9eb49fedbeff557b9c00acc7f8ee029311ea4b20cc1349efd98a7766",
+  "notes": "Living forge and clearer acceptance recovery: the larger original mascot has independently animated blue/cyan SVG flame layers, observed in-flight glow, persistent pause and reduced-motion support. Acceptance corrections explicitly allow repairing rejected unapproved checks while preserving fixed scope and approved baseline evidence; concrete wire examples demonstrate create/read-after-restart/delete and manual UI coverage. Native acceptance schemas constrain feature references to the saved scope. Diag distinguishes retained proposals from approved plans and records missing coverage plus manual/browser references without prose. Bounded retries, final approval, frozen checks, source, routes and consent remain intact. Synthetic regressions do not establish live model quality, available quota or Windows GPU performance."
 }

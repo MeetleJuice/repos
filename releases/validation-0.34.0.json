@@ -1,0 +1,247 @@
+{
+  "schema": 1,
+  "version": "0.34.0",
+  "artifact": {
+    "version": "0.34.0",
+    "bytes": 2877334,
+    "sha256": "1082dbea9eb49fedbeff557b9c00acc7f8ee029311ea4b20cc1349efd98a7766",
+    "identity": {
+      "schema": 1,
+      "version": "0.34.0",
+      "source_commit": "138c6427e015475912aabff40293ba4f1dc00843",
+      "tracked_modified_files": 0,
+      "meaning": "Git identity at packaging time; source_tree_sha256 identifies packaged file bytes excluding this metadata.",
+      "source_tree_sha256": "d7bd1b2c6c8b8e0929d5f11080d9b8963e09c4c6a67ebd7681542e9f6d8134ec",
+      "source_file_count": 426
+    },
+    "source_bytes_matched": 426,
+    "production_extract_release_passed": true
+  },
+  "diagnostic_basis": {
+    "report_id": "ad36a5b2cf2d4d9a85d46cfdf28163f6",
+    "manifest_members": 18,
+    "all_byte_sizes_and_sha256_matched": true,
+    "latest_run_seconds": 332.189,
+    "latest_acceptance_rejections": 6,
+    "new_feature_task_requests": 0,
+    "original_model_candidates_available": false
+  },
+  "regression": {
+    "before": {
+      "command": "python -m unittest tests.test_acceptance_guidance -q",
+      "tests": 3,
+      "failures": 2,
+      "errors": 1,
+      "expected_error": "Native feature enum absent before implementation"
+    },
+    "after": {
+      "same_command": true,
+      "tests": 6,
+      "passed": true
+    },
+    "recovery_path": "schema_correction at acceptance explicitly permits repairing rejected unapproved checks; frozen baseline remains protected",
+    "live_model_quality_claim": false
+  },
+  "source_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 533,
+    "seconds": 137.729,
+    "passed": true,
+    "log_sha256": "3a36311f2797ad8f5e54d39ca8168d54650ce999f6e4b581c08c01411f4c3919"
+  },
+  "archive_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 533,
+    "seconds": 137.165,
+    "passed": true,
+    "log_sha256": "042aca3e524eef664c17fde39dced95cfb8e52d506740e68b8792d17d72d8cd3"
+  },
+  "types": {
+    "modules": 36,
+    "strict_mypy": "passed"
+  },
+  "workbench_browsers": [
+    {
+      "name": "brand",
+      "exit_code": 0,
+      "last_line": "PASS: larger desktop/mobile emblem; independent flame animation; true in-flight controller activity and completion; status-error clearing; persistent motion pause; reduced motion; no horizontal overflow or JavaScript errors. No live model quality tested."
+    },
+    {
+      "name": "system_tests",
+      "exit_code": 0,
+      "last_line": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity."
+    },
+    {
+      "name": "diagnostics",
+      "exit_code": 0,
+      "last_line": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested."
+    },
+    {
+      "name": "evidence_planning",
+      "exit_code": 0,
+      "last_line": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence."
+    },
+    {
+      "name": "capacity_delivery",
+      "exit_code": 0,
+      "last_line": "PASS: Plan for my builder -> validated outline/scoped tasks -> unchanged approval -> rejected Python -> same-model exact-edit correction -> sequential build -> real acceptance/tests/launch -> verified ZIP; frozen foundation retained; metadata-only model limits and embedding exclusion; mobile/no JS errors. Model replies are fixtures, not live-model quality evidence."
+    },
+    {
+      "name": "workflow_overview",
+      "exit_code": 0,
+      "last_line": "PASS: fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "task_contract",
+      "exit_code": 0,
+      "last_line": "PASS: structured task UI, scope rejection/correction and protected ZIP export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "hybrid_execution",
+      "exit_code": 0,
+      "last_line": "PASS: hybrid mode setup, cloud planner/local builder dispatch, source-supported no-change receipt and real verification/ZIP; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "delivery_control",
+      "exit_code": 0,
+      "last_line": "PASS: explicit local-only calibration, focused source request, task readiness/evidence and source-bound export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors."
+    },
+    {
+      "name": "orchestration",
+      "exit_code": 0,
+      "last_line": "PASS: explicit orchestration preset; primary/secondary cloud failures reach local planning; no pre-consent inference; sequential local-only coding without unused cloud consent; task outcome/criteria/checklist; real milestone/final HTTP, unit and launch checks; invocation allowance; verified ZIP/work checklist; mobile/privacy/no JS errors. Model replies are fixtures, not live quality measurements."
+    },
+    {
+      "name": "local_harness",
+      "exit_code": 0,
+      "last_line": "PASS: local-compatible setup/discovery choices persist; no cloud requests/consent; actual local SSE preview; scoped Stop control; finish gate; real generated-app verification and ZIP; human-controlled update-ready event/banner; mobile/reduced motion/no JS errors. Model responses are fixtures."
+    },
+    {
+      "name": "guided_planning",
+      "exit_code": 0,
+      "last_line": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence."
+    },
+    {
+      "name": "local_failover",
+      "exit_code": 0,
+      "last_line": "PASS: fresh project automatically detects local backups without model setup; two transport failures advance to third distinct Ollama model; two rejected code responses advance to third distinct builder; unchanged saved primary/approved plan; actual app verification and ZIP; no cloud calls/mobile overflow/JS errors. Model replies are fixtures."
+    },
+    {
+      "name": "model_studio",
+      "exit_code": 0,
+      "last_line": "PASS: local-only no-cloud setup, two-local failover, existing plan/files preservation, separate route previews, keyboard details, persistent accents/volume/mute, user-gesture audio with silent reload/history, one cue per observed terminal transition, reduced-motion/mobile and real generated-app verification/ZIP. No live provider or GPU claims."
+    },
+    {
+      "name": "model_activity",
+      "exit_code": 0,
+      "last_line": "PASS: seven provider icons and installed local models, embedding distinction, true in-flight animation, reduced-motion state, success and quota transitions, working cleared, model dialog navigation, mobile, privacy and no JS errors."
+    },
+    {
+      "name": "automatic_routing",
+      "exit_code": 0,
+      "last_line": "PASS: automatic catalogue setup, role routes persisted, missing Cloudflare config skipped, no pre-consent inference, model error and invalid proposals advance without restart, actual app verification, current project preservation, mobile, no secret values or JavaScript errors."
+    },
+    {
+      "name": "proposal_import",
+      "exit_code": 0,
+      "last_line": "PASS: five-task stale proposal \u2192 imported two-task reviewed repair \u2192 persistent reload/cards \u2192 explicit editor save/check feedback \u2192 approval; no inference, source mutation or execution; token and recycled-plan guards; mobile."
+    },
+    {
+      "name": "upgrade",
+      "exit_code": 0,
+      "last_line": "PASS: tested foundation, clear missing-Docker state, consent, actual verification, protected test export, project search, update dialog, desktop/mobile and no JS errors."
+    },
+    {
+      "name": "arcade",
+      "exit_code": 0,
+      "last_line": "PASS: real plan/build/HTTP/tests/launch/Chromium/manual/export pipeline; rendered keyboard/pointer movement, pause freeze, collision/game-over, restart, high-score refresh persistence; mobile layout; broken JS rejected."
+    },
+    {
+      "name": "cloud",
+      "exit_code": 0,
+      "last_line": "PASS: UTF-16 Notepad .env.txt \u2192 private key import \u2192 checked catalogues \u2192 persisted cloud route \u2192 consent gate \u2192 Gemini/Groq/OpenRouter failover \u2192 real generated-app HTTP/tests/launch \u2192 cooldown skip \u2192 saved project settings; no secret responses, auth boundary, mobile and no JS errors."
+    },
+    {
+      "name": "provider_pool",
+      "exit_code": 0,
+      "last_line": "PASS: seven-key private import; missing Cloudflare account then local configuration import; seven catalogues; reordered route; timeout/JSON settings persisted; seven-tier failover; actual app verification/export; mobile; no exposed keys or JS errors."
+    },
+    {
+      "name": "repair",
+      "exit_code": 0,
+      "last_line": "PASS: actual uploaded shield collision fails in Chromium \u2192 bounded exact-edit repair \u2192 same frozen browser/HTTP/regression checks pass; collection/pause/consumption/second collision/restart verified; failed format recovery retains notes and enables retry; direct successful repair makes one coder request, no planning/execution, mobile and no JavaScript errors."
+    },
+    {
+      "name": "starter_recovery",
+      "exit_code": 0,
+      "last_line": "PASS: actual failed empty-plan screen \u2192 explicit standard-plan recovery \u2192 approval; direct standard creation; zero extra model calls; no code execution; authenticated endpoint; mobile layout."
+    },
+    {
+      "name": "planning",
+      "exit_code": 0,
+      "last_line": "PASS: semantic recovery in 3 requests, explicit fallback, context/output controls, cloud consent visibility, live edit review with no inference, approval gate, restart evidence and mobile layout."
+    }
+  ],
+  "dashboard_browsers": {
+    "browser_check": "passed",
+    "launcher_check": "passed"
+  },
+  "extracted_browsers": {
+    "brand": {
+      "passed": true,
+      "output": "PASS: larger desktop/mobile emblem; independent flame animation; true in-flight controller activity and completion; status-error clearing; persistent motion pause; reduced motion; no horizontal overflow or JavaScript errors. No live model quality tested.",
+      "log_sha256": "b9ca49cce09e298c29f0e9488c66a99d8618bd77146b8fae2d93d0185fc45769"
+    },
+    "evidence": {
+      "passed": true,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.",
+      "log_sha256": "fbcff6d74d8738f163620805f459853ce60047b221378271ec2bd1842c5ca92b"
+    },
+    "guided": {
+      "passed": true,
+      "output": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence.",
+      "log_sha256": "4cc7b5766f7329aae9372ab5d649c5a421e475f0d154b5919a469a77cf8d2e91"
+    },
+    "diag": {
+      "passed": true,
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested.",
+      "log_sha256": "0d0ba5ce0cdecf3dcc3783da73a55f770636a575929f749c10ee59d99a7ffd70"
+    }
+  },
+  "dashboard_build": {
+    "typescript": "passed",
+    "node_tests_passed": 4,
+    "production_assets": "passed",
+    "nodes": 289,
+    "edges": 445,
+    "scenarios": 178
+  },
+  "frozen_sets": {
+    "count": 19,
+    "hashes_match": true,
+    "prior_entries_unchanged": true
+  },
+  "visual": {
+    "original_png_unchanged": true,
+    "desktop_emblem_px": 144,
+    "mobile_emblem_px": 110,
+    "independent_svg_flame": true,
+    "motion_toggle_persists": true,
+    "reduced_motion_tested": true,
+    "request_activity_and_error_clear_tested": true,
+    "extra_polling": false,
+    "screenshots_visually_inspected": true
+  },
+  "untested": [
+    "Live provider generation and model quality",
+    "Windows GPU performance and frame times"
+  ],
+  "remaining_known_issues": [
+    "A model can still return invalid acceptance despite guidance; finite stop/fallback remains",
+    "Tiny Test budget/model-fitness and cloud target preview remain separate work",
+    "Older probe response_received:false can mean unaccepted truncated output, not offline",
+    "Saved builder cloud backups still require consent; routes unchanged",
+    "Historical interruption time gaps do not establish a continuous hung request"
+  ],
+  "publication": "Public manifest and byte-identical archive checks run after pushing; this file records pre-publication validation."
+}
