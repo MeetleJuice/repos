@@ -471,7 +471,9 @@ def _planning_metadata(state: dict[str, Any]) -> dict[str, Any]:
                       'request_sha256': digest if isinstance(digest, str) and re.fullmatch(r'[a-f0-9]{64}', digest) else None,
                       **candidate_shape({**outline, 'tasks': draft.get('tasks', [])})},
             'failed_candidate': candidate_shape(state.get('failed_candidate')),
-            'approved_plan': candidate_shape(state.get('plan')),
+            'retained_proposal': candidate_shape(state.get('plan')),
+            'proposal_approved': state.get('approved') is True,
+            'approved_plan': candidate_shape(state.get('plan') if state.get('approved') is True else None),
             'meaning': 'Counts and declared references only. No prompt, source or free-text candidate content. Draft work is unapproved.'}
 
 

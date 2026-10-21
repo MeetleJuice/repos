@@ -26,6 +26,20 @@ ACCEPTANCE_SCHEMA: dict[str, Any] = {'type':'object','additionalProperties':Fals
 ACCEPTANCE_SCHEMA['properties']['checks'].update(minItems=1,maxItems=15)
 ACCEPTANCE_SCHEMA['properties']['checks']['items']['properties']['feature_indexes']['minItems']=0
 
+# Examples teach the existing wire contract; they are never installed as user checks.
+ACCEPTANCE_EXAMPLES: dict[str, Any] = {
+    'meaning':'Synthetic format examples only. Adapt routes, values and feature indexes to the saved scope and starter contracts. They are not approved tests or execution evidence.',
+    'persistence_sequence':[
+        {'name':'Create sample','method':'POST','path':'/api/example-records','status':201,
+         'body':{'title':'Saved sample'},'json_contains':{'id':1,'title':'Saved sample'},'feature_indexes':[0]},
+        {'name':'Read saved sample after restart','method':'GET','path':'/api/example-records','status':200,
+         'json_contains':[{'id':1,'title':'Saved sample'}],'restart_before':True,'feature_indexes':[0]},
+        {'name':'Delete sample','method':'DELETE','path':'/api/example-records/1','status':204,
+         'empty_body':True,'feature_indexes':[0]}],
+    'ui_coverage':{'name':'Use the browser controls','steps':['Add a record through the form, reload, then delete it.'],
+                   'expected':'The saved record survives reload until deleted.','feature_indexes':[0]},
+    'coverage_rule':'Before responding, map EVERY coverage_required index to at least one HTTP, manual or browser check. HTTP delivery alone does not establish an interactive UI.'}
+
 
 def validate_scope(candidate: dict[str, Any]) -> None:
     if not isinstance(candidate,dict) or set(candidate)-set(SCOPE_SCHEMA['properties']) or any(key not in candidate for key in SCOPE_SCHEMA['required']):
@@ -66,5 +80,6 @@ def create_outline(request: dict[str, Any], generate: Callable[..., dict[str, An
     def validate(candidate: dict[str, Any]) -> None:assemble(scope,candidate,request)
     response=generate(ACCEPTANCE_PROMPT,{'request':request,'scope':scope,'planning_stage':'acceptance',
         'task_planning_policy':'compiled_v1','outline_planning_policy':'split_v1',
-        'coverage_required':[{'index':i,'feature':feature} for i,feature in enumerate(scope['features'])]},validate)
+        'coverage_required':[{'index':i,'feature':feature} for i,feature in enumerate(scope['features'])],
+        'acceptance_examples':copy.deepcopy(ACCEPTANCE_EXAMPLES)},validate)
     return assemble(scope,response,request)

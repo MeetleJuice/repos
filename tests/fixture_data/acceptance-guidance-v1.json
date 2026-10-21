@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "provenance": {
+    "kind": "synthetic-instruction-following-controller-reduction",
+    "source_report_id": "ad36a5b2cf2d4d9a85d46cfdf28163f6",
+    "original_model_candidates_available": false,
+    "live_model_generation": false,
+    "observed_scope_features": 5,
+    "observed_stage_rejections": 6,
+    "observed_new_feature_task_requests": 0,
+    "synthetic_scope_features": 2,
+    "meaning": "Synthetic two-feature reduction isolates the contradictory unapproved-check correction instruction; observed reply texts are not available."
+  },
+  "scope": {
+    "title": "Pocket Tasks",
+    "summary": "A small persistent task tracker.",
+    "features": [
+      "Create a task",
+      "List saved tasks"
+    ],
+    "out_of_scope": [
+      "Accounts"
+    ],
+    "risks": [
+      "Review generated code before running."
+    ],
+    "task_contract_version": 1,
+    "context_policy": "focused_v1",
+    "app_kind": "server"
+  },
+  "invalid": {
+    "checks": [
+      {
+        "name": "Create task",
+        "method": "POST",
+        "path": "/api/tasks",
+        "body": {
+          "title": "Buy milk"
+        },
+        "status": 201,
+        "json_contains": {
+          "title": "Buy milk"
+        },
+        "feature_indexes": [
+          0
+        ],
+        "restart_before": true
+      },
+      {
+        "name": "Retrieve saved task after restart",
+        "method": "GET",
+        "path": "/api/tasks",
+        "status": 200,
+        "contains": "Buy milk",
+        "feature_indexes": [
+          1
+        ]
+      }
+    ]
+  },
+  "corrected": {
+    "checks": [
+      {
+        "name": "Create task",
+        "method": "POST",
+        "path": "/api/tasks",
+        "body": {
+          "title": "Buy milk"
+        },
+        "status": 201,
+        "json_contains": {
+          "title": "Buy milk"
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Retrieve saved task after restart",
+        "method": "GET",
+        "path": "/api/tasks",
+        "status": 200,
+        "contains": "Buy milk",
+        "feature_indexes": [
+          1
+        ],
+        "restart_before": true
+      }
+    ]
+  },
+  "task_batch": {
+    "tasks": [
+      {
+        "title": "Implement app behavior",
+        "instructions": "Implement task CRUD and tests using the existing HTTP contract.",
+        "outcome": "Create and list saved tasks through the browser and API.",
+        "files": [
+          "app.py"
+        ],
+        "depends_on": [],
+        "done_when": [
+          "A created task appears in the list; task behavior has unittest coverage."
+        ],
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "title": "Cover saved task listing",
+        "instructions": "Implement task CRUD and tests using the existing HTTP contract.",
+        "outcome": "Create and list saved tasks through the browser and API.",
+        "files": [
+          "test_app.py"
+        ],
+        "depends_on": [
+          0
+        ],
+        "done_when": [
+          "A created task appears in the list; task behavior has unittest coverage."
+        ],
+        "feature_indexes": [
+          1
+        ]
+      }
+    ]
+  }
+}

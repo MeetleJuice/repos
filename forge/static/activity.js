@@ -2,11 +2,29 @@
 let statusPolling = false;
 let lastStatusSignature = "";
 let streamProject = null;
+const brandEmblem = $("brand-emblem");
+const brandMotion = $("brand-motion");
+let flameMotion = true;
+try { flameMotion = localStorage.getItem("foundry-flame-motion") !== "off"; } catch (_) { /* Storage is optional. */ }
+function renderFlameMotion() {
+  brandEmblem.dataset.motion = String(flameMotion);
+  brandEmblem.dataset.hidden = String(document.hidden);
+  brandMotion.setAttribute("aria-pressed", String(flameMotion));
+  brandMotion.textContent = "Flame motion: " + (flameMotion ? "on" : "off");
+}
+brandMotion.onclick = () => {
+  flameMotion = !flameMotion;
+  try { localStorage.setItem("foundry-flame-motion", flameMotion ? "on" : "off"); } catch (_) { /* Keep the control usable without storage. */ }
+  renderFlameMotion();
+};
+document.addEventListener("visibilitychange", renderFlameMotion);
+renderFlameMotion();
 async function refreshModelStatus() {
   if (statusPolling || document.hidden) return;
   statusPolling = true;
   try {
     const snapshot = await api("/api/model-status");
+    brandEmblem.dataset.working = String(snapshot.items.some(item => item.state === "working"));
     const stream=snapshot.stream;
     streamProject=stream?.project || null;
     $("live-local").hidden=!stream;
@@ -36,6 +54,7 @@ async function refreshModelStatus() {
     }
     $("model-status-panel").title = snapshot.note;
   } catch (_) {
+    brandEmblem.dataset.working = "false";
     streamProject=null;
     $("live-local").hidden=true;
     $("live-local-preview").textContent="";

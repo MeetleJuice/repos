@@ -399,6 +399,16 @@ class Workbench:
                                 feedback.update(previous_proposal=result,
                                     validation_error="; ".join(f.path + ": " + f.message for f in review_result.findings if f.severity == "error"),
                                     correction_instruction="Return the complete requested stage object at the root, following its output schema. Correct the findings without dropping requirements or changing acceptance checks.")
+                                if compiled_stage and stage_payload.get('planning_stage') == 'acceptance':
+                                    feedback['correction_instruction'] = (
+                                        'Return the complete corrected UNAPPROVED ACCEPTANCE object, not a patch or full proposal. '
+                                        'You may change rejected draft check names, methods, sample bodies, assertions, restart flags, '
+                                        'ordering and feature references, and add missing manual/browser coverage. '
+                                        'Keep the supplied scope and every requested requirement fixed. Cover every index in coverage_required; '
+                                        'use the acceptance_examples only as wire-format examples and adapt their paths and values to this app. '
+                                        'Create a concrete sample, GET the same saved value with restart_before:true, then delete it. '
+                                        'Never alter any approved baseline checks or frozen tests in request.existing_project. '
+                                        'No tasks, source code, invented execution results or silently dropped requirements.')
                                 choices.insert(index+1, (selected, is_fallback))
                                 correction_prompts[index+1] = json.dumps(feedback)
                                 recoveries[index+1] = ("schema_correction", "")

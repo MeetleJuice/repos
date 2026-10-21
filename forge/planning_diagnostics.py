@@ -63,4 +63,13 @@ def candidate_shape(candidate: Any) -> dict[str, Any]:
         'criteria_count': len(task.get('done_when', [])) if isinstance(task.get('done_when'), list) else None,
         'instruction_characters': len(task['instructions']) if isinstance(task.get('instructions'), str) else None,
     } for index, task in enumerate(candidate.get('tasks', [])[:16]) if isinstance(task, dict)] if isinstance(candidate.get('tasks', []), list) else []
+    covered: set[int]=set()
+    for field in ('checks','manual_checks','browser_checks'):
+        rows=candidate.get(field,[])
+        structure: list[dict[str,Any]]=[{'index':index,'feature_indexes':[n for n in row['feature_indexes'][:32] if type(n) is int]}
+                   for index,row in enumerate(rows[:32]) if isinstance(row,dict) and isinstance(row.get('feature_indexes'),list)] if isinstance(rows,list) else []
+        if field!='checks':result[field.removesuffix('s')+'_structure']=structure
+        covered.update(n for row in structure for n in row['feature_indexes'])
+    if isinstance(candidate.get('features'),list):
+        result['uncovered_feature_indexes']=[n for n in range(min(20,len(candidate['features']))) if n not in covered]
     return result

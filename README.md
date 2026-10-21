@@ -1,8 +1,8 @@
-# Idea Foundry 0.33.2
+# Idea Foundry 0.34.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
-**New: validate acceptance before planning tasks.** Guided/proof planning catches invalid restart placement, false restart claims and API contradictions during acceptance, using the same rules as final review. Existing bounded correction/fallback applies before task requests. [v0.33.2 update and test steps](docs/RELEASE-0.33.2.md).
+**New: living forge and focused acceptance corrections.** A larger mascot has an animated blue/cyan flame, observed model activity and a motion toggle. Acceptance corrections may fix rejected unapproved checks while preserving scope and approved baseline evidence. Concrete examples and scope-bounded feature references guide smaller models. [v0.34.0 findings, known issues and test steps](docs/RELEASE-0.34.0.md).
 
 **Test → Diag.** Click **Test**, run quick storage/controller/catalogue checks, then optionally select local or explicitly consented cloud response probes. Close Test when finished, click **Diag**, and download its ZIP. Tiny probes do not establish project-building ability or change saved routes. [Test guide](docs/RELEASE-0.33.0.md).
 

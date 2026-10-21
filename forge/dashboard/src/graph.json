@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "baseline": "core 0.33.2 \u00b7 source excerpts checked by tests",
+  "baseline": "core 0.34.0 \u00b7 source excerpts checked by tests",
   "nodes": [
     {
       "id": "document",
@@ -158,7 +158,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 598,
+      "line": 608,
       "excerpt": "    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -238,7 +238,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 647,
+      "line": 657,
       "excerpt": "    def start(self, ident, action, options):",
       "description": ""
     },
@@ -278,7 +278,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 779,
+      "line": 789,
       "excerpt": "    def save_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -298,7 +298,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/planning.js",
-      "line": 177,
+      "line": 180,
       "excerpt": "    result = await api(`/api/projects/${id}/review`, { plan });",
       "description": "reviewEditor()"
     },
@@ -318,7 +318,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 836,
+      "line": 846,
       "excerpt": "    def review_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -328,7 +328,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/planning.js",
-      "line": 177,
+      "line": 180,
       "excerpt": "    result = await api(`/api/projects/${id}/review`, { plan });",
       "description": "Returns to reviewEditor(). This is UI/controller progress, not behavioral verification."
     },
@@ -358,7 +358,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 796,
+      "line": 806,
       "excerpt": "    def load_starter_plan(self, ident: str) -> dict[str, Any]:",
       "description": ""
     },
@@ -398,7 +398,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 753,
+      "line": 763,
       "excerpt": "    def approve(self, ident, plan):",
       "description": ""
     },
@@ -498,7 +498,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 745,
+      "line": 755,
       "excerpt": "    def stop(self, ident):",
       "description": ""
     },
@@ -618,7 +618,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 876,
+      "line": 886,
       "excerpt": "    def files(self, ident):",
       "description": ""
     },
@@ -698,7 +698,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 579,
+      "line": 589,
       "excerpt": "    def diff(self, ident):",
       "description": ""
     },
@@ -738,7 +738,7 @@
       "kind": "process",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 815,
+      "line": 825,
       "excerpt": "    def record_manual(self, ident: str, results: list[bool], notes: list[str] | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -778,7 +778,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 914,
+      "line": 924,
       "excerpt": "    def restore(self, ident, snapshot):",
       "description": ""
     },
@@ -818,7 +818,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 499,
+      "line": 509,
       "excerpt": "    def configure_models(self, ident: str, planner: dict[str, Any], coder: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -858,7 +858,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 510,
+      "line": 520,
       "excerpt": "    def fork(self, ident: str, request: str, cloud_consent: bool = False) -> dict[str, Any]:",
       "description": ""
     },
@@ -898,7 +898,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 732,
+      "line": 742,
       "excerpt": "    def adopt_resume_baseline(self, ident):",
       "description": ""
     },
@@ -938,7 +938,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 287,
+      "line": 293,
       "excerpt": "def connection_info() -> dict[str, Any]:",
       "description": ""
     },
@@ -958,7 +958,7 @@
       "kind": "action",
       "category": "Models & routing",
       "source": "forge/static/activity.js",
-      "line": 9,
+      "line": 26,
       "excerpt": "    const snapshot = await api(\"/api/model-status\");",
       "description": "1000 ms poll; skips hidden page"
     },
@@ -988,7 +988,7 @@
       "kind": "state",
       "category": "Models & routing",
       "source": "forge/static/activity.js",
-      "line": 9,
+      "line": 26,
       "excerpt": "    const snapshot = await api(\"/api/model-status\");",
       "description": "Returns to 1000 ms poll; skips hidden page. This is UI/controller progress, not behavioral verification."
     },
@@ -1258,7 +1258,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 721,
+      "line": 731,
       "excerpt": "    def calibrate_local(self, model):",
       "description": ""
     },
@@ -1338,7 +1338,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 629,
+      "line": 639,
       "excerpt": "    def insights(self):",
       "description": ""
     },
@@ -1378,7 +1378,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 561,
+      "line": 571,
       "excerpt": "    def backup(self):",
       "description": ""
     },
@@ -1578,7 +1578,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostic_report.py",
-      "line": 478,
+      "line": 480,
       "excerpt": "def collect_report(bench: Any, program_root: Path, updater: Any = None,",
       "description": ""
     },
@@ -1618,7 +1618,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostic_report.py",
-      "line": 765,
+      "line": 767,
       "excerpt": "def export_report(report: dict[str, Any]) -> bytes:",
       "description": ""
     },
@@ -1918,7 +1918,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/activity.js",
-      "line": 51,
+      "line": 70,
       "excerpt": "setInterval(refreshModelStatus, 1000);",
       "description": ""
     },
@@ -1948,7 +1948,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/planning.js",
-      "line": 307,
+      "line": 310,
       "excerpt": "    proposalReviewTimer = setTimeout(reviewEditor, 500);",
       "description": ""
     },
@@ -1988,7 +1988,7 @@
       "kind": "lifecycle",
       "category": "Workbench & session",
       "source": "forge/static/planning.js",
-      "line": 196,
+      "line": 199,
       "excerpt": "window.addEventListener(\"DOMContentLoaded\", () => {",
       "description": ""
     },
@@ -2058,7 +2058,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1135,
+      "line": 1145,
       "excerpt": "            state[\"status\"] = \"repairing\"",
       "description": ""
     },
@@ -2078,7 +2078,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 518,
+      "line": 528,
       "excerpt": "            state.update(id=uuid.uuid4().hex, parent_id=ident, parent_title=parent[\"title\"],",
       "description": ""
     },
@@ -2088,7 +2088,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 739,
+      "line": 749,
       "excerpt": "            state.update(status='approved',error=None,checks=None,manual_results={},verification_fingerprint=None)",
       "description": ""
     },
@@ -2098,7 +2098,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 789,
+      "line": 799,
       "excerpt": "            state.update(plan=candidate, title=candidate[\"title\"], status=\"proposed\", error=None,",
       "description": ""
     },
@@ -2108,7 +2108,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1125,
+      "line": 1135,
       "excerpt": "                state[\"status\"] = \"needs_attention\"",
       "description": ""
     },
@@ -2118,7 +2118,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1392,
+      "line": 1402,
       "excerpt": "                state[\"status\"] = \"building\"",
       "description": ""
     },
@@ -2128,7 +2128,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1414,
+      "line": 1424,
       "excerpt": "                state[\"status\"] = \"generated\"",
       "description": ""
     },
@@ -2138,7 +2138,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1422,
+      "line": 1432,
       "excerpt": "                state[\"status\"] = \"checking\"",
       "description": ""
     },
@@ -2148,7 +2148,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1470,
+      "line": 1480,
       "excerpt": "            state[\"status\"] = \"stopped\"",
       "description": ""
     },
@@ -2158,7 +2158,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 709,
+      "line": 719,
       "excerpt": "            state[\"status\"] = \"planning\" if action == \"plan\" else \"building\"",
       "description": ""
     },
@@ -2168,7 +2168,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1474,
+      "line": 1484,
       "excerpt": "            state[\"status\"], state[\"error\"] = \"error\", str(exc)[:2000]",
       "description": ""
     },
@@ -2178,7 +2178,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1450,
+      "line": 1460,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2188,7 +2188,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1450,
+      "line": 1460,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2208,7 +2208,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1095,
+      "line": 1105,
       "excerpt": "    def _inspect_and_repair(self, state, cancel, remaining, complete=True, repair_task=None):",
       "description": ""
     },
@@ -2228,7 +2228,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1212,
+      "line": 1222,
       "excerpt": "    def _job(self, state, action, options, cancel):",
       "description": ""
     },
@@ -2238,7 +2238,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 145,
+      "line": 151,
       "excerpt": "    def complete(self, system: str, prompt: str) -> dict[str, Any]:",
       "description": ""
     },
@@ -2258,7 +2258,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 938,
+      "line": 948,
       "excerpt": "    def apply(self, state, response, repair=False):",
       "description": ""
     },
@@ -2268,7 +2268,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1000,
+      "line": 1010,
       "excerpt": "    def generate_and_apply(self, state, payload, cancel, repair=False):",
       "description": ""
     },
@@ -2328,7 +2328,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 895,
+      "line": 905,
       "excerpt": "    def checkpoint(self, state, label):",
       "description": ""
     },
@@ -2408,7 +2408,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/outline_planning.py",
-      "line": 58,
+      "line": 72,
       "excerpt": "def create_outline(request: dict[str, Any], generate: Callable[..., dict[str, Any]],",
       "description": ""
     },
@@ -2418,7 +2418,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/outline_planning.py",
-      "line": 30,
+      "line": 44,
       "excerpt": "def validate_scope(candidate: dict[str, Any]) -> None:",
       "description": ""
     },
@@ -2428,7 +2428,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/outline_planning.py",
-      "line": 46,
+      "line": 60,
       "excerpt": "def assemble(scope: dict[str, Any], candidate: dict[str, Any], request: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -2638,7 +2638,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 294,
+      "line": 300,
       "excerpt": "        data = request_json(os.getenv(\"OLLAMA_URL\", \"http://127.0.0.1:11434\").rstrip(\"/\") + \"/api/tags\", timeout=5)",
       "description": ""
     },
@@ -2648,7 +2648,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 213,
+      "line": 219,
       "excerpt": "            url=os.getenv(\"OLLAMA_URL\", \"http://127.0.0.1:11434\").rstrip(\"/\") + \"/api/chat\"",
       "description": ""
     },
@@ -2658,7 +2658,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 300,
+      "line": 306,
       "excerpt": "        data=request_json(endpoint('local')+'/models',None,",
       "description": ""
     },
@@ -2688,7 +2688,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 190,
+      "line": 196,
       "excerpt": "            result = request_json(gemini_base.removesuffix('/openai')+'/models/'+urllib.parse.quote(self.model,safe='')+':generateContent', {",
       "description": ""
     },

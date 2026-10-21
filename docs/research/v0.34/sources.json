@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/performance/guides/css_javascript_animation_performance/index.md",
+    "bytes": 9536,
+    "sha256": "f29531a5db6cac6c3fcafc24cf88e68035faea7d8668cab99613c95ec869bffc",
+    "accessed": "2026-10-21"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/mdn/content/main/files/en-us/web/css/reference/at-rules/@media/prefers-reduced-motion/index.md",
+    "bytes": 5730,
+    "sha256": "e88b5fe5612a99f88ec00200bb13e656adf643b9f69ca95b6b7125bc65414a0b",
+    "accessed": "2026-10-21"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/capabilities/structured-outputs.mdx",
+    "bytes": 5024,
+    "sha256": "9b45a4c79461991e6e98e77669cbaf14e99c4e8ca5386e23d07ebcb956eba650",
+    "accessed": "2026-10-21"
+  }
+]

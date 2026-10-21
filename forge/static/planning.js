@@ -18,6 +18,9 @@ function renderPlanningProgress(project, busy) {
   document.getElementById("guided-progress").textContent = progress
     ? `${progress.stage === "complete proposal ready for review" ? "Assembled proposal ready for review" : "Unapproved planning draft saved"} · ${progress.features_planned}/${progress.features_total} features planned · ${progress.tasks} tasks. Changing the idea or revision starts a new draft.`
     : "A saved draft is not an approved proposal or implementation evidence.";
+  if (progress && !project.approved && project.status === "error" && progress.tasks !== (project.plan?.tasks?.length || 0)) {
+    document.getElementById("guided-progress").textContent += " Task counts in the retained older proposal below do not describe this current draft. No new task has been built.";
+  }
   const failures = (project.model_calls || []).filter(call => call.error_category || call.review_findings?.some(f => f.severity === "error")).slice(-6).reverse();
   document.getElementById("planning-diagnostics").hidden = failures.length === 0;
   const list = document.getElementById("planning-diagnostic-list");

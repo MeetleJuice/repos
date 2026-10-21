@@ -109,6 +109,12 @@ def request_schema(system: str, prompt: str, complete: bool = False) -> dict[str
     try:payload=json.loads(prompt)
     except ValueError:return schema
     if not isinstance(payload,dict):return schema
+    from .outline_planning import ACCEPTANCE_PROMPT
+    if system == ACCEPTANCE_PROMPT and payload.get('planning_stage') == 'acceptance' and isinstance(payload.get('scope'),dict):
+        features=payload['scope'].get('features')
+        if isinstance(features,list) and 1 <= len(features) <= 12:
+            for field in ('checks','manual_checks','browser_checks'):
+                schema['properties'][field]['items']['properties']['feature_indexes']['items']['enum']=list(range(len(features)))
     profile=payload.get('builder_profile')
     if planner_schema(system) is not None and payload.get('planning_stage') in {'tasks','feature_tasks'} and isinstance(profile,dict):
         props=schema['properties']['tasks']['items']['properties']

@@ -23,12 +23,22 @@
   <body>
     <aside class="sidebar">
       <a class="brand" href="/"
-        ><img
+        ><span class="brand-emblem" id="brand-emblem" data-working="false" data-motion="true"><img
           class="brand-mark"
           src="/icon.png"
           alt="Blue flame goat mascot"
-        /><span>idea foundry<small>YOUR LOCAL BUILD STUDIO</small></span></a
+        /><svg class="brand-fire" viewBox="0 0 1254 1254" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="foundry-flame-blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63f7ff"/><stop offset=".48" stop-color="#00bfff"/><stop offset="1" stop-color="#1654ff"/></linearGradient>
+            <linearGradient id="foundry-flame-core" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcffff"/><stop offset="1" stop-color="#19ecff"/></linearGradient>
+            <radialGradient id="foundry-flame-halo"><stop offset="0" stop-color="#00dfff" stop-opacity=".55"/><stop offset="1" stop-color="#0088ff" stop-opacity="0"/></radialGradient>
+          </defs>
+          <ellipse class="fire-halo" cx="627" cy="331" rx="148" ry="155" fill="url(#foundry-flame-halo)"/>
+          <g class="fire-outer"><path fill="url(#foundry-flame-blue)" d="M615 204 C646 222 659 250 658 281 C673 275 672 260 672 255 C699 282 706 315 693 347 C684 379 657 399 628 399 C589 399 562 373 559 341 C552 301 576 278 596 254 C611 235 618 220 615 204 Z"/></g>
+          <g class="fire-core"><path fill="url(#foundry-flame-core)" d="M620 294 C639 308 636 327 632 336 C650 342 649 330 652 325 C675 349 663 388 636 394 C609 401 589 385 591 365 C591 338 620 325 620 294 Z"/></g>
+        </svg></span><span>idea foundry<small>YOUR LOCAL BUILD STUDIO</small></span></a
       >
+      <button id="brand-motion" class="quiet brand-motion" type="button" aria-pressed="true">Flame motion: on</button>
       <button id="new-project" class="primary wide">＋ New project</button>
       <p class="eyebrow sidebar-label">YOUR WORKSPACE</p>
       <label class="sr-only" for="project-search">Search projects</label
