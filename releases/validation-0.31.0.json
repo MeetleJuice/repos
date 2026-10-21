@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "version": "0.31.0",
+  "date": "2026-10-21",
+  "source_commit": "b395803c8823f23cb7f687b45e4feff79b2a351b",
+  "source_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 489,
+    "seconds": 133.609,
+    "output": "Ran 489 tests in 133.609s\n\nOK",
+    "passed": true
+  },
+  "extracted_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 489,
+    "seconds": 132.558,
+    "output": "Ran 489 tests in 132.558s\n\nOK",
+    "passed": true
+  },
+  "types": {
+    "command": "PYTHONPATH=/tmp/foundry-typecheck python -m mypy --strict forge/contracts.py forge/planning.py forge/routing.py forge/schemas.py forge/models.py forge/evidence.py forge/edits.py forge/cloud.py forge/credentials.py forge/handoffs.py forge/capabilities.py forge/context.py forge/history.py forge/reporting.py forge/providers.py forge/model_status.py forge/build_contract.py forge/workflow.py forge/http_io.py forge/tasks.py forge/circuit.py forge/execution.py forge/focus.py forge/calibration.py forge/streaming.py forge/guided.py forge/model_inventory.py forge/acceptance.py forge/diagnostics.py forge/diagnostic_report.py forge/lifecycle.py forge/ideas.py",
+    "output": "Success: no issues found in 32 source files"
+  },
+  "browser_checks": {
+    "count": 22,
+    "scripts": [
+      "tests/browser_diagnostics_check.py",
+      "tests/browser_evidence_planning_check.py",
+      "tests/browser_capacity_delivery_check.py",
+      "tests/browser_workflow_overview_check.py",
+      "tests/browser_task_contract_check.py",
+      "tests/browser_hybrid_execution_check.py",
+      "tests/browser_delivery_control_check.py",
+      "tests/browser_orchestration_check.py",
+      "tests/browser_local_harness_check.py",
+      "tests/browser_guided_planning_check.py",
+      "tests/browser_local_failover_check.py",
+      "tests/browser_model_studio_check.py",
+      "tests/browser_model_activity_check.py",
+      "tests/browser_automatic_routing_check.py",
+      "tests/browser_proposal_import_check.py",
+      "tests/browser_upgrade_check.py",
+      "tests/browser_arcade_check.py",
+      "tests/browser_cloud_check.py",
+      "tests/browser_provider_pool_check.py",
+      "tests/browser_repair_check.py",
+      "tests/browser_starter_recovery_check.py",
+      "tests/browser_planning_check.py"
+    ],
+    "passed": true,
+    "model_replies": "Fixtures; no live-model quality claim.",
+    "extracted_scripts": [
+      "tests/browser_diagnostics_check.py",
+      "tests/browser_evidence_planning_check.py",
+      "tests/browser_capacity_delivery_check.py",
+      "forge/dashboard/browser_check.py",
+      "forge/dashboard/launcher_check.py"
+    ],
+    "extracted_passed": true
+  },
+  "dashboard": {
+    "nodes": 270,
+    "edges": 412,
+    "scenarios": 170,
+    "node_tests": 4,
+    "typecheck": "passed",
+    "build": "passed",
+    "chromium_and_separate_window": "passed"
+  },
+  "archive": {
+    "version": "0.31.0",
+    "sha256": "862f73ab97e14a54996d878cc0e3a114ba5c5cd41ef2419175c03c3712e491bd",
+    "bytes": 2804608,
+    "source_commit": "b395803c8823f23cb7f687b45e4feff79b2a351b",
+    "source_files_compared": 394,
+    "source_tree_sha256": "38d5c86ac4ea4b99f3a0441820c6d23f1566587e6918e82fa735c1061620b402",
+    "packaged_dirty_files": 0,
+    "extracted": "/tmp/foundry-v031-final",
+    "updater_from_0_30_0": "available",
+    "checks": "archive safety/checksum, every source/extracted byte, source identity and normal update selection passed"
+  },
+  "recorder_overhead": {
+    "provenance": "Synthetic metadata-only append/read on shared Linux cloud host; no model inference, Windows/GPU test or before/after reliability claim.",
+    "records": 1000,
+    "append_seconds": 1.2634,
+    "mean_append_ms": 1.2634,
+    "snapshot_seconds": 0.619,
+    "database_bytes": 655360,
+    "integrity_passed": true,
+    "dropped": 0
+  },
+  "regression": {
+    "before_command": "python -m unittest tests.test_master_diag.MasterDiagTests.test_controller_events_have_identical_persistent_diagnostic_ids -v",
+    "before_output": "AssertionError: False is not true : No independent flight recorder",
+    "after": "Same focused assertion passed; shared project/run IDs and independent persistent records checked.",
+    "privacy_before": "Unknown unprefixed acceptance-check prose/query sample appeared in report.",
+    "privacy_after": "Sample removed; check index/path metadata retained. Export manifest and cached report identity checked through actual HTTP."
+  },
+  "preserved": [
+    "approved plans/checks",
+    "frozen tests and source-bound verification",
+    "cloud and execution consent",
+    "model route settings",
+    "existing project directories",
+    "normal Update-button release/rollback"
+  ],
+  "not_tested": [
+    "Physical Windows shortcut/icon/console integration (mocked only)",
+    "Owner RTX 3050 VRAM/model fit and Windows performance",
+    "Live Ollama/cloud generation/quota/repair quality",
+    "Docker runtime execution",
+    "Adversarial same-user evidence rewriting"
+  ],
+  "limits": [
+    "Default diagnostics omit prompts, source, raw logs and arbitrary private prose; structured symptoms, hashes, counts and frame locations are exported.",
+    "Packaged source identity describes packaging-time bytes and Git state, not a cryptographic authenticity guarantee or a current engine-file audit.",
+    "Recorder/launcher retention and abrupt termination can leave explicitly reported gaps.",
+    "Research documentation sites that returned HTTP403 were not claimed read."
+  ]
+}

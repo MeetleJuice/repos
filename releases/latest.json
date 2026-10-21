@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.30.0",
+  "version": "0.31.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.30.0.zip",
-  "sha256": "a5d30367e176249f9e3e776703e906acbe154b57626ab8665322d56aba7f7928",
-  "notes": "Evidence-ready delivery: choose Plan with proof for sample mutation data, meaningful assertions, stable API contracts and early runnable HTTP checkpoints. Weak persistence/empty-subset scenarios are rejected before approval; premature or deferred checkpoints receive task-batch feedback. New SQLite collection foundation supplies tested initialization, row mapping, IDs, filtering, daily counts, validation and restart behavior. Failed milestone repairs now retain approved task scope through static correction, and verifier exceptions cannot advance the cursor. Execution consent, frozen checks, saved projects and model settings remain intact; legacy plans are not silently migrated. Fixture-driven browser tests exercise real generated-app behavior and ZIP export, not live-model quality. For Tiny Wins use a fresh SQLite-foundation proof draft; keep the old project because its approved checks need explicit replacement review."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.31.0.zip",
+  "sha256": "862f73ab97e14a54996d878cc0e3a114ba5c5cd41ef2419175c03c3712e491bd",
+  "notes": "Master Diag: persistent private flight recorder, shared controller/Dashboard event IDs, bounded retention and integrity checks, safe local investigations and a downloadable Codex-ready evidence ZIP. Source, prompts, model prose, manual notes and credentials are excluded by default; missing evidence and unproven causes stay explicit. Independent launcher records preserve startup/import/exit/update recovery evidence. Windows adds a current-user mascot desktop shortcut backed by a private stable launcher; physical Windows verification is still required. Generate Idea makes one isolated configured Ollama request, preserves edited input, and never starts a project. Existing projects, approved checks, consent gates and update rollback remain intact. Packaged build identity links reports to source bytes; fixtures do not prove live-model quality or GPU fit."
 }
