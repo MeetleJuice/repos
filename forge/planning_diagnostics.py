@@ -1,9 +1,17 @@
 """Finite validation vocabulary and source-free candidate structure."""
 from __future__ import annotations
 import re
+import math
 from typing import Any
 
 RULES = {
+    'task_endpoint_mismatch': 'A task names an endpoint outside the accepted API/check contract.',
+    'duplicate_task': 'A task repeats earlier instructions, outcome, criteria and file scope.',
+    'missing_persistence_scenario': 'A declared server persistence feature has no mapped restart read.',
+    'duplicate_create_id': 'A new-resource check reuses an undeleted earlier fixture ID.',
+    'persistence_seed_state': 'A restart assertion does not match current seeded state.',
+    'missing_ui_task': 'Browser actions lack an interface implementation task.',
+    'ordering_scenario': 'Ordering lacks a two-record order-sensitive scenario.',
     'check_structure': 'Acceptance checks must be an array of check objects.',
     'acceptance_coverage': 'One or more declared features lack acceptance coverage.',
     'assertion_required': 'An HTTP check lacks a meaningful response assertion.',
@@ -73,3 +81,29 @@ def candidate_shape(candidate: Any) -> dict[str, Any]:
     if isinstance(candidate.get('features'),list):
         result['uncovered_feature_indexes']=[n for n in range(min(20,len(candidate['features']))) if n not in covered]
     return result
+
+
+def latest_planning_run(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Aggregate only one recorded run; never mix workspace lifetime failures."""
+    start=next((row for row in reversed(records) if row.get('kind')=='job_started' and row.get('data',{}).get('action')=='plan'),None)
+    if not start or not start.get('run_id'):return {'available':False}
+    selected=[row for row in records if row.get('run_id')==start['run_id']]
+    attempts=[row['data'] for row in selected if row.get('kind')=='model_attempt']
+    finish: dict[str,Any]=next((row['data'] for row in reversed(selected) if row.get('kind')=='job_finished'),{})
+    stages: dict[str,dict[str,Any]]={}
+    for attempt in attempts:
+        stage=str(attempt.get('planning_stage') or 'unknown')
+        counts=stages.setdefault(stage,{'attempts':0,'accepted':0,'rejected':0,'seconds':0.0,'unknown_timings':0})
+        counts['attempts']+=1;counts['accepted']+=attempt.get('success') is True
+        counts['rejected']+=attempt.get('success') is False
+        elapsed=attempt.get('seconds')
+        if type(elapsed) in {int,float} and math.isfinite(elapsed) and elapsed>=0:counts['seconds']=round(counts['seconds']+elapsed,3)
+        else:counts['unknown_timings']+=1
+    for counts in stages.values():
+        if counts['unknown_timings']==counts['attempts']:counts['seconds']=None
+    return {'available':True,'run_id':start['run_id'],'started':start.get('time'),
+        'status':finish.get('status'),'seconds':finish.get('seconds'),
+        'recorded_attempts':len(attempts),'reported_attempts':finish.get('model_attempts'),
+        'stages':stages,'timeout_seconds':round(sum(a['seconds'] for a in attempts if a.get('transport_kind')=='timeout' and type(a.get('seconds')) in {int,float} and math.isfinite(a['seconds']) and a['seconds']>=0),3),
+        'review_codes':sorted({code for attempt in attempts for code in attempt.get('review_codes',[]) if isinstance(code,str)}),
+        'history_may_be_partial':len(attempts)!=finish.get('model_attempts')}

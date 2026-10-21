@@ -80,7 +80,7 @@ EVENT_FIELDS = {
     'stop_requested': {'in_flight_output_will_be_discarded'},
     'proposal_review': {'passed', 'findings'},
     'guided_plan_checkpoint': {'stage', 'next_feature', 'tasks', 'features',
-                               'features_planned', 'features_total', 'task_planning_policy'},
+                               'features_planned', 'acceptance_features_planned', 'features_total', 'task_planning_policy'},
     'proposal_approved': {'tasks', 'http_checks', 'browser_checks', 'manual_checks'},
 }
 OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase', 'exception_type',
@@ -97,7 +97,9 @@ OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase
 
 
 EVENT_FIELDS['system_test_result'] = EVENT_FIELDS['model_attempt'] | {
-    'code','status','report_id','exception_type','models_count','generation_tested','response_received','restart_read','cases','inference_tested'}
+    'code','status','report_id','exception_type','models_count','generation_tested','response_received','restart_read','cases','case_count','inference_tested',
+    'project_id','plan_sha256','reviewer_version','passed','review_codes','findings','restart_check_indexes','duplicate_task_groups','business_http_checks','executed','approval_changed',
+    'response_accepted','http_response_received'}
 
 
 def _safe_recorder(snapshot: dict[str, Any]) -> dict[str, Any]:
@@ -410,6 +412,7 @@ def _build_identity(root: Path) -> dict[str, Any]:
 
 def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[str, Any]:
     plan = state.get('plan') or {}
+    current_history = _safe_history(directory)
     result = state.get('checks') or {}
     checks = []
     for index, check in enumerate(plan.get('checks', [])[:100]):
@@ -436,12 +439,12 @@ def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[
             'error_recorded': bool(state.get('error')), 'error_sha256': hashlib.sha256(str(state.get('error', '')).encode()).hexdigest() if state.get('error') else None,
             'error_symptom_tags': _failure_signatures(state.get('error', '')),
             'tasks': tasks, 'acceptance_check_metadata': checks,
-            'model_totals': totals_for(state), 'history': _safe_history(directory),
+            'model_totals': totals_for(state), 'history': current_history,
             'attempts': [sanitize_event_data('model_attempt', {key: value for key, value in attempt.items()
                          if key in EVENT_FIELDS['model_attempt']}) for attempt in state.get('model_calls', [])[-256:] if isinstance(attempt, dict)],
             'attempt_coverage': {'retained_in_state': len(state.get('model_calls', [])),
                                  'export_limit': 256, 'earlier_attempts_may_exist': True},
-            'planning': _planning_metadata(state),
+            'planning': _planning_metadata(state,current_history.get('records',[])),
             'verification': verification,
             'test_evidence': {**{key: result.get(key) for key in ('passed', 'runtime', 'failure_kind', 'exit_code',
                                                                'command_template', 'command_paths_redacted', 'execution_seconds')},
@@ -457,12 +460,16 @@ def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[
             'privacy': 'Idea, source, model transcripts, sample-data bodies and manual observation notes excluded.'}
 
 
-def _planning_metadata(state: dict[str, Any]) -> dict[str, Any]:
-    from .planning_diagnostics import candidate_shape
+def _planning_metadata(state: dict[str, Any], records: list[dict[str,Any]] | None = None) -> dict[str, Any]:
+    from .planning_diagnostics import candidate_shape, latest_planning_run
+    from .coherence import audit_plan
     draft = state.get('guided_draft') or {}
     outline = draft.get('outline') or draft.get('scope') or {}
     digest = draft.get('request_sha256')
-    return {'mode': state.get('planning_mode') if state.get('planning_mode') in {'guided', 'single'} else None,
+    return {'current_review':audit_plan(state['plan'],state.get('starter')) if isinstance(state.get('plan'),dict) else {'available':False},
+            'stored_review_passed':(state.get('plan_review') or {}).get('passed'),
+            'latest_run':latest_planning_run(records or []),
+            'mode': state.get('planning_mode') if state.get('planning_mode') in {'guided', 'single'} else None,
             'builder_profile': sanitize_event_data('builder_profile', {key: value for key, value in (state.get('builder_profile') or {}).items()
                 if key in {'schema', 'max_editable_files', 'max_feature_indexes', 'smallest_output_ceiling', 'available_files', 'protected_existing_files'}}),
             'draft': {'task_planning_policy': 'compiled_v1' if draft.get('task_planning_policy') == 'compiled_v1' else None,
@@ -635,6 +642,10 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
     history_records: list[dict[str, Any]] = []
     for state in project_rows:
         records = state.get('history', {}).get('records', [])
+        current_review=state.get('planning',{}).get('current_review',{})
+        if current_review.get('passed') is False:
+            finding('current_proposal_contradictions','warning' if state.get('approved') else 'confirmed_failure','planning',
+                'Current read-only proposal review found: '+', '.join(current_review.get('review_codes',[]))+'. See this project planning.current_review for rule locations. Approval and source were not changed.')
         history_records.extend(records)
         coverage = state.get('history', {}).get('coverage')
         if coverage and (not coverage.get('available') or coverage.get('malformed_records') or coverage.get('trailing_partial_record')):
@@ -716,6 +727,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                           'findings': len(findings), 'confirmed_failures': findings_count['confirmed_failure'],
                           'warnings': findings_count['warning'], 'missing_evidence': findings_count['missing_evidence'],
                           'project_count': len(project_rows), 'detailed_project_count': sum('history' in row for row in project_rows),
+                          'selected_project_review':next((row.get('planning',{}).get('current_review') for row in project_rows if row.get('project_id')==project_id),None),
                           'latest_test': {'status':test_report.get('status'),'finished':test_report.get('finished'),
                                           'results':len(test_report.get('rows',[])),
                                           'failed':sum(row.get('status')=='failed' for row in test_report.get('rows',[]))},

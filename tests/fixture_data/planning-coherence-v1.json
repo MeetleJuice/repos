@@ -1,0 +1,629 @@
+{
+  "schema": 1,
+  "provenance": {
+    "kind": "uploaded-unapproved-proposal",
+    "report_id": "a515ba01c43042139eb0a5b8105ed614",
+    "run_id": "0f664b845f4c44e7b728aaf102dcec82",
+    "before_release": "0.35.0",
+    "observed_seconds": 381.174,
+    "observed_model_attempts": 16,
+    "original_prompt_available": false,
+    "source_available": false,
+    "live_model_replay": false
+  },
+  "plan": {
+    "context_policy": "focused_v1",
+    "task_contract_version": 1,
+    "title": "Tiny Wins - Local Accomplishments App",
+    "summary": "A small browser app that creates and manages local accomplishments using Python's standard library and SQLite, with persistence and basic browser interface features.",
+    "features": [
+      "Create accomplishments",
+      "List saved accomplishments newest first",
+      "Delete an entry",
+      "Persistence check that creates an entry, restarts the server, and confirms that same entry remains"
+    ],
+    "out_of_scope": [
+      "Accounts",
+      "External services",
+      "Charts",
+      "Extra features"
+    ],
+    "risks": [
+      "Review generated code before execution"
+    ],
+    "app_kind": "browser",
+    "checks": [
+      {
+        "name": "Create a new accomplishment",
+        "method": "POST",
+        "path": "/api/accomplishments",
+        "status": 201,
+        "body": {
+          "description": "Learned to use SQLite",
+          "timestamp": "2023-10-01T12:00:00Z"
+        },
+        "json_contains": {
+          "id": 1,
+          "description": "Learned to use SQLite",
+          "timestamp": "2023-10-01T12:00:00Z"
+        },
+        "request_body_optional_reason": "Adding a description and timestamp is required for persistence.",
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "List accomplishments newest first",
+        "method": "GET",
+        "path": "/api/accomplishments",
+        "status": 200,
+        "json_contains": [
+          {
+            "id": 1,
+            "description": "Learned to use SQLite",
+            "timestamp": "2023-10-01T12:00:00Z"
+          }
+        ],
+        "feature_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Create new accomplishment",
+        "method": "POST",
+        "path": "/api/accomplishments",
+        "status": 201,
+        "body": {
+          "description": "Learned to use SQLite",
+          "timestamp": "2023-10-01T12:00:00Z"
+        },
+        "json_contains": {
+          "id": 1,
+          "description": "Learned to use SQLite",
+          "timestamp": "2023-10-01T12:00:00Z"
+        },
+        "feature_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "List accomplishments newest first",
+        "method": "GET",
+        "path": "/api/accomplishments",
+        "status": 200,
+        "json_contains": [
+          {
+            "id": 1,
+            "description": "Learned to use SQLite",
+            "timestamp": "2023-10-01T12:00:00Z"
+          }
+        ],
+        "feature_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Delete accomplishment",
+        "method": "DELETE",
+        "path": "/api/accomplishments/1",
+        "status": 204,
+        "empty_body": true,
+        "feature_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Create new accomplishment",
+        "method": "POST",
+        "path": "/api/accomplishments",
+        "status": 201,
+        "body": {
+          "description": "Tested persistence",
+          "timestamp": "2023-10-01T12:00:00Z"
+        },
+        "json_contains": {
+          "id": 1,
+          "description": "Tested persistence",
+          "timestamp": "2023-10-01T12:00:00Z"
+        },
+        "feature_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "List accomplishments newest first",
+        "method": "GET",
+        "path": "/api/accomplishments",
+        "status": 200,
+        "json_contains": [
+          {
+            "id": 1,
+            "description": "Tested persistence"
+          }
+        ],
+        "feature_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "Delete accomplishment",
+        "method": "DELETE",
+        "path": "/api/accomplishments/1",
+        "status": 204,
+        "empty_body": true,
+        "feature_indexes": [
+          3
+        ]
+      }
+    ],
+    "manual_checks": [
+      {
+        "name": "Add an accomplishment through the browser",
+        "steps": [
+          "Open the browser and navigate to the app.",
+          "Fill out the form with a description and timestamp.",
+          "Click the 'Add' button."
+        ],
+        "expected": "The new accomplishment appears in the list.",
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Add an accomplishment through the browser",
+        "steps": [
+          "Open the browser and navigate to the app.",
+          "Fill out the form with a description and timestamp.",
+          "Click the 'Add' button."
+        ],
+        "expected": "The new accomplishment appears in the list.",
+        "feature_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Delete an accomplishment through the browser",
+        "steps": [
+          "Locate the accomplishment to delete in the list.",
+          "Click the 'Delete' button next to the accomplishment."
+        ],
+        "expected": "The selected accomplishment is removed from the list.",
+        "feature_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Add an accomplishment through the browser",
+        "steps": [
+          "Open the browser and navigate to the app.",
+          "Fill out the form with a description and timestamp.",
+          "Click the 'Add' button."
+        ],
+        "expected": "The new accomplishment appears in the list.",
+        "feature_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Delete an accomplishment through the browser",
+        "steps": [
+          "Locate the accomplishment to delete in the list.",
+          "Click the 'Delete' button next to the accomplishment."
+        ],
+        "expected": "The selected accomplishment is removed from the list.",
+        "feature_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Add an accomplishment through the browser",
+        "steps": [
+          "Open the browser and navigate to the app.",
+          "Fill out the form with a description and timestamp.",
+          "Click the 'Add' button."
+        ],
+        "expected": "The new accomplishment appears in the list.",
+        "feature_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "Add an accomplishment through the browser",
+        "steps": [
+          "Open the browser and navigate to the app.",
+          "Fill out the form with a description and timestamp.",
+          "Click the 'Add' button."
+        ],
+        "expected": "The new accomplishment appears in the list.",
+        "feature_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "Delete an accomplishment through the browser",
+        "steps": [
+          "Locate the accomplishment to delete in the list.",
+          "Click the 'Delete' button next to the accomplishment."
+        ],
+        "expected": "The selected accomplishment is removed from the list.",
+        "feature_indexes": [
+          3
+        ]
+      }
+    ],
+    "api_contracts": [
+      {
+        "method": "POST",
+        "path": "/api/accomplishments",
+        "status": 201,
+        "response_kind": "object",
+        "required_fields": [
+          "id",
+          "description",
+          "timestamp"
+        ]
+      }
+    ],
+    "acceptance_policy": "evidence_v1",
+    "tasks": [
+      {
+        "title": "Add timestamp field to task creation",
+        "instructions": "Modify app.py to include a timestamp in the task creation API. Use the current timestamp from Python's datetime module. Update test_app.py to validate the timestamp is included in the response.",
+        "outcome": "POST /api/tasks includes a timestamp in the created task.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "POST /api/tasks returns a task with a timestamp."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          0
+        ],
+        "depends_on": []
+      },
+      {
+        "title": "Add timestamp to task creation API response",
+        "instructions": "Update test_app.py to assert that the created task includes a timestamp field with ISO 8601 format.",
+        "outcome": "POST /api/tasks includes a timestamp in the created task.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "POST /api/tasks returns a task with a timestamp."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          0
+        ],
+        "depends_on": [
+          0
+        ]
+      },
+      {
+        "title": "Add timestamp to task listing API response",
+        "instructions": "Modify app.py to include timestamps in the task listing API. Ensure timestamps are in ISO 8601 format. Update test_app.py to validate timestamps are included.",
+        "outcome": "GET /api/tasks lists tasks with timestamps in ISO 8601 format.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "GET /api/tasks returns tasks with timestamps."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          0
+        ],
+        "depends_on": [
+          1
+        ]
+      },
+      {
+        "title": "Add timestamp field to task creation",
+        "instructions": "Modify app.py to include a timestamp in the task creation API. Use the current timestamp from Python's datetime module. Update test_app.py to validate the timestamp is included in the response.",
+        "outcome": "POST /api/tasks includes a timestamp in the created task.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "POST /api/tasks returns a task with a timestamp."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          1
+        ],
+        "depends_on": [
+          2
+        ]
+      },
+      {
+        "title": "Add timestamp to task listing API response",
+        "instructions": "Modify app.py to include timestamps in the task listing API. Ensure timestamps are in ISO 8601 format. Update test_app.py to validate the timestamps are included in the response.",
+        "outcome": "GET /api/tasks lists tasks with timestamps in ISO 8601 format.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "GET /api/tasks returns tasks with timestamps."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          1
+        ],
+        "depends_on": [
+          3
+        ]
+      },
+      {
+        "title": "Add task deletion",
+        "instructions": "Modify app.py to include a task deletion API. Ensure the task is deleted from the database. Update test_app.py to validate the task can be deleted.",
+        "outcome": "DELETE /api/tasks/{id} removes a task from the database.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "DELETE /api/tasks/{id} removes a task."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          1
+        ],
+        "depends_on": [
+          4
+        ]
+      },
+      {
+        "title": "Add timestamp field to task creation",
+        "instructions": "Modify app.py to include a timestamp in the task creation API. Use the current timestamp from Python's datetime module. Update test_app.py to validate the timestamp is included in the response.",
+        "outcome": "POST /api/tasks includes a timestamp in the created task.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "POST /api/tasks returns a task with a timestamp."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          2
+        ],
+        "depends_on": [
+          5
+        ]
+      },
+      {
+        "title": "Add timestamp field to task listing API response",
+        "instructions": "Modify app.py to include timestamps in the task listing API. Ensure timestamps are in ISO 8601 format. Update test_app.py to validate the timestamps are included in the response.",
+        "outcome": "GET /api/tasks lists tasks with timestamps in ISO 8601 format.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "GET /api/tasks returns tasks with timestamps."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          2
+        ],
+        "depends_on": [
+          6
+        ]
+      },
+      {
+        "title": "Add task deletion",
+        "instructions": "Modify app.py to include a task deletion API. Ensure the task is deleted from the database. Update test_app.py to validate the task can be deleted.",
+        "outcome": "DELETE /api/tasks/{id} removes a task from the database.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "DELETE /api/tasks/{id} removes a task."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          2
+        ],
+        "depends_on": [
+          7
+        ]
+      },
+      {
+        "title": "Add timestamp field to task creation",
+        "instructions": "Modify app.py to include a timestamp in the task creation API. Use the current timestamp from Python's datetime module. Update test_app.py to validate the timestamp is included in the response.",
+        "outcome": "POST /api/tasks includes a timestamp in the created task.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "POST /api/tasks returns a task with a timestamp."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          3
+        ],
+        "depends_on": [
+          8
+        ]
+      },
+      {
+        "title": "Add timestamp field to task listing API response",
+        "instructions": "Modify app.py to include timestamps in the task listing API. Ensure timestamps are in ISO 8601 format. Update test_app.py to validate the timestamps are included.",
+        "outcome": "GET /api/tasks lists tasks with timestamps in ISO 8601 format.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "GET /api/tasks returns tasks with timestamps."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          3
+        ],
+        "depends_on": [
+          9
+        ]
+      },
+      {
+        "title": "Add task deletion",
+        "instructions": "Modify app.py to include a task deletion API. Ensure the task is deleted from the database. Update test_app.py to validate the task can be deleted.",
+        "outcome": "DELETE /api/tasks/{id} removes a task from the database.",
+        "files": [
+          "app.py",
+          "test_app.py"
+        ],
+        "done_when": [
+          "DELETE /api/tasks/{id} removes a task."
+        ],
+        "interfaces": [
+          {
+            "file": "app.py",
+            "symbol": "create_server",
+            "contract": "Returns a ThreadingHTTPServer instance."
+          },
+          {
+            "file": "test_app.py",
+            "symbol": "test_server_health_and_home",
+            "contract": "Tests the health and home endpoints."
+          }
+        ],
+        "feature_indexes": [
+          3
+        ],
+        "depends_on": [
+          10
+        ]
+      }
+    ]
+  }
+}

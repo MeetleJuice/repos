@@ -184,6 +184,8 @@ class Workbench:
 
     def present(self, ident):
         state = self.load(ident)
+        if state.get('plan') and not state.get('approved') and state.get('status') not in ACTIVE:
+            state['current_plan_review']=review_plan(state['plan'],state.get('starter')).to_dict()
         if (state.get("checks") or {}).get("passed") or state.get("verification_fingerprint"):
             freshness = evidence_status(state, self.files(ident))
             state["evidence_status"] = freshness

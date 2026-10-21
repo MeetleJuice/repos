@@ -105,7 +105,7 @@ def validate_batch(candidate: dict[str,Any], outline: dict[str,Any], earlier: li
     if covered!=set(targets):raise ValueError('Task batch must cover every requested feature index.')
     from .acceptance import evidence_findings
     failures=evidence_findings({**outline,'tasks':earlier+tasks},partial=True)
-    if failures:raise ValueError('; '.join(path+': '+message for _,path,message in failures))
+    if failures:raise StageValidationError(failures)
     if len(json.dumps({**outline,'tasks':earlier+tasks}))>30000:raise ValueError('Assembled proposal exceeds the approval size limit; revise scope.')
 
 

@@ -28,8 +28,10 @@ document.querySelector('#form').onsubmit=async event=>{event.preventDefault();co
 CSS='body{background:#111827;color:#f8fafc;font:16px system-ui;margin:0}main{max-width:650px;margin:3rem auto;padding:1rem}h1{color:#fbbf24}form{display:flex;gap:.5rem;flex-wrap:wrap}input{min-width:0;max-width:100%}li{padding:1rem;border:1px solid #475569;display:flex;justify-content:space-between;gap:1rem;overflow-wrap:anywhere}button{background:#fbbf24;color:#111827;border:0;padding:.6rem;border-radius:.4rem}span{min-width:0}'
 
 
-def main(granular=False):
-    plan=sqlite_plan();outline={k:v for k,v in plan.items() if k!='tasks'}
+def main(granular=False,hybrid=False):
+    plan=sqlite_plan()
+    if hybrid:plan['app_kind']='browser'
+    outline={k:v for k,v in plan.items() if k!='tasks'}
     claim={'already_satisfied':{'reason':'The reviewed starter already implements record creation, retrieval and SQLite persistence; retain it and run the approved prefix.',
         'evidence':[{'file':'storage.py','contains':'class Store:\n    def __init__(self, path):'}]}}
     scope,acceptance=outline_replies(outline)
@@ -63,7 +65,7 @@ def main(granular=False):
                 expected=['scope','acceptance_feature','acceptance_feature','acceptance_feature','feature_tasks','feature_tasks'] if granular else ['scope','acceptance','acceptance','feature_tasks','feature_tasks']
                 assert [call['planning_stage'] for call in models.calls[:len(expected)]]==expected
                 assert state['model_calls'][1]['failure_class']=='schema_error'
-                assert ('restart_evidence' if granular else 'false_restart') in state['model_calls'][1]['review_codes']
+                assert ('restart_evidence' if granular else 'missing_persistence_scenario') in state['model_calls'][1]['review_codes']
                 expect(page.locator('#builder-profile')).to_contain_text('Evidence-ready')
                 page.locator('#approve').click();page.locator('#runtime').select_option('local')
                 page.locator('#execution-consent').check();page.locator('#repairs').select_option('0');page.locator('#milestone-checks').check();page.locator('#verify').click()

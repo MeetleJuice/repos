@@ -31,6 +31,12 @@ function renderDiagnosticReport(report) {
   const coverage = document.createElement("p");
   coverage.textContent = `${summary.detailed_project_count ?? "Unknown"} detailed projects · ${summary.history_records ?? "Unknown"} controller events · ${summary.recorder_records ?? "Unknown"} recorder events. Includes planning structure, validation rule codes and retained attempt metrics.`;
   $("diag-summary").append(coverage);
+  if (summary.selected_project_review?.available) {
+    const review = document.createElement('p');
+    const result = summary.selected_project_review;
+    review.textContent = `Selected proposal · current local review: ${result.passed ? 'passed' : 'needs attention'}${result.review_codes?.length ? ' · ' + result.review_codes.join(', ') : ''}. No app code executed; stored approvals were kept.`;
+    $("diag-summary").append(review);
+  }
   if (summary.latest_test?.status) {
     const tests = document.createElement("p");
     tests.textContent = `Latest Test: ${summary.latest_test.status} · ${summary.latest_test.results} results · ${summary.latest_test.failed} failed. Detailed results are included in the ZIP.`;

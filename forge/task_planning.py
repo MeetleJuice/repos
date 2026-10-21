@@ -9,12 +9,14 @@ from typing import Any, Callable
 from urllib.parse import urlsplit
 
 from .schemas import PLAN_SCHEMA
+from .coherence import backend_evidence
 
 POLICY = 'compiled_v1'
 FEATURE_PROMPT = '''GOAL: Design a short sequential implementation checklist for exactly ONE requested feature. Return {"tasks":[...]} only.
 CONTEXT: The complete request, approved-for-planning outline, existing starter, builder limits and earlier task declarations are provided as data. No proposal is approved yet. Reuse starter behavior and stable API contracts. Follow target_feature_indexes exactly; never repeat unrelated earlier work.
 CONSTRAINTS: Each task needs title, instructions (under 1800 characters), outcome (under 300 characters), files and done_when. Optional interfaces must describe real shared file/symbol/contract boundaries. Obey max_new_tasks and builder_profile.max_editable_files. Prefer one narrow behavior plus its focused test. Use root test_*.py modules unless package initialization already exists. Do not assign protected tests, controller documentation or launchers. Split storage setup before its consumers. No catch-all final task, source code, dependencies or execution. Do NOT return depends_on, feature_indexes or check_indexes: the controller owns sequential dependencies, feature references and runnable-prefix scheduling. Declared completion criteria are not test evidence.
-DONE WHEN: Return only concrete, bounded tasks implementing the requested feature. Preserve all requirements and acceptance checks; report impossible scope through clear task instructions, never invent working behavior.'''
+DONE WHEN: Return only concrete, bounded tasks implementing the requested feature. Preserve all requirements and acceptance checks; report impossible scope through clear task instructions, never invent working behavior.
+Use target_acceptance as the actual API/UI delivery contract. Example paths and rejected previous proposals are not instructions. Name the real method/path and response shape in the task outcome. Do not repeat earlier task instructions. Include the interface implementation needed by manual/browser scenarios, not just API timestamp tests. A browser dashboard with a backend must implement both. One complete narrow task is better than three duplicates.'''
 
 FEATURE_SCHEMA: dict[str, Any] = copy.deepcopy(PLAN_SCHEMA['properties']['tasks'])
 FEATURE_SCHEMA.update(minItems=1, maxItems=3)
@@ -34,7 +36,7 @@ def validate_compilable_outline(candidate: dict[str, Any], starter: str | None =
     review = review_plan(candidate, starter, outline=True)
     if not review.passed:
         raise StageValidationError([(f.code, f.path, f.message) for f in review.findings if f.severity == 'error'])
-    if candidate.get('acceptance_policy') != 'evidence_v1' or candidate.get('app_kind') == 'browser': return
+    if candidate.get('acceptance_policy') != 'evidence_v1' or not backend_evidence(candidate): return
     required: set[int] = set()
     for check in candidate['checks']:
         required.update(check.get('feature_indexes', []))
@@ -53,7 +55,7 @@ def schedule(outline: dict[str, Any], tasks: list[dict[str, Any]]) -> list[dict[
     result = copy.deepcopy(tasks)
     for task in result:
         task.pop('check_indexes', None)
-    if outline.get('acceptance_policy') != 'evidence_v1' or outline.get('app_kind') == 'browser':
+    if outline.get('acceptance_policy') != 'evidence_v1' or not backend_evidence(outline):
         return result
     producers = {feature: index for index, task in enumerate(result) for feature in task['feature_indexes']}
     ready = 0
@@ -107,6 +109,7 @@ def run_compiled(request: dict[str, Any], generate: Callable[..., dict[str, Any]
                 raise ValueError('Saved acceptance is invalid and no validated scope is available. Start a new unapproved draft.')
             validate_scope(scope)
             draft.update(outline=None, tasks=[], next_feature=0, references={}, acceptance_recovery=True)
+            draft.pop('acceptance_draft',None)
             checkpoint(copy.deepcopy(draft))
     if draft['outline'] is None:
         if request.get('outline_planning_policy')=='split_v1':
@@ -134,7 +137,13 @@ def run_compiled(request: dict[str, Any], generate: Callable[..., dict[str, Any]
         if maximum < 1: raise ValueError('Task allowance exhausted; revise the unapproved scope.')
         def validate(candidate: dict[str, Any]) -> None:
             compile_tasks(candidate, outline, earlier, target, maximum, request.get('builder_profile'))
-        response = generate(FEATURE_PROMPT, {'request': request, 'outline': outline, 'earlier_tasks': earlier,
+        projected={key:copy.deepcopy(value) for key,value in request.items() if key!='previous_proposal'}
+        manifest={'policy':'task_contract_v1','available_fields':sorted(request),
+            'omitted_fields':[{'field':'previous_proposal','sha256':hashlib.sha256(json.dumps(request['previous_proposal'],sort_keys=True).encode()).hexdigest()}] if 'previous_proposal' in request else []}
+        target_acceptance={field:[copy.deepcopy(row) for row in outline.get(field,[]) if target in row.get('feature_indexes',[])] for field in ('checks','manual_checks','browser_checks')}
+        response = generate(FEATURE_PROMPT, {'request': projected, 'context_manifest':manifest,
+            'outline': outline, 'earlier_tasks': earlier, 'target_feature':outline['features'][target],
+            'target_acceptance':target_acceptance,
             'planning_stage': 'feature_tasks', 'task_planning_policy': POLICY,
             'target_feature_indexes': [target], 'next_task_index': len(earlier), 'max_new_tasks': maximum,
             'builder_profile': request.get('builder_profile', {}),

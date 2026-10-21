@@ -14,6 +14,17 @@ from tests.test_workbench import ScriptedModels
 
 
 class SystemTestTests(unittest.TestCase):
+    def test_truncated_probe_distinguishes_received_reply_from_accepted_json(self):
+        with tempfile.TemporaryDirectory() as folder:
+            bench,factory,runner=self.make(folder,[ModelError('cut off','truncated_output')])
+            factory.last_metadata={'finish_reason':'length','observed_output_tokens':1024,'http_status':200}
+            runner.start([{'provider':'ollama','model':'fixture'}],True)
+            row=next(row for row in self.finish(runner)['rows'] if row['code']=='fixed_json_probe')
+            self.assertTrue(row['response_received'])
+            self.assertFalse(row['response_accepted'])
+            self.assertTrue(row['http_response_received'])
+            self.assertEqual(row['failure_class'],'truncated_output')
+
     def test_no_saved_route_never_claims_inference_was_tested(self):
         with tempfile.TemporaryDirectory() as folder:
             _,factory,runner=self.make(folder)

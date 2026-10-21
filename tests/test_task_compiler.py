@@ -64,6 +64,9 @@ class TaskCompilerTests(unittest.TestCase):
     def test_same_feature_multiple_tasks_have_last_producer_checkpoint(self):
         plan = sqlite_plan()
         tasks = [copy.deepcopy(plan['tasks'][0]), copy.deepcopy(plan['tasks'][0]), copy.deepcopy(plan['tasks'][1])]
+        tasks[1]['instructions'] = 'Add focused SQLite restart regression tests after the storage API is implemented.'
+        tasks[1]['outcome'] = 'The existing storage API has independent persistence tests.'
+        tasks[1]['done_when'] = ['A restart test reads the record created before server shutdown.']
         tasks[1]['depends_on'] = [0]; tasks[2]['depends_on'] = [1]
         scheduled = schedule(plan, tasks)
         self.assertNotIn('check_indexes', scheduled[0])

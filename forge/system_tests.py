@@ -75,13 +75,14 @@ class SystemTests:
     def stop(self) -> dict[str, Any]:
         self.cancel.set();return self.status()
 
-    def start(self, profiles: list[dict[str, Any]], generation: bool=False, cloud_consent: bool=False) -> dict[str, Any]:
+    def start(self, profiles: list[dict[str, Any]], generation: bool=False, cloud_consent: bool=False, project_id: str | None=None) -> dict[str, Any]:
         targets=probe_targets(profiles) if generation else []
         if any(target['provider'] not in LOCAL_PROVIDERS for target in targets) and not cloud_consent:
             raise ValueError('Allow the fixed cloud model probes explicitly. Charges may apply; no project content is sent.')
         with self.bench.lock:
             if self.bench.maintenance or getattr(self.bench,'idea_busy',False) or getattr(self.bench,'test_busy',False) or any(t.is_alive() for t,_ in self.bench.jobs.values()):
                 raise ValueError('Finish or stop active work before running system tests.')
+            self.project_snapshot=copy.deepcopy(self.bench.load(project_id)) if project_id else None
             if not self.bench.inference_lock.acquire(blocking=False):raise ValueError('A model request is already running.')
             self.bench.test_busy=True
         with self.lock:
@@ -140,16 +141,27 @@ class SystemTests:
             passed=result=={'answer':7};outcome='responded' if passed else 'schema_error'
             return {'provider':provider,'model':model,'status':'passed' if passed else 'failed',
                 'failure_class':None if passed else 'probe_assertion','response_received':True,
+                'response_accepted':passed,'http_response_received':True,
                 **getattr(client,'last_usage',{}),**{key:value for key,value in getattr(client,'last_metadata',{}).items()
                     if key in {'http_status','transport_attempted','ollama_tokens_per_second','ollama_load_seconds','ollama_eval_seconds','finish_reason',
                                'configured_num_ctx','requested_max_output_tokens','timeout_seconds','structured_outputs_requested','observed_output_tokens','response_format_mode','response_model','response_provider','api_family'}}}
         except ModelError as exc:
             outcome=exc.category
+            metadata=getattr(client,'last_metadata',{})
+            received=metadata.get('finish_reason') is not None or metadata.get('observed_output_tokens') is not None or exc.category in {'truncated_output','format','parse_error','schema_error'}
             return {'provider':provider,'model':model,'status':'failed','failure_class':exc.category,
-                'http_status':exc.http_status,'transport_kind':exc.transport_kind,'response_received':False,
+                'http_status':exc.http_status or metadata.get('http_status'),'transport_kind':exc.transport_kind,'response_received':received,
+                'response_accepted':False,'http_response_received':exc.http_status is not None or metadata.get('http_status') is not None or received,
                 **{key:value for key,value in getattr(client,'last_metadata',{}).items() if key in {
                     'configured_num_ctx','requested_max_output_tokens','timeout_seconds','structured_outputs_requested','observed_output_tokens','transport_attempted','finish_reason','response_format_mode','response_model','response_provider','api_family'}}}
         finally:self.bench.model_status.finish(provider,model,outcome,remember=False)
+
+    def _project_review(self) -> dict[str, Any]:
+        from .coherence import audit_plan
+        state=self.project_snapshot
+        if not state or not isinstance(state.get('plan'),dict):return {'status':'skipped','failure_class':'no_selected_proposal','executed':False}
+        result=audit_plan(state['plan'],state.get('starter'))
+        return {'status':'passed' if result['passed'] else 'failed','project_id':state['id'],**result}
 
     def _run(self, targets: list[dict[str, Any]]) -> None:
         try:
@@ -157,6 +169,8 @@ class SystemTests:
             if self.path.parent.is_symlink():raise OSError('Diagnostic directory is a symbolic link.')
             self.bench.diagnostics.record('system_tests_started',{'report_id':self.report['id'],'planned_probes':len(targets)})
             self._row('private_storage',self._storage);self._row('controller_smoke',self._controller)
+            from .coherence import guard_probes
+            self._row('planning_guards',guard_probes);self._row('project_plan',self._project_review)
             self._row('local_catalogue',lambda:{'status':'passed' if self.local().get('connected') else 'failed','generation_tested':False})
             if not self.cancel.is_set():
                 catalogue_started=time.monotonic();catalogues=self.catalogues()

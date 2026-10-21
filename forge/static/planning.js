@@ -132,7 +132,7 @@ function renderProposalReview(project) {
             },
           ],
         }
-      : project.plan_review;
+      : project.current_plan_review || project.plan_review;
   panel.hidden = !result;
   if (!result) {
     if (
@@ -158,6 +158,9 @@ function renderProposalReview(project) {
         : "")
     : "Resolve proposal contradictions before approval";
   panel.classList.toggle("review-failed", !result.passed);
+  if (!local && !edited && project.current_plan_review?.passed === false && project.plan_review?.passed === true) {
+    document.getElementById('proposal-review-status').textContent += ' · earlier saved pass does not meet the current checks';
+  }
   const items = document.getElementById("proposal-findings");
   items.replaceChildren();
   for (const finding of result.findings || []) {

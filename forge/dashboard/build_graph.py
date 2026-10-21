@@ -141,6 +141,10 @@ flow('project-plan','Shape an idea · planner success','Planning & approval',[ro
 flow('guided-plan','Small-step planning · unapproved checkpoints','Planning & approval',[root,start,job,proc('run_guided()','forge/guided.py'),call,model,proc('validate_outline()','forge/guided.py'),call,model,proc('validate_batch()','forge/guided.py'),proposal,state_ids['proposed'],ui])
 flow('compiled-plan','One feature · controller-owned task references and checkpoints','Planning & approval',[root,start,job,proc('run_guided()','forge/guided.py'),proc('run_compiled()','forge/task_planning.py'),call,model,proc('validate_compilable_outline()','forge/task_planning.py'),call,model,proc('compile_tasks()','forge/task_planning.py'),proc('schedule()','forge/task_planning.py'),proc('validate_batch()','forge/guided.py'),proposal,state_ids['proposed'],ui])
 flow('split-outline','Saved scope · acceptance evidence · complete outline review','Planning & approval',[root,start,job,proc('run_compiled()','forge/task_planning.py'),proc('create_outline()','forge/outline_planning.py'),call,model,proc('validate_scope()','forge/outline_planning.py'),call,model,proc('assemble()','forge/outline_planning.py'),proc('validate_compilable_outline()','forge/task_planning.py'),proposal,state_ids['proposed'],ui])
+coherence=proc('coherence_findings()','forge/coherence.py','Planning & approval')
+review_plan_node=proc('review_plan()','forge/contracts.py','Planning & approval')
+blocked=node('coherence-blocked','Approval withheld · contract contradictions','state','Planning & approval','forge/contracts.py','raise ProposalError(result)','A rejected proposal remains unapproved. No generated source is executed.')
+flow('coherence-approval','Approval · reject contradictory declarations','Planning & approval',[root,approve,proposal,review_plan_node,proc('evidence_findings()','forge/acceptance.py'),coherence,blocked],[blocked])
 flow('project-build','Approved project · sequential generation','Build & verification',[root,approve,state_ids['approved'],start,state_ids['building'],job,begin,context,generate,call,model,response,apply,checkpoint,inspect,gate,finish,state_ids['generated'],ui])
 runtime=proc('require_runtime()','forge/runner.py');verify=proc('verify()','forge/runner.py')
 acceptance=proc('acceptance()','forge/harness.py');tests=proc('generated_tests()','forge/harness.py');launch=proc('launch()','forge/harness.py')
@@ -173,6 +177,12 @@ flow('model-metadata','Installed model limits · no generation','Models & routin
 trace=proc('Workbench.trace()')
 persist=proc('FlightRecorder.record()','forge/diagnostics.py','Delivery & recovery')
 investigate=proc('collect_report()','forge/diagnostic_report.py','Delivery & recovery')
+audit=proc('audit_plan()','forge/coherence.py','Delivery & recovery')
+flow('current-proposal-audit','Diag · current proposal review separate from stored pass','Delivery & recovery',
+     [root,investigate,proc('_planning_metadata()','forge/diagnostic_report.py'),audit,review_plan_node,coherence,investigate])
+flow('test-planning-guards','Test · fixed adversarial checks and selected proposal · no execution','Delivery & recovery',
+     [root,proc('SystemTests._run()','forge/system_tests.py'),proc('guard_probes()','forge/coherence.py'),review_plan_node,coherence,
+      proc('SystemTests._project_review()','forge/system_tests.py'),audit,review_plan_node,proc('SystemTests._row()','forge/system_tests.py')])
 flow('diagnostic-recorder','Controller event · shared IDs and independent persistence','Delivery & recovery',
      [root,job,trace,proc('append()','forge/history.py','Delivery & recovery'),persist])
 flow('diagnostic-investigation','Diag · read-only local evidence export','Delivery & recovery',

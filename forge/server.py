@@ -162,7 +162,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                 else:profiles=list(cloud.saved_profiles().values())
                 if mode=='local':profiles=[entry for entry in probe_targets(profiles) if entry['provider'] in {'ollama','local'}]
                 diagnostic_cache.clear()
-                self.json(system_tests.start(profiles,mode!='quick',body.get('cloud_consent') is True));return
+                self.json(system_tests.start(profiles,mode!='quick',body.get('cloud_consent') is True,ident));return
             if path in {'/api/diagnostics', '/api/diagnostics/export'} and post:
                 ident = body.get('project_id')
                 if ident is not None:
