@@ -373,6 +373,7 @@ def main():
     diagnostics.record('application_starting', {'version': __version__, 'pid': os.getpid(),
         'supervised': os.getenv('FOUNDRY_SUPERVISED') == '1'})
     sampler = None
+    server = None
     previous_sigint = None
     nonce = os.environ.setdefault('FOUNDRY_BOOT_NONCE', uuid.uuid4().hex)
     try:
@@ -435,6 +436,16 @@ def main():
         record_exception(diagnostics, 'application_exception', exc)
         raise
     finally:
+        if previous_sigint is None:
+            previous_sigint=signal.signal(signal.SIGINT,signal.SIG_IGN)
+        # Publication precedes serving. Startup interrupts and a second console
+        # signal must still remove only this process's owned instance marker.
+        try:
+            from desktop_launcher import clear_instance
+            clear_instance(home,nonce)
+            if server is not None:server.server_close()
+        except Exception as exc:
+            record_exception(diagnostics,'instance_cleanup_failed',exc)
         if sampler:
             sampler.stop()
         diagnostics.close()

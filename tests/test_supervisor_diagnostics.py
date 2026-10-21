@@ -16,6 +16,18 @@ import bootstrap
 
 
 class SupervisorDiagnosticsTests(unittest.TestCase):
+    def test_interrupt_after_instance_publication_removes_owned_marker(self):
+        from forge import server
+        with tempfile.TemporaryDirectory() as temporary:
+            home=Path(temporary);fake=Mock(server_port=12345)
+            with patch.object(sys,'argv',['foundry','--data-dir',str(home)]), \
+                 patch.object(server,'make_server',return_value=fake), \
+                 patch('desktop_launcher.install_shortcut',return_value={'status':'not_supported'}), \
+                 patch.object(server.ResourceSampler,'start',side_effect=KeyboardInterrupt()), \
+                 patch.dict(os.environ,{'FOUNDRY_BOOT_NONCE':'fixture-owned-instance'}):
+                with self.assertRaises(KeyboardInterrupt):server.main()
+            self.assertFalse((home/'diagnostics/instance.json').exists())
+
     def test_independent_events_are_bounded_and_do_not_record_error_text(self):
         with tempfile.TemporaryDirectory() as temporary:
             home = Path(temporary)

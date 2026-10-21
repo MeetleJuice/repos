@@ -1,8 +1,8 @@
-# Idea Foundry 0.33.0
+# Idea Foundry 0.33.1
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
-**New: Test → Diag.** Click **Test**, run quick storage/controller/catalogue checks, then optionally select local or explicitly consented cloud response probes. Close Test when finished, click **Diag**, and download its ZIP. Tiny probes do not establish project-building ability or change saved routes. New guided/proof projects save scope separately from acceptance checks before compiling tasks. [v0.33.0 guide](docs/RELEASE-0.33.0.md), [engineering brief](docs/UPDATE-0.33-ENGINEERING-BRIEF.md).
+**New: Test → Diag.** Click **Test**, run quick storage/controller/catalogue checks, then optionally select local or explicitly consented cloud response probes. Close Test when finished, click **Diag**, and download its ZIP. Tiny probes do not establish project-building ability or change saved routes. New guided/proof projects save scope separately from acceptance checks before compiling tasks. [v0.33.1 update](docs/RELEASE-0.33.1.md), [feature guide](docs/RELEASE-0.33.0.md), [engineering brief](docs/UPDATE-0.33-ENGINEERING-BRIEF.md).
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
