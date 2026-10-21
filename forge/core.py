@@ -1303,6 +1303,8 @@ class Workbench:
                         state['guided_draft']=draft
                         outline=draft.get('outline') or draft.get('scope') or {}
                         stage='scope saved' if draft.get('outline') is None else 'outline saved' if not draft['tasks'] else 'task batch saved'
+                        if draft.get('acceptance_recovery'):
+                            stage='saved scope kept; correcting acceptance before rebuilding task batches'
                         state['planning_progress']={'stage':stage,
                             'task_planning_policy':draft.get('task_planning_policy'),
                             'features_planned':draft['next_feature'],'features_total':len(outline.get('features',[])),

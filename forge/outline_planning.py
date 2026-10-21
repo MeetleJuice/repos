@@ -45,11 +45,13 @@ def validate_scope(candidate: dict[str, Any]) -> None:
 
 def assemble(scope: dict[str, Any], candidate: dict[str, Any], request: dict[str, Any]) -> dict[str, Any]:
     from .task_planning import validate_compilable_outline
+    from .scaffolds import CATALOG
     if not isinstance(candidate,dict) or set(candidate)-ACCEPTANCE_FIELDS or 'checks' not in candidate:
         raise ValueError('Return only acceptance fields; the scope is fixed.')
     result={**copy.deepcopy(scope),**copy.deepcopy(candidate)}
     if request.get('acceptance_policy')=='evidence_v1':result['acceptance_policy']='evidence_v1'
-    validate_compilable_outline(result)
+    starter=next((name for name,value in CATALOG.items() if value==request.get('starter')),None)
+    validate_compilable_outline(result, starter)
     return result
 
 

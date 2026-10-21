@@ -11,7 +11,7 @@ CATALOG = {
 }
 
 
-def starter_files(name):
+def starter_files(name: str) -> dict[str, str]:
     if name not in CATALOG:
         raise ValueError('Choose a supported starter or start without a template.')
     if name=='sqlite':

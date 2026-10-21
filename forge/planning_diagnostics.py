@@ -9,6 +9,8 @@ RULES = {
     'assertion_required': 'An HTTP check lacks a meaningful response assertion.',
     'mutation_example': 'A successful mutation needs concrete request example data.',
     'persistence_evidence': 'A restart check must read a value seeded by an earlier mutation.',
+    'restart_evidence': 'Restart must happen immediately before reading saved data, not before creating it.',
+    'false_restart': 'A check claims a restart without requesting one.',
     'task_width': 'Task exceeds the configured builder file/feature scope.',
     'feature_scope': 'Task refers to features outside the requested batch.',
     'feature_coverage': 'Requested features are missing task declarations.',

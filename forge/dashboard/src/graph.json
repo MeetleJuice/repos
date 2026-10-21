@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "baseline": "core 0.33.1 \u00b7 source excerpts checked by tests",
+  "baseline": "core 0.33.2 \u00b7 source excerpts checked by tests",
   "nodes": [
     {
       "id": "document",
@@ -2118,7 +2118,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1390,
+      "line": 1392,
       "excerpt": "                state[\"status\"] = \"building\"",
       "description": ""
     },
@@ -2128,7 +2128,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1412,
+      "line": 1414,
       "excerpt": "                state[\"status\"] = \"generated\"",
       "description": ""
     },
@@ -2138,7 +2138,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1420,
+      "line": 1422,
       "excerpt": "                state[\"status\"] = \"checking\"",
       "description": ""
     },
@@ -2148,7 +2148,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1468,
+      "line": 1470,
       "excerpt": "            state[\"status\"] = \"stopped\"",
       "description": ""
     },
@@ -2168,7 +2168,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1472,
+      "line": 1474,
       "excerpt": "            state[\"status\"], state[\"error\"] = \"error\", str(exc)[:2000]",
       "description": ""
     },
@@ -2178,7 +2178,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1448,
+      "line": 1450,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2188,7 +2188,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1448,
+      "line": 1450,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2368,7 +2368,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/task_planning.py",
-      "line": 83,
+      "line": 87,
       "excerpt": "def run_compiled(request: dict[str, Any], generate: Callable[..., dict[str, Any]],",
       "description": ""
     },
@@ -2379,7 +2379,7 @@
       "category": "Workbench & session",
       "source": "forge/task_planning.py",
       "line": 30,
-      "excerpt": "def validate_compilable_outline(candidate: dict[str, Any]) -> None:",
+      "excerpt": "def validate_compilable_outline(candidate: dict[str, Any], starter: str | None = None) -> None:",
       "description": ""
     },
     {
@@ -2388,7 +2388,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/task_planning.py",
-      "line": 65,
+      "line": 69,
       "excerpt": "def compile_tasks(candidate: dict[str, Any], outline: dict[str, Any], earlier: list[dict[str, Any]],",
       "description": ""
     },
@@ -2398,7 +2398,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/task_planning.py",
-      "line": 43,
+      "line": 47,
       "excerpt": "def schedule(outline: dict[str, Any], tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:",
       "description": ""
     },
@@ -2408,7 +2408,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/outline_planning.py",
-      "line": 56,
+      "line": 58,
       "excerpt": "def create_outline(request: dict[str, Any], generate: Callable[..., dict[str, Any]],",
       "description": ""
     },

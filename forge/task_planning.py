@@ -27,9 +27,13 @@ FEATURE_SCHEMA = {'type': 'object', 'required': ['tasks'], 'additionalProperties
 FEATURE_SCHEMA['properties']['tasks']['items']['additionalProperties'] = False
 
 
-def validate_compilable_outline(candidate: dict[str, Any]) -> None:
-    from .guided import validate_outline
+def validate_compilable_outline(candidate: dict[str, Any], starter: str | None = None) -> None:
+    from .guided import validate_outline, StageValidationError
+    from .contracts import review_plan
     validate_outline(candidate)
+    review = review_plan(candidate, starter, outline=True)
+    if not review.passed:
+        raise StageValidationError([(f.code, f.path, f.message) for f in review.findings if f.severity == 'error'])
     if candidate.get('acceptance_policy') != 'evidence_v1' or candidate.get('app_kind') == 'browser': return
     required: set[int] = set()
     for check in candidate['checks']:
@@ -84,22 +88,38 @@ def run_compiled(request: dict[str, Any], generate: Callable[..., dict[str, Any]
                  checkpoint: Callable[[dict[str, Any]], None], cancel: threading.Event,
                  saved: dict[str, Any] | None = None) -> dict[str, Any]:
     from .guided import OUTLINE_PROMPT, validate_batch
+    from .scaffolds import CATALOG
+    starter = next((name for name, value in CATALOG.items() if value == request.get('starter')), None)
     identity = hashlib.sha256(json.dumps(request, sort_keys=True).encode()).hexdigest()
     draft = copy.deepcopy(saved) if saved and saved.get('request_sha256') == identity and saved.get('task_planning_policy') == POLICY else {
         'schema': 2, 'task_planning_policy': POLICY, 'request_sha256': identity,
         'outline': None, 'tasks': [], 'next_feature': 0}
     if cancel.is_set(): raise InterruptedError('Stopped before guided planning.')
+    if request.get('outline_planning_policy') == 'split_v1' and draft.get('outline') is not None:
+        try:
+            validate_compilable_outline(draft['outline'], starter)
+        except ValueError:
+            # A pre-upgrade checkpoint can have passed the old, weaker stage gate.
+            # Keep its validated scope, but never reuse tasks tied to rejected checks.
+            from .outline_planning import validate_scope
+            scope = draft.get('scope')
+            if not isinstance(scope, dict):
+                raise ValueError('Saved acceptance is invalid and no validated scope is available. Start a new unapproved draft.')
+            validate_scope(scope)
+            draft.update(outline=None, tasks=[], next_feature=0, references={}, acceptance_recovery=True)
+            checkpoint(copy.deepcopy(draft))
     if draft['outline'] is None:
         if request.get('outline_planning_policy')=='split_v1':
             from .outline_planning import create_outline
             outline = create_outline(request,generate,checkpoint,draft,cancel)
         else:
             outline = generate(OUTLINE_PROMPT, {**request, 'planning_stage': 'outline'}, validate_compilable_outline)
-        validate_compilable_outline(outline)
+        validate_compilable_outline(outline, starter)
         draft['outline'] = copy.deepcopy(outline)
+        draft.pop('acceptance_recovery', None)
         checkpoint(copy.deepcopy(draft))
     outline = draft['outline']
-    validate_compilable_outline(outline)
+    validate_compilable_outline(outline, starter)
     first = draft['next_feature']
     if type(first) is not int or not 0 <= first <= len(outline['features']):
         raise ValueError('Invalid compiled planning checkpoint position.')

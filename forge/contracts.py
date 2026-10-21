@@ -178,7 +178,7 @@ def _contains_body(expected: Any, body: Any) -> bool:
     return isinstance(expected, dict) and isinstance(body, dict) and bool(body) and all(expected.get(k) == v for k, v in body.items())
 
 
-def review_plan(plan: Plan, starter: str | None = None) -> Review:
+def review_plan(plan: Plan, starter: str | None = None, *, outline: bool = False) -> Review:
     """Reject objective contradictions; leave ambiguous product decisions as warnings.
 
     Starter contracts are defaults. An explicit api_contracts entry may change one,
@@ -188,7 +188,7 @@ def review_plan(plan: Plan, starter: str | None = None) -> Review:
     try:
         if not isinstance(plan, dict):
             raise ValueError('Proposal must be a JSON object.')
-        validate_structure(plan)
+        validate_structure(plan, outline=outline)
         json.dumps(plan, allow_nan=False)
     except (ValueError, TypeError) as exc:
         return Review((Finding('structure', '/', str(exc)),))
@@ -273,10 +273,10 @@ def review_plan(plan: Plan, starter: str | None = None) -> Review:
                 findings.append(Finding('weak_json_assertion', pointer + '/contains', 'Use json_contains or json_equals to verify JSON shape and fields, rather than a text fragment.', 'warning'))
         if urlsplit(check['path']).path == '/health' and check['feature_indexes']:
             findings.append(Finding('health_coverage', pointer + '/feature_indexes', 'Health proves server readiness; it does not prove business features.', 'warning'))
-    if starter and starter != 'web' and len(plan['tasks']) > 4:
+    if not outline and starter and starter != 'web' and len(plan['tasks']) > 4:
         findings.append(Finding('starter_rebuild', '/tasks', 'This reviewed starter already supplies the server, storage and UI. Prefer a short plan for actual changes and tests.', 'warning'))
     from .acceptance import evidence_findings
-    findings.extend(Finding(code,path,message) for code,path,message in evidence_findings(plan))
+    findings.extend(Finding(code,path,message) for code,path,message in evidence_findings(plan, outline=outline))
     return Review(tuple(findings), tuple(contracts))
 
 

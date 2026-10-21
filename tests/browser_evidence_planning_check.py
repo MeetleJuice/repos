@@ -32,7 +32,10 @@ def main():
     plan=sqlite_plan();outline={k:v for k,v in plan.items() if k!='tasks'}
     claim={'already_satisfied':{'reason':'The reviewed starter already implements record creation, retrieval and SQLite persistence; retain it and run the approved prefix.',
         'evidence':[{'file':'storage.py','contains':'class Store:\n    def __init__(self, path):'}]}}
-    models=ScriptedModels([*outline_replies(outline),*feature_batches(plan['tasks']),claim,{'files':{'index.html':HTML,'style.css':CSS}}])
+    scope,acceptance=outline_replies(outline)
+    invalid=copy.deepcopy(acceptance)
+    invalid['checks'][2].pop('restart_before')
+    models=ScriptedModels([scope,invalid,acceptance,*feature_batches(plan['tasks']),claim,{'files':{'index.html':HTML,'style.css':CSS}}])
     info={'ollama':{'connected':True,'models':['qwen2.5-coder:7b']}}
     with tempfile.TemporaryDirectory() as folder,patch('forge.server.connection_info',return_value=info),patch('forge.models.request_json',return_value={}):
         bench=Workbench(Path(folder)/'projects',models);server=make_server(0,bench)
@@ -47,6 +50,9 @@ def main():
                 expect(page.locator('#project-status')).to_have_text('proposed',timeout=15000)
                 state=bench.list_projects()[0];ident=state['id'];frozen=copy.deepcopy(state['plan'])
                 assert state['evidence_planning'] and frozen['acceptance_policy']=='evidence_v1'
+                assert [call['planning_stage'] for call in models.calls[:5]]==['scope','acceptance','acceptance','feature_tasks','feature_tasks']
+                assert state['model_calls'][1]['failure_class']=='schema_error'
+                assert 'false_restart' in state['model_calls'][1]['review_codes']
                 expect(page.locator('#builder-profile')).to_contain_text('Evidence-ready')
                 page.locator('#approve').click();page.locator('#runtime').select_option('local')
                 page.locator('#execution-consent').check();page.locator('#repairs').select_option('0');page.locator('#milestone-checks').check();page.locator('#verify').click()

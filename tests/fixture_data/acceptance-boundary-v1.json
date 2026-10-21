@@ -1,0 +1,217 @@
+{
+  "schema": 1,
+  "provenance": {
+    "kind": "synthetic-candidates-from-observed-check-structure",
+    "report_id": "dde982a42b9b484a9af61a33bd20132e",
+    "run_id": "7763e3a5f068436a9a0e38d090de17d5",
+    "original_model_candidates_available": false,
+    "live_model_generation": false,
+    "observed_final_codes": [
+      "restart_evidence",
+      "false_restart"
+    ],
+    "observed_feature_count": 4,
+    "observed_task_count": 10
+  },
+  "scope": {
+    "title": "Tiny Wins",
+    "summary": "Local accomplishments with SQLite persistence.",
+    "app_kind": "server",
+    "features": [
+      "Add an accomplishment",
+      "List saved accomplishments",
+      "Delete an accomplishment",
+      "Preserve accomplishments after restart"
+    ],
+    "out_of_scope": [
+      "Accounts"
+    ],
+    "risks": [
+      "Manual browser checks require user observations."
+    ],
+    "task_contract_version": 1,
+    "context_policy": "focused_v1"
+  },
+  "invalid": {
+    "checks": [
+      {
+        "name": "Create entry",
+        "method": "POST",
+        "path": "/api/tasks",
+        "status": 201,
+        "body": {
+          "title": "First win"
+        },
+        "json_contains": {
+          "id": 1,
+          "title": "First win"
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "List entries",
+        "method": "GET",
+        "path": "/api/tasks",
+        "status": 200,
+        "json_contains": [
+          {
+            "id": 1,
+            "title": "First win"
+          }
+        ],
+        "feature_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Delete entry",
+        "method": "DELETE",
+        "path": "/api/tasks/1",
+        "status": 204,
+        "empty_body": true,
+        "feature_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Create restart sample",
+        "method": "POST",
+        "path": "/api/tasks",
+        "status": 201,
+        "body": {
+          "title": "Survives restart"
+        },
+        "json_contains": {
+          "id": 2,
+          "title": "Survives restart"
+        },
+        "restart_before": true,
+        "feature_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "Read after restart",
+        "method": "GET",
+        "path": "/api/tasks",
+        "status": 200,
+        "json_contains": [
+          {
+            "id": 2,
+            "title": "Survives restart"
+          }
+        ],
+        "feature_indexes": [
+          3
+        ]
+      }
+    ],
+    "manual_checks": [
+      {
+        "name": "Browser controls",
+        "steps": [
+          "Add a win in the browser, inspect its timestamp, reload, then delete it."
+        ],
+        "expected": "The form and list work and the entry remains after reload until deleted.",
+        "feature_indexes": [
+          0,
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  "valid": {
+    "checks": [
+      {
+        "name": "Create entry",
+        "method": "POST",
+        "path": "/api/tasks",
+        "status": 201,
+        "body": {
+          "title": "First win"
+        },
+        "json_contains": {
+          "id": 1,
+          "title": "First win"
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "List entries",
+        "method": "GET",
+        "path": "/api/tasks",
+        "status": 200,
+        "json_contains": [
+          {
+            "id": 1,
+            "title": "First win"
+          }
+        ],
+        "feature_indexes": [
+          1
+        ]
+      },
+      {
+        "name": "Delete entry",
+        "method": "DELETE",
+        "path": "/api/tasks/1",
+        "status": 204,
+        "empty_body": true,
+        "feature_indexes": [
+          2
+        ]
+      },
+      {
+        "name": "Create persistence sample",
+        "method": "POST",
+        "path": "/api/tasks",
+        "status": 201,
+        "body": {
+          "title": "Survives restart"
+        },
+        "json_contains": {
+          "id": 2,
+          "title": "Survives restart"
+        },
+        "feature_indexes": [
+          3
+        ]
+      },
+      {
+        "name": "Read after restart",
+        "method": "GET",
+        "path": "/api/tasks",
+        "status": 200,
+        "json_contains": [
+          {
+            "id": 2,
+            "title": "Survives restart"
+          }
+        ],
+        "feature_indexes": [
+          3
+        ],
+        "restart_before": true
+      }
+    ],
+    "manual_checks": [
+      {
+        "name": "Browser controls",
+        "steps": [
+          "Add a win in the browser, inspect its timestamp, reload, then delete it."
+        ],
+        "expected": "The form and list work and the entry remains after reload until deleted.",
+        "feature_indexes": [
+          0,
+          1,
+          2
+        ]
+      }
+    ]
+  }
+}
