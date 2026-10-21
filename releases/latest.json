@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.29.0",
+  "version": "0.30.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.29.0.zip",
-  "sha256": "a723e8d5c95b9cc9a18c6d34a44c0f37c913fbc289db283516053721fccd9e52",
-  "notes": "Task-scoped recovery and dashboard Follow: invalid source, malformed local JSON and failed edits no longer ban a structured-task builder for the rest of the job. One bounded same-model correction now covers failed exact edits and empty changes; exact-search corrections request complete approved files. Static repairs carry explicit defects and scoped output instructions. Account authentication/quota, transport policy, consent, frozen checks and global call/repair limits remain enforced. Dashboard Follow centers running, completed and failed observed steps, resumes at the latest activity when rechecked and retains events while layout loads. New request-start history shows actual model invocation activity. Fixture/browser checks verify controller and viewport behavior, not live-model quality or restored provider quota. Resume the saved Tiny Wins build after updating; do not approve a new plan or mark it verified prematurely."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.30.0.zip",
+  "sha256": "a5d30367e176249f9e3e776703e906acbe154b57626ab8665322d56aba7f7928",
+  "notes": "Evidence-ready delivery: choose Plan with proof for sample mutation data, meaningful assertions, stable API contracts and early runnable HTTP checkpoints. Weak persistence/empty-subset scenarios are rejected before approval; premature or deferred checkpoints receive task-batch feedback. New SQLite collection foundation supplies tested initialization, row mapping, IDs, filtering, daily counts, validation and restart behavior. Failed milestone repairs now retain approved task scope through static correction, and verifier exceptions cannot advance the cursor. Execution consent, frozen checks, saved projects and model settings remain intact; legacy plans are not silently migrated. Fixture-driven browser tests exercise real generated-app behavior and ZIP export, not live-model quality. For Tiny Wins use a fresh SQLite-foundation proof draft; keep the old project because its approved checks need explicit replacement review."
 }

@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "version": "0.30.0",
+  "baseline": "32c6ef8",
+  "archive_sha256": "a5d30367e176249f9e3e776703e906acbe154b57626ab8665322d56aba7f7928",
+  "fixture_sha256": "c02e038ac538cd5546d8b494339e54ae14d5e152bfaf9b91c26e37f5a77ecb1d",
+  "evidence": "Actual uploaded export/probes plus controlled model fixtures and real generated-app execution. No live provider or Windows GPU benchmark.",
+  "results": [
+    {
+      "command": "python -m unittest discover -q",
+      "location": "source",
+      "output": "Ran 439 tests in 121.039s\nOK"
+    },
+    {
+      "command": "python -m unittest discover -q",
+      "location": "exact extracted release",
+      "output": "Ran 439 tests in 121.962s\nOK"
+    },
+    {
+      "command": "Run all 21 browser checks listed by tools/validate.py",
+      "output": "21 scripts exited 0, including the new evidence_planning flow."
+    },
+    {
+      "command": "python tests/browser_evidence_planning_check.py",
+      "location": "exact extracted release",
+      "output": "PASS: proof proposal, protected SQLite foundation, executed 3-check milestone before UI, real final tests, mobile browser create/reload/filter/delete, literal text safety, observed result and verified ZIP. Scripted LLM replies."
+    },
+    {
+      "command": "python tests/browser_capacity_delivery_check.py; python forge/dashboard/browser_check.py; python forge/dashboard/launcher_check.py",
+      "location": "exact extracted release",
+      "output": "All exited 0; legacy workflow, Follow geometry/observer and separate-window launcher passed."
+    },
+    {
+      "command": "python -m mypy --strict <28 modules in tools.validate.TYPED>",
+      "output": "Success: no issues found in 28 source files"
+    },
+    {
+      "command": "npm --prefix forge/dashboard run build; npm --prefix forge/dashboard run typecheck; npm --prefix forge/dashboard test",
+      "output": "Build and typecheck exited 0; 4 simulation tests passed."
+    },
+    {
+      "command": "Actual forge.updates.extract_release + archived/source byte equality + UpdateManager.check('0.29.0')",
+      "output": "PASS: checksum, path/size limits, every archived source byte and update detection."
+    }
+  ],
+  "unverified": [
+    "Live model quality and quota",
+    "Windows GPU/memory fit and latency",
+    "Docker runtime execution",
+    "Arbitrary-project completion or public-hosting security"
+  ]
+}

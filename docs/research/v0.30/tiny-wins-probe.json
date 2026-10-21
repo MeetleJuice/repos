@@ -1,0 +1,41 @@
+{
+  "database_initialized_by_factory": false,
+  "create_before_manual_database_setup": {
+    "error": "RemoteDisconnected"
+  },
+  "create_with_database_present": {
+    "status": 201,
+    "body": {
+      "status": "created"
+    }
+  },
+  "list_with_saved_record": {
+    "error": "RemoteDisconnected"
+  },
+  "filter_today": {
+    "status": 404,
+    "body": {
+      "error": "Not found"
+    }
+  },
+  "approved_create_check_without_body": {
+    "status": 400,
+    "body": {
+      "error": "Invalid JSON"
+    }
+  },
+  "delete_missing_record": {
+    "status": 400,
+    "body": {
+      "error": "not found"
+    }
+  },
+  "remaining_test_call": {
+    "error": "TypeError",
+    "message": "urlopen() got an unexpected keyword argument 'method'"
+  },
+  "server_exceptions": [
+    "no such table: wins",
+    "cannot convert dictionary update sequence element #0 to a sequence"
+  ]
+}

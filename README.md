@@ -1,4 +1,4 @@
-# Idea Foundry 0.29.0
+# Idea Foundry 0.30.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
@@ -6,7 +6,7 @@ An original, local-first Python workbench for Windows and VS Code. Ollama is the
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench
 or its generated apps. Optional real-browser automation uses Playwright/Chromium. Python 3.11 or newer is required.
 
-Task-scoped builder recovery and working dashboard Follow: source mistakes no longer exclude a structured builder from later recovery contexts. See [v0.29.0](docs/RELEASE-0.29.0.md) for saved-build resume instructions, scope and validation limits.
+Choose **Plan with proof →** for a new evidence-ready proposal. For database apps, choose **SQLite collection foundation** to reuse tested storage. See [v0.30.0](docs/RELEASE-0.30.0.md) for the new workflow, compatibility and validation limits. Existing projects keep their approved plans and source.
 
 ## 0.28.0 Builder-sized delivery
 

@@ -1,5 +1,7 @@
 # Application Execution Map — Idea Foundry
 
+Current core v0.30.0: `#plan-with-proof` selects the opt-in evidence-ready guided path. `evidence_findings()` reviews concrete mutation/restart scenarios, API contracts and declared checkpoint readiness before approval. The separate SQLite collection starter reuses tested storage. Milestone verification marks the cursor unverified before invoking workers and keeps the original task packet through repairs/static corrections. Legacy approvals and explicit execution consent remain intact. The generated graph includes this policy branch; observation still shows only actual retained events and snapshots.
+
 Baseline: v0.26.1, commit 531fe15. Inspected before dashboard implementation. All 351 tracked files were read/hash-inventoried (318 UTF-8 text, 33 binary including prior archives); this is not a claim of manually reviewing every archived binary. Deep source reads: forge/server.py, core.py, models.py, cloud.py, providers.py, history.py, execution.py, guided.py, planning.py, workflow.py, updates.py, runner.py, static/index.html and every static JavaScript module; package.py, run.py, bootstrap.py, AGENTS.md and existing tests/research contracts. Source hashes and research access records ship inside the isolated dashboard directory.
 
 ## Detected stack and boundaries

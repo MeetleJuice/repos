@@ -119,6 +119,7 @@
             </div>
             <select id="starter">
               <option value="web">Python web foundation · recommended</option>
+              <option value="sqlite">SQLite collection foundation · tested storage</option>
               <option value="arcade">Neon Dodge · browser game</option>
               <option value="notes">Reviewed Notes App</option>
               <option value="tasks">Reviewed Task Tracker</option>
@@ -138,13 +139,14 @@
           </div>
           <div class="planning-controls">
             <label for="new-plan-mode">How should we plan?</label>
-            <select id="new-plan-mode"><option value="single">One complete proposal · fewer requests</option><option value="guided">Builder-sized stages · recommended</option></select>
+            <select id="new-plan-mode"><option value="single">One complete proposal · fewer requests</option><option value="guided">Builder-sized stages</option><option value="proof">Evidence-ready stages · recommended</option></select>
+            <button id="plan-with-proof" type="button">Plan with proof →</button>
             <button id="plan-for-builder" type="button" class="secondary">Plan for my builder →</button>
             <div id="new-planning-timeout" hidden>
               <label for="new-local-timeout">Local planning socket timeout</label>
               <select id="new-local-timeout"><option value="120">2 minutes</option><option value="300" selected>5 minutes</option><option value="600">10 minutes</option></select>
             </div>
-            <p class="muted">Recommended: Plan for my builder saves a validated outline, then small task batches sized to the configured builder. Local builders get at most two editable files and one feature per task. More requests may increase cloud costs. You approve only the complete proposal. A socket timeout is not a whole-job deadline.</p>
+            <p class="muted">Recommended: Plan with proof checks the plan’s example data, API contracts and early test checkpoints. It does not run or verify an app. For database apps, choose the SQLite collection foundation. Both staged modes keep tasks small; cloud calls may cost more. You approve the complete plan and execution separately.</p>
           </div>
           <div class="model-grid">
             <fieldset>

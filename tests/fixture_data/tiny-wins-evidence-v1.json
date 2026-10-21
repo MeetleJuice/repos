@@ -1,0 +1,332 @@
+{
+  "schema": 1,
+  "provenance": "User-uploaded Tiny Wins export, not mock model replies. Probe results are local isolated execution; no Windows/GPU benchmark.",
+  "original_sha256": {
+    "app": "05bb96557c4f018e1a53ca1d915e101bee884fb833098611db0b27f157c84165",
+    "tests": "be662a1263b1bc18b1c6d314a6f78ff9147aa4c34131ae589f1cb7e275c662f1",
+    "report": "a924275649381201df5ee44b229de195baefa9259b91e1782f2fbf8487967c09"
+  },
+  "approved_plan": {
+    "title": "Tiny Wins",
+    "summary": "A local browser-based accomplishment tracker with SQLite persistence, featuring a dark-themed UI with gold accents and daily progress tracking.",
+    "app_kind": "server",
+    "task_contract_version": 1,
+    "context_policy": "focused_v1",
+    "features": [
+      "Add accomplishment with title and optional note",
+      "List accomplishments newest first with timestamps",
+      "Filter between 'Today' and 'All time' views",
+      "Display count of accomplishments for the current day",
+      "Delete accomplishment with confirmation",
+      "Persistent storage via SQLite across server restarts",
+      "Responsive dark-themed UI with gold accents"
+    ],
+    "out_of_scope": [
+      "User accounts or authentication",
+      "External API integrations",
+      "Cloud synchronization",
+      "Data export/import features"
+    ],
+    "risks": [
+      "SQLite file locking issues during concurrent access",
+      "Browser cache preventing UI updates",
+      "Mobile layout overflow on small screens"
+    ],
+    "checks": [
+      {
+        "name": "Create accomplishment",
+        "method": "POST",
+        "path": "/api/wins",
+        "status": 201,
+        "feature_indexes": [
+          0
+        ],
+        "json_contains": {
+          "status": "created"
+        }
+      },
+      {
+        "name": "List accomplishments",
+        "method": "GET",
+        "path": "/api/wins",
+        "status": 200,
+        "feature_indexes": [
+          1,
+          3
+        ],
+        "json_contains": {
+          "wins": []
+        }
+      },
+      {
+        "name": "Filter today",
+        "method": "GET",
+        "path": "/api/wins?filter=today",
+        "status": 200,
+        "feature_indexes": [
+          2
+        ],
+        "json_contains": {
+          "wins": []
+        }
+      },
+      {
+        "name": "Delete accomplishment",
+        "method": "DELETE",
+        "path": "/api/wins/1",
+        "status": 200,
+        "feature_indexes": [
+          4
+        ],
+        "json_contains": {
+          "status": "deleted"
+        }
+      },
+      {
+        "name": "Persistence check",
+        "method": "GET",
+        "path": "/api/wins",
+        "status": 200,
+        "feature_indexes": [
+          5
+        ],
+        "restart_before": true,
+        "json_contains": {
+          "wins": []
+        }
+      }
+    ],
+    "manual_checks": [
+      {
+        "name": "UI and Mobile Layout",
+        "steps": [
+          "Open app in browser",
+          "Resize window to mobile width",
+          "Verify dark theme and gold accents"
+        ],
+        "expected": "Interface is responsive and colors match design requirements",
+        "feature_indexes": [
+          6
+        ]
+      }
+    ],
+    "tasks": [
+      {
+        "title": "Setup SQLite persistence layer",
+        "instructions": "Modify app.py to initialize a SQLite database 'wins.db' on startup. Create a table 'wins' with columns: id, title, note, and created_at. Ensure the database connection is managed safely and the file is created in the application directory.",
+        "feature_indexes": [
+          0
+        ],
+        "outcome": "SQLite database 'wins.db' is initialized and ready for data operations.",
+        "files": [
+          "app.py"
+        ],
+        "depends_on": [],
+        "done_when": [
+          "Database file 'wins.db' exists after server start",
+          "Table 'wins' is created with correct schema"
+        ]
+      },
+      {
+        "title": "Implement POST /api/wins endpoint",
+        "instructions": "Extend app.py to handle POST requests at /api/wins. Parse the JSON body for 'title' (required) and 'note' (optional). Insert the data into the 'wins' table with the current timestamp. Return a 201 status code upon success.",
+        "feature_indexes": [
+          0
+        ],
+        "outcome": "Accomplishments can be saved to the database via the API.",
+        "files": [
+          "app.py"
+        ],
+        "depends_on": [
+          0
+        ],
+        "done_when": [
+          "POST /api/wins accepts valid JSON",
+          "Record is correctly saved in the database"
+        ]
+      },
+      {
+        "title": "Implement GET /api/wins endpoint",
+        "instructions": "Extend app.py to handle GET requests at /api/wins. Query the 'wins' table for all entries, ordered by created_at descending. Return the results as a JSON list.",
+        "feature_indexes": [
+          1
+        ],
+        "outcome": "Accomplishments can be retrieved from the database via the API.",
+        "files": [
+          "app.py"
+        ],
+        "depends_on": [
+          1
+        ],
+        "done_when": [
+          "GET /api/wins returns a JSON list of records",
+          "Records are sorted by timestamp descending"
+        ]
+      },
+      {
+        "title": "Implement filtering in GET /api/wins",
+        "instructions": "Update the GET /api/wins endpoint in app.py to support an optional 'filter' query parameter. If 'filter=today' is provided, modify the SQL query to filter records where the created_at date matches the current local date. Ensure the endpoint continues to return all records when no filter is provided.",
+        "feature_indexes": [
+          2
+        ],
+        "outcome": "API supports filtering by 'today' via query parameter.",
+        "files": [
+          "app.py"
+        ],
+        "depends_on": [
+          2
+        ],
+        "done_when": [
+          "GET /api/wins?filter=today returns only today's records",
+          "GET /api/wins returns all records when no filter is provided"
+        ]
+      },
+      {
+        "title": "Add daily count to GET /api/wins response",
+        "instructions": "Update the GET /api/wins endpoint in app.py to include a 'count' field in the JSON response. This field should represent the total number of wins for the current day, regardless of the filter applied, or specifically for the filtered set if that is the intended behavior. Ensure the response structure remains valid JSON.",
+        "feature_indexes": [
+          3
+        ],
+        "outcome": "API response includes a 'count' field for daily accomplishments.",
+        "files": [
+          "app.py"
+        ],
+        "depends_on": [
+          3
+        ],
+        "done_when": [
+          "Response includes a 'count' field",
+          "The count accurately reflects the number of records for the current day"
+        ]
+      },
+      {
+        "title": "Add DELETE /api/wins/<id> endpoint with confirmation",
+        "instructions": "In **app.py** add handling for DELETE requests matching the pattern `/api/wins/<id>`. Parse the integer id from the path. Verify the record exists; if not, reply with 404 and `{'error':'not found'}`. Delete the row from the `wins` table and return status 200 with JSON `{'status':'deleted'}`. No extra query parameters are required; the endpoint itself acts as confirmation. Update the request routing logic in the existing `Handler.do_*` methods to dispatch DELETE to this new function. Add a small helper `delete_win(id: int) -> bool` that returns True on successful deletion. Create **test_wins_api.py** with a root\u2011level test that:\n1. Starts the server (use the existing `create_server` helper).\n2. POSTs a new win, captures its `id` from the response.\n3. Sends DELETE to `/api/wins/<id>` and asserts a 200 response and JSON contains `status: deleted`.\n4. Sends a subsequent GET to `/api/wins` and asserts the deleted win is absent.\nUse the standard library `http.client` for requests. Ensure the test cleans up any created DB rows.\n",
+        "outcome": "Clients can delete an existing accomplishment via HTTP DELETE and receive confirmation.",
+        "files": [
+          "app.py",
+          "test_wins_api.py"
+        ],
+        "depends_on": [
+          4
+        ],
+        "done_when": [
+          "DELETE /api/wins/<id> returns 200 with {'status':'deleted'} for existing records",
+          "GET /api/wins no longer lists the deleted record"
+        ],
+        "feature_indexes": [
+          4
+        ],
+        "check_indexes": [
+          3
+        ]
+      },
+      {
+        "title": "Ensure SQLite persistence survives server restart",
+        "instructions": "Refactor database access in **app.py** to use a helper `get_connection()` that opens a new `sqlite3.connect('wins.db')` each time it is called and sets `row_factory` to `sqlite3.Row`. Replace any global connection usage with calls to this helper inside each endpoint (POST, GET, DELETE). Close the connection explicitly after each operation. Add a test in **test_wins_api.py** that simulates a restart by:\n1. Starting the server and POSTing a win.\n2. Stopping the server (shut down the `ThreadingHTTPServer` instance).\n3. Re\u2011creating the server (new `create_server` call) which re\u2011initializes the DB connection.\n4. GETting `/api/wins` and confirming the previously created win is still present.\nThe test should verify that the `wins.db` file exists on disk and that data persists across the two server instances.\n",
+        "outcome": "Accomplishments remain stored after the server process stops and starts again.",
+        "files": [
+          "app.py",
+          "test_wins_api.py"
+        ],
+        "depends_on": [
+          5
+        ],
+        "done_when": [
+          "`wins.db` file is created on first server start",
+          "Data created before shutdown is present after a new server instance starts"
+        ],
+        "feature_indexes": [
+          5
+        ],
+        "check_indexes": [
+          4
+        ]
+      },
+      {
+        "title": "Create UI skeleton in index.html",
+        "instructions": "Edit **index.html** to replace the placeholder content with a functional UI for Tiny Wins.\n\n1. Add a top\u2011level `<header>` containing the app title.\n2. Insert a `<section id=\"stats\">` that will display the daily count.\n3. Add a `<form id=\"win-form\">` with required `<input>` for the title, optional `<textarea>` for the note, and a submit `<button>`.\n4. Include a filter control (`<select id=\"filter-select\">` with options \"All time\" and \"Today\").\n5. Add a `<ul id=\"wins-list\">` where each win will be rendered as a `<li>` card showing title, note, timestamp and a delete button.\n6. At the bottom, place a `<script>` tag that loads a small inline JavaScript module which:\n   - Fetches `/api/wins` on load and after any mutation.\n   - Sends POST requests to `/api/wins` when the form is submitted (validating that title is non\u2011empty).\n   - Sends DELETE requests to `/api/wins/<id>` when a delete button is clicked, after a `confirm()` prompt.\n   - Updates the daily count element based on the `count` field returned by the API.\n   - Handles the filter select to request `/api/wins?filter=today` when appropriate.\n   - Escapes any user\u2011provided text before inserting into the DOM to prevent XSS.\n7. Ensure the page still serves correctly via the existing static route (`/`).\n\nDo not modify any other files.\n",
+        "outcome": "The home page now provides a complete interactive UI for adding, listing, filtering, counting, and deleting accomplishments.",
+        "files": [
+          "index.html"
+        ],
+        "depends_on": [
+          6
+        ],
+        "done_when": [
+          "Opening http://localhost:8080/ shows a header, form, filter, stats area, and empty list placeholder.",
+          "Submitting a valid win adds a new list item without page reload.",
+          "The daily count updates after adding or deleting wins.",
+          "Selecting \"Today\" filters the list to only today's entries."
+        ],
+        "feature_indexes": [
+          6
+        ]
+      },
+      {
+        "title": "Apply dark theme with gold accents and responsive layout in style.css",
+        "instructions": "Edit **style.css** to style the UI created in the previous task.\n\n1. Define a dark background (`#15251f`) and light text (`#e7eee9`).\n2. Introduce gold accent color (`#cfae00`) for headers, buttons, and interactive elements.\n3. Style the header, form inputs, buttons, and win cards (`.win-card`) with appropriate padding, margins, border\u2011radius, and box\u2011shadow.\n4. Ensure win cards display title bold, note normal, timestamp smaller, and delete button aligned to the right.\n5. Make the layout responsive: on screens narrower than 600px, stack form fields vertically, reduce font sizes, and allow the win list to scroll vertically.\n6. Add a hover/focus style for buttons using the gold accent.\n7. Preserve the existing root variables and media query for dark mode.\n\nDo not add new files; only modify **style.css**.\n",
+        "outcome": "The application displays a polished dark interface with gold accents that adapts to mobile screen sizes.",
+        "files": [
+          "style.css"
+        ],
+        "depends_on": [
+          7
+        ],
+        "done_when": [
+          "The page background is dark and text is light with gold highlights on headings and buttons.",
+          "On a narrow viewport (<600px) the form fields stack and the layout remains usable.",
+          "Win cards have a consistent card style and delete buttons are clearly visible."
+        ],
+        "feature_indexes": [
+          6
+        ]
+      }
+    ]
+  },
+  "source": {
+    "app.py": "import argparse\nfrom http.server import BaseHTTPRequestHandler, ThreadingHTTPServer\nimport json\nfrom pathlib import Path\nimport sqlite3\nfrom datetime import datetime\n\nASSETS = Path(__file__).resolve().parent\n\n\ndef create_server(host='127.0.0.1', port=8080):\n    class Handler(BaseHTTPRequestHandler):\n        def log_message(self, *_):\n            pass\n\n        def reply(self, value, status=200, content_type='application/json; charset=utf-8'):\n            content = value if isinstance(value, bytes) else json.dumps(value).encode('utf-8')\n            self.send_response(status)\n            self.send_header('Content-Type', content_type)\n            self.send_header('Content-Length', str(len(content)))\n            self.send_header('X-Content-Type-Options', 'nosniff')\n            self.end_headers()\n            self.wfile.write(content)\n\n        def do_GET(self):\n            if self.path == '/health':\n                return self.reply({'status': 'ok'})\n            assets = {'/': ('index.html', 'text/html; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}\n            if self.path in assets:\n                filename, content_type = assets[self.path]\n                return self.reply((ASSETS / filename).read_bytes(), content_type=content_type)\n            if self.path == '/api/wins':\n                # Parse query parameters\n                from urllib.parse import parse_qs, urlparse\n                parsed = urlparse(self.path)\n                params = parse_qs(parsed.query)\n                filter_value = params.get('filter', [None])[0]\n                \n                with sqlite3.connect('wins.db') as conn:\n                    if filter_value == 'today':\n                        today = datetime.now().strftime('%Y-%m-%d')\n                        cursor = conn.execute('''SELECT id, title, note, created_at FROM wins\n                                                WHERE DATE(created_at) = ?\n                                                ORDER BY created_at DESC''', (today,))\n                        wins = [dict(row) for row in cursor.fetchall()]\n                        count = sum(1 for _ in wins)\n                    else:\n                        cursor = conn.execute('SELECT id, title, note, created_at FROM wins ORDER BY created_at DESC')\n                        wins = [dict(row) for row in cursor.fetchall()]\n                        count = sum(1 for _ in wins)\n                response = {'wins': wins, 'count': count}\n                return self.reply(response)\n            return self.reply({'error': 'Not found'}, 404)\n\n        def do_POST(self):\n            if self.path == '/api/wins':\n                content_length = int(self.headers.get('Content-Length', 0))\n                body = self.rfile.read(content_length)\n                try:\n                    data = json.loads(body)\n                except json.JSONDecodeError:\n                    return self.reply({'error': 'Invalid JSON'}, 400)\n                \n                title = data.get('title')\n                note = data.get('note', '')\n                \n                if not title or not isinstance(title, str):\n                    return self.reply({'error': 'Title is required'}, 400)\n                \n                with sqlite3.connect('wins.db') as conn:\n                    conn.execute('''INSERT INTO wins (title, note, created_at) \n                                    VALUES (?, ?, ?)''',\n                                   (title, note, datetime.now()))\n                    conn.commit()\n                \n                return self.reply({'status': 'created'}, 201)\n\n        def do_DELETE(self):\n            if self.path.startswith('/api/wins/'):\n                try:\n                    win_id = int(self.path.split('/')[-1])\n                except ValueError:\n                    return self.reply({'error': 'Invalid ID'}, 400)\n                \n                with sqlite3.connect('wins.db') as conn:\n                    cursor = conn.execute('SELECT id FROM wins WHERE id = ?', (win_id,))\n                    if not cursor.fetchone():\n                        return self.reply({'error': 'not found'}, 400)\n                    conn.execute('DELETE FROM wins WHERE id = ?', (win_id,))\n                    conn.commit()\n                \n                return self.reply({'status': 'deleted'}, 200)\n\n        def delete_win(id: int) -> bool:\n            with sqlite3.connect('wins.db') as conn:\n                cursor = conn.execute('SELECT id FROM wins WHERE id = ?', (id,))\n                if not cursor.fetchone():\n                    return False\n                conn.execute('DELETE FROM wins WHERE id = ?', (id,))\n                conn.commit()\n            return True\n\n    return ThreadingHTTPServer((host, port), Handler)\n\n\ndef delete_win(id: int) -> bool:\n    with sqlite3.connect('wins.db') as conn:\n        cursor = conn.execute('SELECT id FROM wins WHERE id = ?', (id,))\n        if not cursor.fetchone():\n            return False\n        conn.execute('DELETE FROM wins WHERE id = ?', (id,))\n        conn.commit()\n    return True\n\n\nif __name__ == '__main__':\n    parser = argparse.ArgumentParser()\n    parser.add_argument('--host', default='127.0.0.1')\n    parser.add_argument('--port', type=int, default=8080)\n    args = parser.parse_args()\n    server = create_server(args.host, args.port)\n    with sqlite3.connect('wins.db') as conn:\n        conn.execute('''CREATE TABLE IF NOT EXISTS wins\n                      (id INTEGER PRIMARY KEY AUTOINCREMENT,\n                       title TEXT NOT NULL,\n                       note TEXT,\n                       created_at DATETIME DEFAULT CURRENT_TIMESTAMP)''')\n    server.serve_forever()\n",
+    "test_wins_api.py": "import json\nimport os\nfrom pathlib import Path\nimport tempfile\nimport threading\nimport unittest\nimport urllib.request\nimport urllib.error\nimport app\n\n\nclass WinsApiTests(unittest.TestCase):\n    def test_delete_win(self):\n        previous = Path.cwd()\n        with tempfile.TemporaryDirectory() as directory:\n            os.chdir(directory)\n            server = None\n            try:\n                server = app.create_server('127.0.0.1', 0)\n                worker = threading.Thread(target=server.serve_forever, daemon=True)\n                worker.start()\n                base = 'http://127.0.0.1:' + str(server.server_address[1])\n                url = base + '/api/wins'\n                headers = {'Content-Type': 'application/json'}\n                data = json.dumps({'title': 'Test Win'}).encode('utf-8')\n                request = urllib.request.Request(url, data=data, headers=headers, method='POST')\n                with urllib.request.urlopen(request, timeout=3) as response:\n                    self.assertEqual(response.status, 201)\n                    win_id = json.loads(response.read().decode('utf-8'))['id']\n                \n                # DELETE the win\n                delete_url = base + f'/api/wins/{win_id}'\n                delete_request = urllib.request.Request(delete_url, method='DELETE')\n                with urllib.request.urlopen(delete_request, timeout=3) as response:\n                    self.assertEqual(response.status, 200)\n                    self.assertEqual(json.loads(response.read().decode('utf-8'))['status'], 'deleted')\n                \n                # GET to check the win is gone\n                with urllib.request.urlopen(base + '/api/wins', method='GET') as response:\n                    self.assertEqual(response.status, 200)\n                    self.assertEqual(json.loads(response.read().decode('utf-8'))['wins'], [])\n            finally:\n                if server:\n                    server.shutdown()\n                    server.server_close()\n                    worker.join(3)\n                os.chdir(previous)\n"
+  },
+  "observed_probe": {
+    "database_initialized_by_factory": false,
+    "create_before_manual_database_setup": {
+      "error": "RemoteDisconnected"
+    },
+    "create_with_database_present": {
+      "status": 201,
+      "body": {
+        "status": "created"
+      }
+    },
+    "list_with_saved_record": {
+      "error": "RemoteDisconnected"
+    },
+    "filter_today": {
+      "status": 404,
+      "body": {
+        "error": "Not found"
+      }
+    },
+    "approved_create_check_without_body": {
+      "status": 400,
+      "body": {
+        "error": "Invalid JSON"
+      }
+    },
+    "delete_missing_record": {
+      "status": 400,
+      "body": {
+        "error": "not found"
+      }
+    },
+    "remaining_test_call": {
+      "error": "TypeError",
+      "message": "urlopen() got an unexpected keyword argument 'method'"
+    },
+    "server_exceptions": [
+      "no such table: wins",
+      "cannot convert dictionary update sequence element #0 to a sequence"
+    ]
+  }
+}

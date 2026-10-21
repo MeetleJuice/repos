@@ -16,6 +16,7 @@ Plan = dict[str, Any]
 def validate_structure(plan: dict[str, Any], *, outline: bool = False) -> dict[str, Any]:
     if not isinstance(plan, dict):
         raise ValueError("Proposal must be a JSON object.")
+    if 'acceptance_policy' in plan and plan['acceptance_policy']!='evidence_v1':raise ValueError('Unsupported acceptance_policy.')
     for name in ("title", "summary"):
         if not isinstance(plan.get(name), str) or not plan[name].strip() or len(plan[name]) > 6000:
             raise ValueError(f"Proposal needs a nonempty {name} (up to 6000 characters).")
@@ -152,6 +153,11 @@ def starter_contracts(starter: str | None) -> list[dict[str, Any]]:
         {'method': 'GET', 'path': '/health', 'status': 200, 'response_kind': 'object', 'required_fields': ['status']},
         {'method': 'GET', 'path': '/', 'status': 200, 'response_kind': 'text', 'required_fields': []},
     ]
+    if starter=='sqlite':
+        return common+[
+            {'method':'POST','path':'/api/records','status':201,'response_kind':'object','required_fields':['id','title','note','created_at']},
+            {'method':'GET','path':'/api/records','status':200,'response_kind':'object','required_fields':['records','today_count']},
+            {'method':'DELETE','path':'/api/records/{id}','status':200,'response_kind':'object','required_fields':['deleted','id']}]
     if starter not in {'notes', 'tasks'}:
         return common
     collection = '/api/' + starter
@@ -269,6 +275,8 @@ def review_plan(plan: Plan, starter: str | None = None) -> Review:
             findings.append(Finding('health_coverage', pointer + '/feature_indexes', 'Health proves server readiness; it does not prove business features.', 'warning'))
     if starter and starter != 'web' and len(plan['tasks']) > 4:
         findings.append(Finding('starter_rebuild', '/tasks', 'This reviewed starter already supplies the server, storage and UI. Prefer a short plan for actual changes and tests.', 'warning'))
+    from .acceptance import evidence_findings
+    findings.extend(Finding(code,path,message) for code,path,message in evidence_findings(plan))
     return Review(tuple(findings), tuple(contracts))
 
 

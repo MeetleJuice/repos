@@ -1,0 +1,23 @@
+[
+  {
+    "source": "sqlite",
+    "url": "https://raw.githubusercontent.com/python/cpython/3.12/Doc/library/sqlite3.rst",
+    "status": "retrieved",
+    "bytes": 92590,
+    "sha256": "ae534aa61fb6ab8d7bff2e7d33ac3f79e3b06e18acf4ec8081250ef7ff542d76"
+  },
+  {
+    "source": "urllib",
+    "url": "https://raw.githubusercontent.com/python/cpython/3.12/Lib/urllib/request.py",
+    "status": "retrieved",
+    "bytes": 104270,
+    "sha256": "b6a7860356d99186e7ad1b35c47f2f09d7524a398096214d8c276277947b672c"
+  },
+  {
+    "source": "ollama",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "status": "retrieved",
+    "bytes": 54614,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5"
+  }
+]

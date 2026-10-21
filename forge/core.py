@@ -514,6 +514,7 @@ class Workbench:
         if not isinstance(plan, dict):
             raise ValueError("Proposal must be a JSON object.")
         plan = copy.deepcopy(plan)
+        if state.get('evidence_planning'):plan['acceptance_policy']='evidence_v1'
         baseline = state.get("baseline_plan")
         if baseline:
             if plan.get("features", [])[:len(baseline["features"])] != baseline["features"]:
@@ -570,8 +571,8 @@ class Workbench:
     def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:
         if self.maintenance:
             raise ValueError("An update is being installed. Wait for the restart.")
-        if plan_mode not in {'single','guided'}:
-            raise ValueError('Choose single or guided planning.')
+        if plan_mode not in {'single','guided','proof'}:
+            raise ValueError('Choose single, guided or proof planning.')
         if local_timeout is not None and (type(local_timeout) is not int or local_timeout not in {120,300,600}):
             raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
         if type(use_reviewed_plan) is not bool or (use_reviewed_plan and starter != "arcade"):
@@ -589,7 +590,7 @@ class Workbench:
         state = {"id": ident, "idea": idea.strip(), "title": "New project", "created": self.now(),
                  "status": "draft", "planner": planner, "coder": coder, "plan": None,
                  "approved": False, "next_task": 0, "events": [], "checks": None,
-                 "snapshots": [], "repair_count": 0, "starter": starter, "model_totals": history.totals_for({})}
+                 "snapshots": [], "repair_count": 0, "starter": starter, "model_totals": history.totals_for({}), 'evidence_planning':plan_mode=='proof'}
         (self.directory(ident) / "source").mkdir(parents=True)
         self.save(state)
         self.trace(state, "project_created", {"starter":starter, "idea_characters":len(state["idea"]), "planner":planner, "coder":coder}, "user")
@@ -625,7 +626,9 @@ class Workbench:
             if existing and existing[0].is_alive():
                 raise ValueError("A job is already running for this project.")
             options = dict(options)
-            if options.get('plan_mode','single') not in {'single','guided'}:raise ValueError('Choose single or guided planning.')
+            if action=='build' and (state.get('plan') or {}).get('acceptance_policy')=='evidence_v1' and options.get('execute') and options.get('milestones',True) is not True:
+                raise ValueError('This evidence-ready plan requires its approved checkpoints during execution. Enable Check runnable milestones during this build, or generate files without execution.')
+            if options.get('plan_mode','single') not in {'single','guided','proof'}:raise ValueError('Choose single, guided or proof planning.')
             if options.get('local_timeout') is not None and (type(options['local_timeout']) is not int or options['local_timeout'] not in {120,300,600}):raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
             state['job_local_timeout']=options.get('local_timeout') if action=='plan' else None
             if type(options.get('stream_local',False)) is not bool:raise ValueError('Local streaming setting must be a JSON boolean.')
@@ -1054,7 +1057,7 @@ class Workbench:
             if payload.get('task_context'):
                 payload['task_context'].update(included_files=sorted(payload['files']),omitted_files=[],retrievals_remaining=0)
 
-    def _inspect_and_repair(self, state, cancel, remaining, complete=True):
+    def _inspect_and_repair(self, state, cancel, remaining, complete=True, repair_task=None):
         for attempt in range(remaining + 1):
             if cancel.is_set():
                 raise InterruptedError("Stopped before static inspection.")
@@ -1099,8 +1102,8 @@ class Workbench:
             repair_payload={"proposal":state['plan'],"files":self.context_files(state['id']),"source_map":source_map(self.context_files(state['id'])),
                 "failure":issues,"frozen_tests":list(state.get('frozen_tests',{})),
                 "instruction":"Repair only the reported source syntax/structure or missing behavioral tests. Preserve approved checks and frozen tests; do not implement future tasks. Import the real app in tests and make actual requests. Respect the active task packet when supplied."}
-            if state.get('pending_task') and state['plan'].get('task_contract_version')==1:
-                index=state['pending_task']['cursor']
+            if (state.get('pending_task') or repair_task is not None) and state['plan'].get('task_contract_version')==1:
+                index=repair_task if repair_task is not None else state['pending_task']['cursor']
                 repair_payload.update(current_task=state['plan']['tasks'][index],task_packet=task_packet(state['plan'],index,state['next_task']))
                 repair_payload['repair_brief']={'schema':1,'reported_defects':list(state['preflight']['issues']),
                     'editable_files':list(repair_payload['task_packet']['files']),
@@ -1114,6 +1117,11 @@ class Workbench:
     def _verify_milestone(self, state, task, task_index, options, cancel, remaining_repairs):
         """Verify an approved check prefix before later tasks build on this increment."""
         limit = max(task["check_indexes"]) + 1
+        # Until the prefix passes, even a verifier exception/cancellation must
+        # leave resume positioned at this unverified task.
+        state['next_task']=task_index
+        seal_checkpoint(state,self.context_files(state['id']))
+        self.save(state)
         result = self.milestone_verifier(self.directory(state["id"]) / "source", options.get("runtime", "docker"), cancel, state["plan"]["checks"][:limit])
         if cancel.is_set():
             state["next_task"] = task_index
@@ -1136,10 +1144,13 @@ class Workbench:
                 return None
             seen.add(current_fingerprint)
             self.event(state, "Repairing the failed milestone before proceeding.")
-            self.generate_and_apply(state, {"proposal": state["plan"], "task": task, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "feedback": failure_feedback(result), "failure": result.get("log", "")[-6500:], "frozen_tests": list(state.get("frozen_tests", {}))}, cancel, repair=True)
+            payload={"proposal": state["plan"], "task": task, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "feedback": failure_feedback(result), "failure": result.get("log", "")[-6500:], "frozen_tests": list(state.get("frozen_tests", {}))}
+            if state['plan'].get('task_contract_version')==1:
+                payload.update(current_task=task,task_packet=task_packet(state['plan'],task_index,state['next_task']))
+            self.generate_and_apply(state,payload,cancel,repair=True)
             state["repair_count"] += 1
             remaining_repairs -= 1
-            remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False)
+            remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False,repair_task=task_index)
             if remaining_repairs is None:
                 state["next_task"] = task_index
                 seal_checkpoint(state,self.context_files(state["id"]))
@@ -1157,6 +1168,7 @@ class Workbench:
         evidence={'passed':True,'http_prefix_count':limit,'source_sha256':fingerprint(self.context_files(state['id'])),'meaning':'Executed approved HTTP prefix only; manual/browser acceptance is separate.'}
         for receipt in state.get('task_receipts',[]):
             if receipt['task']==task_index+1:receipt['milestone_evidence']=evidence
+        state['next_task']=task_index+1
         finish_task(state,self.context_files(state['id']))
         state["checks"] = None
         self.save(state)
@@ -1200,6 +1212,12 @@ class Workbench:
                            "scope_priority": "The latest revision overrides conflicting original details. Preserve requested storage: localStorage must not become SQLite. Preserve UI/game requirements; HTTP delivery never proves gameplay.",
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
                 state['builder_profile']=request['builder_profile']
+                if options.get('plan_mode')=='proof':state['evidence_planning']=True
+                if state.get('evidence_planning'):
+                    from .acceptance import GUIDANCE
+                    request['acceptance_policy']='evidence_v1'
+                    request['evidence_requirements']=GUIDANCE
+                    self.event(state,'Evidence-ready planning: sample mutation data, meaningful assertions, stable API contracts and early runnable checkpoints are required before approval. Existing projects are not migrated.')
                 profile=request['builder_profile']
                 planning_source=self.context_files(state['id']) if state.get('baseline_plan') else starter_files(state['starter']) if state.get('starter') else {}
                 profile['available_files']=sorted(planning_source)
@@ -1241,7 +1259,7 @@ class Workbench:
                     report(normalized, review_result)
                     return normalized, review_result
 
-                mode=options.get('plan_mode','single');state['planning_mode']=mode
+                mode='guided' if state.get('evidence_planning') else options.get('plan_mode','single');state['planning_mode']=mode
                 if mode=='guided':
                     def checkpoint(draft):
                         state['guided_draft']=draft
@@ -1252,7 +1270,11 @@ class Workbench:
                         self.event(state,'Guided planning: '+str(draft['next_feature'])+'/'+str(len(draft['outline']['features']))+' features assigned to '+str(len(draft['tasks']))+' tasks. Draft saved; not approved.')
                     def generate_stage(system,payload,validate):
                         self.event(state,'Guided planning: '+('define features and acceptance checks' if payload.get('planning_stage')=='outline' else 'plan feature indexes '+str(payload['target_feature_indexes']))+'.')
-                        return self.call_model(state,'planner',system,json.dumps(payload),cancel,review_candidate=lambda candidate:stage_review(validate,candidate))
+                        def review_stage(candidate):
+                            if state.get('evidence_planning') and payload.get('planning_stage')=='outline' and isinstance(candidate,dict):
+                                candidate={**candidate,'acceptance_policy':'evidence_v1'}
+                            return stage_review(validate,candidate)
+                        return self.call_model(state,'planner',system,json.dumps(payload),cancel,review_candidate=review_stage)
                     candidate=run_guided(request,generate_stage,checkpoint,cancel,state.get('guided_draft'))
                     candidate,review_result=reviewed(candidate)
                     if not review_result.passed:raise ProposalError(review_result)

@@ -155,6 +155,8 @@ native=proc('request_schema()','forge/models.py','Models & routing')
 inventory=proc('refresh_local_limits()','forge/model_inventory.py','Models & routing')
 show=node('local-model-show','POST OLLAMA_URL/api/show','api','Models & routing','forge/model_inventory.py',"+'/api/show'",'Installed metadata read only. Does not generate or load a model for inference.')
 flow('builder-sized-planning','Builder profile · unapproved guided tasks','Planning & approval',[root,start,job,profile,proc('run_guided()','forge/guided.py'),call,model,proc('validate_outline()','forge/guided.py'),call,model,proc('validate_batch()','forge/guided.py'),proposal,state_ids['proposed']])
+proof=proc('evidence_findings()','forge/acceptance.py','Planning & approval')
+flow('evidence-ready-planning','Evidence-ready plan · scenario and checkpoint review','Planning & approval',[root,start,job,proc('run_guided()','forge/guided.py'),call,model,proc('validate_outline()','forge/guided.py'),proof,call,model,proc('validate_batch()','forge/guided.py'),proof,proposal,state_ids['proposed']])
 flow('focused-builder','Focused Ollama task · native scoped JSON','Build & verification',[root,job,generate,handoff,call,model,native,response,apply])
 flow('model-metadata','Installed model limits · no generation','Models & routing',[root,inventory,show])
 

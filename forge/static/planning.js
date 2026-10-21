@@ -9,7 +9,7 @@ let proposalReviewSequence = 0;
 function renderPlanningProgress(project, busy) {
   const profile=project.builder_profile;
   document.getElementById('builder-profile').textContent=profile
-    ? `Builder-sized tasks: up to ${profile.max_editable_files} editable files and ${profile.max_feature_indexes} feature per guided task. Smallest configured output ceiling: ${profile.smallest_output_ceiling} tokens. Existing approved tasks are kept.` : '';
+    ? `Builder-sized tasks: up to ${profile.max_editable_files} editable files and ${profile.max_feature_indexes} feature per guided task. Smallest configured output ceiling: ${profile.smallest_output_ceiling} tokens. ${project.evidence_planning ? 'Evidence-ready review requires meaningful scenarios and declared execution checkpoints. They run only with execution consent. ' : ''}Existing approved tasks are kept.` : '';
   document.getElementById("guided-planning").hidden = project.approved;
   const action = document.getElementById("plan-guided");
   action.disabled = busy;
@@ -194,6 +194,11 @@ async function reviewEditor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('plan-with-proof').addEventListener('click',()=>{
+    const submit=document.getElementById('propose');if(submit.disabled)return;
+    const mode=document.getElementById('new-plan-mode');mode.value='proof';mode.dispatchEvent(new Event('change'));
+    document.getElementById('idea-form').requestSubmit(submit);
+  });
   document.getElementById('plan-for-builder').addEventListener('click',()=>{
     const submit=document.getElementById('propose');if(submit.disabled)return;
     const mode=document.getElementById('new-plan-mode');mode.value='guided';mode.dispatchEvent(new Event('change'));

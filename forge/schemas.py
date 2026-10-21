@@ -6,6 +6,7 @@ PLAN_SCHEMA: dict[str, Any] = {
     'type': 'object',
     'required': ['title', 'summary', 'features', 'out_of_scope', 'risks', 'tasks', 'checks', 'app_kind', 'task_contract_version', 'context_policy'],
     'properties': {
+        'acceptance_policy': {'type':'string','enum':['evidence_v1']},
         'context_policy': {'type':'string','enum':['full','focused_v1']},
         'task_contract_version': {'type':'integer','enum':[1]},
         'title': {'type': 'string'}, 'summary': {'type': 'string'},
@@ -16,7 +17,7 @@ PLAN_SCHEMA: dict[str, Any] = {
                    'anyOf':[{'required':['contains']},{'required':['json_contains']},{'required':['json_equals']},{'required':['empty_body'],'properties':{'empty_body':{'const':True}}}],
                    'properties': {'name': {'type': 'string'}, 'method': {'type': 'string', 'enum': ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']},
                                   'path': {'type': 'string'}, 'status': {'type': 'integer'}, 'feature_indexes': {**INDEXES,'minItems':1},
-                                  'body': {}, 'contains': {'type': 'string','minLength':1}, 'json_contains': {'anyOf':[{'type':'object','minProperties':1},{'type':'array','minItems':1}]},
+                                  'body': {}, 'request_body_optional_reason': {'type':'string','minLength':20,'maxLength':500}, 'contains': {'type': 'string','minLength':1}, 'json_contains': {'anyOf':[{'type':'object','minProperties':1},{'type':'array','minItems':1}]},
                                   'json_equals': {}, 'empty_body': {'type': 'boolean'}, 'restart_before': {'type': 'boolean'}}}},
         'app_kind': {'type': 'string', 'enum': ['server', 'browser']},
         'manual_checks': {'type': 'array', 'items': {'type': 'object', 'required': ['name', 'steps', 'expected', 'feature_indexes'], 'properties': {

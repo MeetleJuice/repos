@@ -582,7 +582,7 @@ $("idea-form").onsubmit = handle(async () => {
       ...models,
       cloud_consent: $("create-cloud").checked,
       plan_mode: $("new-plan-mode").value,
-      local_timeout: $("new-plan-mode").value === "guided" ? Number($("new-local-timeout").value) : null,
+      local_timeout: $("new-plan-mode").value !== "single" ? Number($("new-local-timeout").value) : null,
     });
     localStorage.setItem("foundry-models", JSON.stringify(models));
     await openProject(p.id);
@@ -624,7 +624,7 @@ document
 $("revise").onclick = handle(() =>
   job("plan", { revision: $("revision").value }),
 );
-$("new-plan-mode").onchange = () => { $("new-planning-timeout").hidden = $("new-plan-mode").value !== "guided"; };
+$("new-plan-mode").onchange = () => { $("new-planning-timeout").hidden = $("new-plan-mode").value === "single"; };
 $("plan-guided").onclick = handle(() => job("plan", {
   plan_mode: "guided",
   local_timeout: Number($("guided-local-timeout").value),
@@ -690,6 +690,7 @@ const starterDescriptions = {
   arcade:
     "A playable Neon Dodge game with keyboard/touch controls, pause/restart and local high score. The plan adapts it; gameplay checks are explicit.",
   web: "A working server and protected foundation check. Your models add the approved features.",
+  sqlite: "Tested SQLite collection API with IDs, row mapping, filters, daily count and restart coverage. Reuse storage; customize your app UI. Pair with Plan with proof. The starter page is not a finished app.",
   notes:
     "Starts with the reviewed Notes App and its tests. Your proposal explains the requested changes.",
   tasks:
