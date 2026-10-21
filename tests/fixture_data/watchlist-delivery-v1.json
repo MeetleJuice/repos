@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "provenance": "User-uploaded journal; failed source bodies are not available. Cases are diagnostic-derived controller replays, not captured provider replies.",
+  "journal_sha256": "ceb8ee89173f69021f1660083738ac4c4d77b659046d8423536f8d99b6d1bc55",
+  "logged_request_lines": 33,
+  "cases": [
+    {
+      "id": "account-credit",
+      "category": "quota",
+      "http_status": 402,
+      "providers": [
+        "openrouter",
+        "requesty",
+        "huggingface"
+      ],
+      "expected": "Skip other model IDs on the same account within this job; retain other providers/local choices."
+    },
+    {
+      "id": "bad-python",
+      "category": "source_rejected",
+      "diagnostic": "unterminated string literal",
+      "mock_source": "def broken(:\n",
+      "expected": "Reject atomically; one focused correction on the same scoped builder may return exact edits."
+    },
+    {
+      "id": "task-scope",
+      "allowed": [
+        "app.py",
+        "tests/test_movies.py"
+      ],
+      "rejected": [
+        "test_foundation.py",
+        "index.html",
+        "static/style.css"
+      ],
+      "expected": "Keep approved task scope; constrain native file keys; never widen the task after approval."
+    },
+    {
+      "id": "nested-tests",
+      "task_files": [
+        "app.py",
+        "tests/test_movies.py"
+      ],
+      "missing_prerequisite": "tests/__init__.py",
+      "expected": "Before approval, use a root test module or declare the package setup in a prerequisite task."
+    },
+    {
+      "id": "exhaustion-diagnostic",
+      "observed": "All configured models failed:",
+      "expected": "List existing model rejections rather than emit a blank exhaustion message."
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 """Real Chromium checks, scripted controller history; no external inference."""
 from pathlib import Path
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -86,6 +87,10 @@ def main():
                 bench.trace(state,'model_attempt',{'success':False,'error_category':'transport'})
                 expect(page.locator('.ifd-events')).to_contain_text('ModelClient.complete()',timeout=5000)
                 assert page.locator('.ifd-failed').count()==1
+                bench.trace(state,'code_response_rejected',{'reason':'Fixture: invalid Python; no files replaced','files_replaced':False})
+                expect(page.locator('.ifd-events')).to_contain_text('Workbench.generate_and_apply()',timeout=5000)
+                assert page.locator('.ifd-failed').count()==2
+                expect(page.locator('.ifd-events button').filter(has_text='Workbench.generate_and_apply()')).to_have_attribute('title',re.compile('invalid Python'))
                 state['status']='generated';bench.save(state)
                 expect(page.locator('.ifd-observed-status')).to_have_text('generated',timeout=5000)
                 assert page.locator('.ifd-running').count()==0

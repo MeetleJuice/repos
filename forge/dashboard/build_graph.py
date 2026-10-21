@@ -149,6 +149,14 @@ model_finish=proc('ModelStatus.finish()','forge/model_status.py','Models & routi
 model_reject=proc('ModelStatus.reject()','forge/model_status.py','Models & routing')
 flow('model-observed','Model activity · recorded request lifecycle','Models & routing',[root,call,model_start,model,model_finish,call])
 flow('model-rejected','Source response rejected · focused correction','Models & routing',[root,generate,call,model_start,model,model_finish,response,model_reject,generate],[model_reject])
+profile=proc('builder_profile()','forge/build_contract.py','Planning & approval')
+handoff=proc('focused_handoff()','forge/build_contract.py','Build & verification')
+native=proc('request_schema()','forge/models.py','Models & routing')
+inventory=proc('refresh_local_limits()','forge/model_inventory.py','Models & routing')
+show=node('local-model-show','POST OLLAMA_URL/api/show','api','Models & routing','forge/model_inventory.py',"+'/api/show'",'Installed metadata read only. Does not generate or load a model for inference.')
+flow('builder-sized-planning','Builder profile · unapproved guided tasks','Planning & approval',[root,start,job,profile,proc('run_guided()','forge/guided.py'),call,model,proc('validate_outline()','forge/guided.py'),call,model,proc('validate_batch()','forge/guided.py'),proposal,state_ids['proposed']])
+flow('focused-builder','Focused Ollama task · native scoped JSON','Build & verification',[root,job,generate,handoff,call,model,native,response,apply])
+flow('model-metadata','Installed model limits · no generation','Models & routing',[root,inventory,show])
 
 provider_ast=ast.parse((ROOT/'forge/providers.py').read_text());providers={}
 for statement in provider_ast.body:
@@ -181,7 +189,8 @@ for label,needle in [('GET releases/latest.json','MANIFEST_URL ='),('GET release
 approved=node('approved-app-http',"check['method'] · base + check['path']",'api','Build & verification','forge/harness.py','def fetch(','Approved generated-app HTTP checks, not an invented Foundry endpoint.')
 flow('app-http','Generated app · frozen HTTP acceptance','Build & verification',[root,verify,acceptance,proc('fetch()','forge/harness.py'),approved])
 
-graph=dict(schema=1,baseline='531fe15 / core 0.26.1',nodes=list(nodes.values()),edges=list(edges.values()),flows=flows)
+version=next(ast.literal_eval(statement.value) for statement in ast.parse((ROOT/'forge/__init__.py').read_text()).body if isinstance(statement,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='__version__' for target in statement.targets))
+graph=dict(schema=1,baseline='core '+version+' · source excerpts checked by tests',nodes=list(nodes.values()),edges=list(edges.values()),flows=flows)
 (FEATURE/'src/graph.json').write_text(json.dumps(graph,indent=2)+'\n')
 shutil.copyfile(ROOT/'DASHBOARD_CODEBASE_MAP.md',FEATURE/'docs/CODEBASE_MAP.md')
 for name in ('inventory','research'):

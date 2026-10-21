@@ -43,9 +43,10 @@ export class ReadOnlyObserver {
           if(first)continue;
           const byKind: Record<string,string>={model_attempt:'ModelClient.complete()',proposal_review:'require_consistent()',
             static_inspection:'Workbench._inspect_and_repair()',checkpoint_saved:'Workbench.checkpoint()',
-            task_saved:'finish_task()',verification_finished:'verify()',job_finished:'Workbench._job()'};
+            task_saved:'finish_task()',verification_finished:'verify()',job_finished:'Workbench._job()',
+            code_response_rejected:'Workbench.generate_and_apply()'};
           const label=byKind[record.kind];const node=this.graph.nodes.find(node=>node.label===label);
-          if(node)this.engine.publish(node.id,record.data.passed===false||record.data.success===false||record.data.status==='error'?'failed':'completed','observed',record.kind+' · '+record.time);
+          if(node)this.engine.publish(node.id,record.kind==='code_response_rejected'||record.data.passed===false||record.data.success===false||record.data.status==='error'?'failed':'completed','observed',record.kind+' · '+String(record.data.reason||record.time).slice(0,500));
         }
         first=false;
         if(this.seen.size>10000)throw new Error('Observation session reached 10,000 retained event IDs. Reconnect to begin a fresh cursor.');

@@ -20,6 +20,15 @@ function cloudHandle(fn) {
   });
 }
 function renderCloudSetup(info) {
+  const limitList=$("model-limit-list");limitList.replaceChildren();
+  for (const row of info.model_limits || []) {
+    const item=document.createElement('p');
+    const context=row.model_context_limit==null?'unknown model context':`${row.model_context_limit.toLocaleString()} model context tokens`;
+    const output=row.model_output_limit==null?'unknown model output ceiling':`${row.model_output_limit.toLocaleString()} model output ceiling`;
+    item.textContent=`${row.provider}/${row.model} · ${row.profile_scope} · ${row.generation_eligible ? `${context}; ${output}. Configured output setting ${row.configured_output_tokens.toLocaleString()} (planner floor / builder cap); effective ceiling ${row.effective_output_ceiling.toLocaleString()}, context ${row.effective_context.toLocaleString()}.` : 'Embedding model; not an app builder.'} ${row.estimated ? 'Includes estimates.' : 'Published limits.'}`;
+    item.title=row.source;limitList.append(item);
+  }
+  if (!limitList.childNodes.length) limitList.textContent='Check connections and cloud catalogues to list model limits. No generation is performed.';
   const credentials = info.credentials || {};
   const calibrationSelect=$("calibration-model"),previousModel=calibrationSelect.value;
   calibrationSelect.replaceChildren();

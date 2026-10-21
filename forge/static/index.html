@@ -138,12 +138,13 @@
           </div>
           <div class="planning-controls">
             <label for="new-plan-mode">How should we plan?</label>
-            <select id="new-plan-mode"><option value="single">One complete proposal · fewer requests</option><option value="guided">Small planning steps · useful for local models</option></select>
+            <select id="new-plan-mode"><option value="single">One complete proposal · fewer requests</option><option value="guided">Builder-sized stages · recommended</option></select>
+            <button id="plan-for-builder" type="button" class="secondary">Plan for my builder →</button>
             <div id="new-planning-timeout" hidden>
               <label for="new-local-timeout">Local planning socket timeout</label>
               <select id="new-local-timeout"><option value="120">2 minutes</option><option value="300" selected>5 minutes</option><option value="600">10 minutes</option></select>
             </div>
-            <p class="muted">Small steps save an outline, then plan two features at a time. More requests may increase cloud costs. You approve only the complete proposal. A socket timeout is not a whole-job deadline.</p>
+            <p class="muted">Recommended: Plan for my builder saves a validated outline, then small task batches sized to the configured builder. Local builders get at most two editable files and one feature per task. More requests may increase cloud costs. You approve only the complete proposal. A socket timeout is not a whole-job deadline.</p>
           </div>
           <div class="model-grid">
             <fieldset>
@@ -263,6 +264,7 @@
           <button id="plan-guided" class="secondary">Plan in smaller steps</button>
           <p class="muted">This timeout applies to local calls in this planning run. Cloud routes keep their settings. More calls can cost more; socket timeouts are not a job deadline.</p>
           <p id="guided-progress" role="status" aria-live="polite"></p>
+          <p id="builder-profile" class="muted"></p>
         </section>
         <details id="planning-diagnostics" class="planning-controls" hidden>
           <summary>Recent model failures · what needs attention</summary>
@@ -689,6 +691,7 @@ Generated files will appear here after approval.</pre
         <button id="preset-hybrid" type="button"><span class="preset-symbol" aria-hidden="true">✦</span><strong>A little of both</strong><small>Cloud plans, local code first. Cloud fallbacks still require consent.</small></button>
       </div>
       <section class="studio-routes" aria-labelledby="studio-applied-title"><h3 id="studio-applied-title">Applied routes</h3><p id="studio-scope" class="muted"></p><div id="studio-route-cards"></div><p id="studio-route-warning" role="status"></p></section>
+      <details id="model-limit-details"><summary>Model limits · published, installed and configured</summary><p class="muted">Connection checks read installed Ollama metadata without generating text. Context includes input plus output. Unknown model output ceilings stay estimated; catalogue access does not prove quota or GPU fit. There is no universal useful minimum output: Foundry keeps its 8192-token planner floor; builder settings start at 1024.</p><div id="model-limit-list"></div></details>
       <section aria-labelledby="cloud-setup-title">
         <details id="compatible-runtime"><summary>Use LM Studio or llama.cpp locally</summary><p>Start its OpenAI-compatible server. Default: http://127.0.0.1:1234/v1. For another local port, import LOCAL_API_URL in your .env. Models must be loaded with enough context; Foundry's budget does not resize an external server.</p><label for="compatible-planner">Local server planner</label><select id="compatible-planner"></select><label for="compatible-coder">Local server builder</label><select id="compatible-coder"></select><button id="compatible-apply" type="button" disabled>Use this local server</button><p class="muted">Applies to new projects and the open idle project. No cloud fallback, cloud discovery or generation runs during setup.</p></details>
         <h3 id="cloud-setup-title">Customize automatic setup</h3>

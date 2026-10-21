@@ -17,6 +17,7 @@ from .build_contract import execution_directive
 from .routing import validate_options
 from .capabilities import PlannerBudget
 from .schemas import PLAN_SCHEMA, CODE_SCHEMA, COMPLETE_CODE_SCHEMA
+import copy
 from .prompts import PLAN, CODE
 from .guided import planner_schema
 
@@ -99,6 +100,28 @@ def output_contract(system: str) -> str:
     return system + "\nAUTHORITATIVE ROOT OUTPUT CONTRACT (not a wrapper): " + json.dumps({"required":PLAN_SCHEMA["required"],"browser_behavior_evidence":"manual_checks or browser_checks"},separators=(",", ":")) + "\nReturn the proposal itself, never a proposal/plan wrapper, JSON schema or source files. Be concise; every feature needs task and acceptance coverage."
 
 
+def request_schema(system: str, prompt: str, complete: bool = False) -> dict[str,Any] | str:
+    """Constrain local JSON generation to this stage and already approved scope."""
+    schema: dict[str,Any]=copy.deepcopy(planner_schema(system) or (PLAN_SCHEMA if system==PLAN else COMPLETE_CODE_SCHEMA if system==CODE and complete else CODE_SCHEMA if system==CODE else {}))
+    if not schema:return 'json'
+    try:payload=json.loads(prompt)
+    except ValueError:return schema
+    if not isinstance(payload,dict):return schema
+    profile=payload.get('builder_profile')
+    if planner_schema(system) is not None and payload.get('planning_stage')=='tasks' and isinstance(profile,dict):
+        props=schema['properties']['tasks']['items']['properties']
+        for key,limit in (('files',profile.get('max_editable_files')),('feature_indexes',profile.get('max_feature_indexes'))):
+            if type(limit) is int and 1<=limit<=3:props[key]['maxItems']=limit
+    packet=payload.get('task_packet')
+    if system==CODE and isinstance(packet,dict) and packet.get('structured') is True:
+        names=packet.get('files')
+        if isinstance(names,list) and 1<=len(names)<=3 and all(isinstance(name,str) for name in names):
+            schema['properties']['files']={'type':'object','properties':{name:{'type':'string'} for name in names},'additionalProperties':False,'minProperties':1}
+            if 'edits' in schema['properties']:schema['properties']['edits']['items']['properties']['file']['enum']=names
+            schema['properties']['already_satisfied']['properties']['evidence']['items']['properties']['file']['enum']=names
+    return schema
+
+
 class ModelClient:
     def __init__(self, provider: str, model: str, options: dict[str, Any] | None = None) -> None:
         if provider not in PROVIDERS:
@@ -178,10 +201,7 @@ class ModelClient:
             content = ''.join(part['text'] for part in parts if isinstance(part,dict) and isinstance(part.get('text'),str) and not part.get('thought'))
             self._finish(reason,content)
         elif self.provider == "ollama":
-            schema: dict[str, Any] | str = PLAN_SCHEMA if system == PLAN else CODE_SCHEMA if system == CODE else "json"
-            if (guided_schema:=planner_schema(system)) is not None:schema=guided_schema
-            if complete_recovery:
-                schema = COMPLETE_CODE_SCHEMA
+            schema = request_schema(system,prompt,complete_recovery)
             self.last_metadata['transport_attempted'] = True
             url=os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat"
             payload: dict[str,Any] = {

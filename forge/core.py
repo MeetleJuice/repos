@@ -18,7 +18,7 @@ from typing import Any, Callable
 
 from .workflow import workflow_snapshot, delivery_guide, delivery_checklist
 from .model_status import ModelStatus
-from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes
+from .build_contract import generation_contract, execution_directive, remove_unchanged_owned_echoes, builder_profile, focused_handoff
 from .tasks import task_packet, validate_task_response, task_document, existing_task_evidence
 from .circuit import TransportCircuit
 from .cloud import local_failover_route
@@ -225,7 +225,7 @@ class Workbench:
                     continue
         return sorted(states, key=lambda p: p["created"], reverse=True)
 
-    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True, review_candidate: Callable[[dict[str, Any]], tuple[dict[str, Any], Review]] | None = None) -> dict[str, Any]:
+    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True, review_candidate: Callable[[dict[str, Any]], tuple[dict[str, Any], Review]] | None = None, only_model: tuple[str,str] | None = None) -> dict[str, Any]:
         """Serialize requests, record the actual provider, and bound an explicit fallback."""
         previous = state["status"]
         if not self.inference_lock.acquire(blocking=False):
@@ -242,6 +242,8 @@ class Workbench:
                 choices.append((config["fallback"], True))
             if pool and allow_fallback:
                 choices.extend((entry, True) for entry in config["fallbacks"])
+            if only_model is not None:
+                choices=[(entry,flag) for entry,flag in choices if (entry['provider'],entry['model'])==only_model]
             failures = []
             registry = CapabilityRegistry(self.root.parent / 'model-capabilities-v1.json')
             minimum_ceiling = state.get("planner_truncation_ceiling", 0) if role == "planner" else 0
@@ -258,6 +260,11 @@ class Workbench:
                 if uses_cloud({'provider':selected['provider']}) and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
                 identity = (selected["provider"], selected["model"])
+                if selected['provider'] in state.get('job_provider_rejections',{}):
+                    reason=state['job_provider_rejections'][selected['provider']]
+                    failures.append(selected['provider']+': '+reason+' (provider skipped, no request sent)')
+                    self.event(state,'Skipping '+selected['provider']+' for this run after account-wide '+reason+'; another model cannot restore account credit/authentication.')
+                    continue
                 circuit_key=selected['provider']+'/'+selected['model'] if selected['provider'] in {'ollama','local'} else selected['provider']
                 if pool and self.transport_circuit.remaining(circuit_key)>0:
                     self.event(state,'Skipping '+circuit_key+' during its temporary transport/service circuit cooldown; no request sent.')
@@ -266,6 +273,7 @@ class Workbench:
                 rejected = state.get("job_model_rejections", {})
                 if rejected.get(selected["provider"] + "/" + selected["model"]):
                     self.event(state, "Skipping model already rejected during this job: " + selected["provider"] + "/" + selected["model"] + ".")
+                    failures.append(selected['provider']+'/'+selected['model']+': '+str(rejected[selected['provider']+'/'+selected['model']])+' (already rejected)')
                     continue
                 if role == "planner" and state.get("job_inference_attempts", 0) >= 24:
                     raise ModelError("This job reached its 24-attempt inference limit. Review model history before retrying.", "attempt_budget")
@@ -277,7 +285,7 @@ class Workbench:
                     continue
                 recovery_mode, prefix = recoveries.get(index, ('initial', ''))
                 effective_prompt = correction_prompts.get(index, prompt)
-                if pool and recovery_mode == 'initial' and self.model_status.avoid(selected['provider'],selected['model']):
+                if pool and only_model is None and recovery_mode == 'initial' and self.model_status.avoid(selected['provider'],selected['model']):
                     failures.append(selected['provider']+': recent_failure')
                     self.event(state,'Skipping recently failed model for up to five minutes: '+selected['provider']+'/'+selected['model']+'.')
                     continue
@@ -288,7 +296,7 @@ class Workbench:
                     continue
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
                           "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, effective_prompt),
-                          "recovery_path": recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
+                          "recovery_path": 'task_response_correction' if only_model else recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
                           "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated, "transport_attempted":None, "timeout_seconds":selected.get("options", {}).get("timeout_seconds",120)}
                 started = time.monotonic()
                 client = None
@@ -415,6 +423,8 @@ class Workbench:
                         continue
                     if exc.category in {"model", "auth", "configuration", "quota"}:
                         state.setdefault("job_model_rejections", {})[selected["provider"] + "/" + selected["model"]] = exc.category
+                    if selected['provider'] not in {'ollama','local'} and (exc.category=='quota' and exc.http_status==402 or exc.category=='auth' and exc.http_status==401):
+                        state.setdefault('job_provider_rejections',{})[selected['provider']]=exc.category
                     if exc.retry_after: record["retry_after_seconds"] = exc.retry_after
                     if pool:
                         if exc.category not in {"auth", "rate_limit", "provider", "transport", "quota", "request", "model", "configuration", "format", "parse_error", "size"}:
@@ -446,7 +456,7 @@ class Workbench:
             if budget_failed:
                 raise ModelError('Configured route exhausted. Some models could not fit the output/context reservation; other provider failures are listed here: '+ '; '.join(failures),'output_budget')
             if pool or review_candidate is not None:
-                raise ModelError("All configured models failed: " + "; ".join(failures), "exhausted")
+                raise ModelError("All configured models failed: " + ("; ".join(failures) or 'No eligible configured model remains; review prior source/transport rejections in this run.'), "exhausted")
         finally:
             self.inference_lock.release()
 
@@ -944,12 +954,17 @@ class Workbench:
         """Bounded response recovery; pooled local models can advance without writes."""
         state.pop("last_task_support",None)
         payload = prepare_context(generation_contract(payload,self.files(state["id"])),self.context_files(state["id"]))
+        payload = focused_handoff(payload,self.context_files(state['id']))
+        structured=bool(payload.get('task_packet',{}).get('structured'))
         route=state.get('run_model_routes',{}).get('coder',state['coder']) if state.get('active_run_id') else state['coder']
-        chain=[route,*route.get('fallbacks',[])]
+        chain=[route,*route.get('fallbacks',[]),*([route['fallback']] if route.get('fallback') else [])]
         response_attempts=max(2,len(chain)) if all(entry['provider']=='ollama' for entry in chain) else 2
+        if structured:response_attempts=max(response_attempts,min(12,2*len(chain)))
+        corrections=set();preferred=None
         for attempt in range(response_attempts):
+            correcting=preferred;preferred=None
             try:
-                response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel)
+                response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel,only_model=correcting)
                 for _ in range(3):
                     expanded=retrieve_context(response,payload,self.context_files(state['id']))
                     if expanded is None:break
@@ -961,6 +976,10 @@ class Workbench:
                     response=self.call_model(state,'coder',CODE,json.dumps(payload),cancel)
                 if isinstance(response,dict) and 'request_context' in response:raise ContextRequestError('Task context retrieval limit reached.')
             except ModelError as exc:
+                if correcting and attempt+1<response_attempts:
+                    state.setdefault('job_model_rejections',{})['/'.join(correcting)]=exc.category
+                    self.event(state,'Focused response correction failed on '+ '/'.join(correcting)+': '+str(exc)+'. Advancing to the remaining configured route.')
+                    continue
                 if exc.category not in {"format", "parse_error"} or attempt:
                     raise
                 error = str(exc)
@@ -971,7 +990,7 @@ class Workbench:
                 if cancel.is_set():
                     raise InterruptedError("Stopped. Model output discarded.")
                 try:
-                    if attempt and (not isinstance(response, dict) or response.get("edits")):
+                    if payload.get('response_mode')=='complete_files' and (not isinstance(response, dict) or response.get("edits")):
                         raise ValueError("Response recovery requires complete changed files, not more exact edits.")
                     support=existing_task_evidence(response,self.files(state["id"]),payload.get("task_packet"))
                     if support:
@@ -995,17 +1014,27 @@ class Workbench:
                         provider,model=record["provider"],record["model"]
                         self.model_status.reject(provider,model)
                         self.trace(state,"code_response_rejected",{"provider":provider,"model":model,"reason":str(exc),"files_replaced":False})
-                        if route.get("fallbacks"):
+                        identity=(provider,model)
+                        if structured and identity not in corrections and any(message in str(exc) for message in ('Rejected invalid Python','Task scope violation')):
+                            corrections.add(identity);preferred=identity
+                        elif route.get("fallbacks") or structured and route.get('fallback'):
                             state.setdefault("job_model_rejections",{})[provider+"/"+model]="response_rejected"
                     if attempt+1==response_attempts:
                         raise
                     error = str(exc)
             if cancel.is_set():
                 raise InterruptedError("Stopped before response correction.")
-            recovery_message="trying the next eligible local model" if route.get('fallbacks') and all(entry['provider']=='ollama' for entry in chain) else "requesting one focused correction"
+            recovery_message="one focused correction on "+'/'.join(preferred) if preferred else "trying the next eligible local model" if route.get('fallbacks') and all(entry['provider']=='ollama' for entry in chain) else "requesting one focused correction"
             self.event(state, "Code response rejected before file replacement; "+recovery_message+": " + error)
             stats = state.setdefault("generation_stats", {})
             stats["rejected_responses"] = stats.get("rejected_responses", 0) + 1
+            if structured and (preferred is not None or payload.get('response_mode')=='focused_changes'):
+                payload={**payload,'response_validation_error':error,'response_mode':'focused_changes',
+                    'instruction':'The rejected candidate was NOT saved. Implement only the original task using CURRENT supplied source. '
+                    'Return exact edits for existing files, or complete contents only for approved changed/new files. '
+                    'Preserve task_packet, its file scope, frozen tests and checks. Do not rewrite other files or inline the UI into app.py. '
+                    'Use the error as feedback, never as permission to widen scope. Return existing-source evidence only if the original task is already implemented.'}
+                continue
             payload = {**payload, "response_validation_error": error, "response_mode": "complete_files",
                        "files": self.context_files(state["id"]),
                        "instruction": "The previous response was rejected and no file was changed. Recover by returning a nonempty files object with COMPLETE changed source files and optional summary. Do not return edits, diffs, ellipses or an empty object. Read the current source supplied here; repair the original reported problem, preserve frozen tests and approved checks. For a structured task already implemented, you may instead return already_satisfied with a reason and exact current-source evidence. Never invent an unnecessary edit. This overrides the earlier preference for edits."}
@@ -1120,6 +1149,7 @@ class Workbench:
         retain_failures = action == "repair" or (action == "build" and any(value is False for value in (state.get("manual_results") or {}).get("results", [])))
         previous_evidence = {key: copy.deepcopy(state.get(key)) for key in ("checks", "manual_results", "verification_fingerprint", "verification_manifest")} if retain_failures else None
         state["job_model_rejections"] = {}
+        state['job_provider_rejections'] = {}
         state["job_inference_attempts"] = 0
         state["job_max_model_calls"] = options.get("max_model_calls",64)
         job_started = time.monotonic()
@@ -1139,6 +1169,7 @@ class Workbench:
                     raise ValueError("Revision must be under 6000 characters.")
                 state["last_revision"] = revision
                 request = {"task_contract_version":1,"idea": state["idea"], "revision": revision, "previous_proposal": state["plan"],
+                           'builder_profile':builder_profile(state.get('run_model_routes',{}).get('coder',state['coder']),CapabilityRegistry(self.root.parent/'model-capabilities-v1.json')),
                            "existing_project": state.get("baseline_plan"), "change_request": state.get("change_request"),
                            "implementation_context": planning_context(self.context_files(state["id"]), (state.get("change_request") or "") + " " + revision) if state.get("baseline_plan") else None,
                            "baseline_evidence": {"parent_id": state.get("parent_id"), "note": "The baseline proposal lists required features. It does not prove the copied code implements them. Use current source and the reported bug."} if state.get("baseline_plan") else None,
@@ -1150,6 +1181,13 @@ class Workbench:
                            "file_ownership": generation_contract({})["file_ownership"],
                            "scope_priority": "The latest revision overrides conflicting original details. Preserve requested storage: localStorage must not become SQLite. Preserve UI/game requirements; HTTP delivery never proves gameplay.",
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
+                state['builder_profile']=request['builder_profile']
+                profile=request['builder_profile']
+                planning_source=self.context_files(state['id']) if state.get('baseline_plan') else starter_files(state['starter']) if state.get('starter') else {}
+                profile['available_files']=sorted(planning_source)
+                profile['protected_existing_files']=[name for name in planning_source if name=='test_foundation.py']
+                request['starter_source']=planning_context(planning_source,state['idea'],budget=4000) if planning_source else None
+                self.event(state,'Builder-sized planning: at most '+str(profile['max_editable_files'])+' editable files and '+str(profile['max_feature_indexes'])+' feature per guided task; smallest configured output ceiling '+str(profile['smallest_output_ceiling'])+' tokens. Criteria remain declarations until tested.')
                 def evaluate(candidate: dict[str, Any]) -> tuple[dict[str, Any], Review]:
                     if state.get("starter") == "arcade" and isinstance(candidate, dict) and (candidate.get("app_kind") != "browser" or not (candidate.get("manual_checks") or candidate.get("browser_checks"))):
                         raise ValueError('The arcade starter is a browser game. Return app_kind: "browser" and nonempty manual_checks or browser_checks copied/adapted from starter_example_plan. HTTP checks prove delivery only; do not add a fake backend API.')

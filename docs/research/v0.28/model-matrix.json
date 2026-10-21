@@ -1,0 +1,234 @@
+{
+  "schema": 1,
+  "scope": "Nine installed Ollama IDs from the user and fourteen cloud IDs in the latest supplied journal. Other installed/selected models are discovered on the PC; no claim of access to its .env or private configuration.",
+  "minimum_output": "No universal useful minimum was verified. Application planner floor:8192 text tokens; builder configured choices:1024..16384. These are settings, not model minimums.",
+  "models": [
+    {
+      "provider": "ollama",
+      "model": "qwen3-embedding:0.6b",
+      "text_generation": false,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "lfm2.5:8b",
+      "text_generation": true,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "granite4.2:8b",
+      "text_generation": true,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "qwen2.5vl:3b",
+      "text_generation": true,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "qwen2.5-coder:7b",
+      "text_generation": true,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "nomic-embed-text:latest",
+      "text_generation": false,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "deepseek-r1:7b",
+      "text_generation": true,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "qwen3.5:9b",
+      "text_generation": true,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "ollama",
+      "model": "qwen2.5:7b",
+      "text_generation": true,
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Installed /api/show metadata is needed; exact user deployment is not accessible from this cloud checkout.",
+      "community_reference": null
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.1-flash-lite",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": {
+        "max_input_tokens": 1048576,
+        "max_output_tokens": 65536,
+        "max_tokens": 65536
+      },
+      "community_reference_source": "LiteLLM version hashed in sources.json; not provider verification or an enforced limit."
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": {
+        "max_input_tokens": 1048576,
+        "max_output_tokens": 65536,
+        "max_tokens": 65536
+      },
+      "community_reference_source": "LiteLLM version hashed in sources.json; not provider verification or an enforced limit."
+    },
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": {
+        "max_input_tokens": 131072,
+        "max_output_tokens": 65536,
+        "max_tokens": 65536
+      },
+      "community_reference_source": "LiteLLM version hashed in sources.json; not provider verification or an enforced limit."
+    },
+    {
+      "provider": "groq",
+      "model": "qwen/qwen3.8-27b",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": {
+        "max_input_tokens": 131072,
+        "max_output_tokens": 16384,
+        "max_tokens": 16384
+      },
+      "community_reference_source": "LiteLLM version hashed in sources.json; not provider verification or an enforced limit."
+    },
+    {
+      "provider": "cloudflare",
+      "model": "@cf/openai/gpt-oss-120b",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": {
+        "max_input_tokens": 128000,
+        "max_output_tokens": 128000,
+        "max_tokens": 128000
+      },
+      "community_reference_source": "LiteLLM version hashed in sources.json; not provider verification or an enforced limit."
+    },
+    {
+      "provider": "cloudflare",
+      "model": "@cf/qwen/qwen3.8-27b",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "openrouter",
+      "model": "google/gemini-3.1-flash-lite",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "openrouter",
+      "model": "google/gemini-3.5-flash",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "nvidia",
+      "model": "deepseek-ai/deepseek-v4.1-flash",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "nvidia",
+      "model": "openai/gpt-oss-20b",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "requesty",
+      "model": "alibaba/qwen3.8-flash",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "requesty",
+      "model": "azure/gpt-4.1-mini@eastus2",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "huggingface",
+      "model": "openai/gpt-oss-120b",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    },
+    {
+      "provider": "huggingface",
+      "model": "Qwen/Qwen3.5-122B-A10B",
+      "published_output_limit": null,
+      "published_context_limit": null,
+      "source": "Journal-confirmed configured ID; account-specific catalogue fields override estimates in the app. Official provider documentation could not be retrieved here.",
+      "community_reference": null,
+      "community_reference_source": null
+    }
+  ]
+}

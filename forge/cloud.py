@@ -218,7 +218,7 @@ class CloudSetup:
             if local:
                 ranked_local = sorted(set(local), key=lambda m:((self.rank(m,role)[0]-100 if role=='coder' and 'coder' in m.lower() else self.rank(m,role)[0]),m))
                 local_configs = [{'provider':'ollama','model':model,
-                    'options':{'num_ctx':32768,'num_predict':8192,'structured_outputs':True,'timeout_seconds':120}}
+                    'options':{'num_ctx':16384 if role=='coder' else 32768,'num_predict':4096 if role=='coder' else 8192,'structured_outputs':True,'timeout_seconds':120}}
                     for model in ranked_local[:min(6 if mode in {'local_only','orchestrated'} else 1,16-len(configs))]]
                 position=0 if mode in {'local_first','local_only'} or (mode=='hybrid' and role=='coder') else min(1,len(configs)) if mode=='hybrid' else len(configs)
                 if mode == 'orchestrated':position = len(configs)

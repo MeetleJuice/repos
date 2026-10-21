@@ -11,15 +11,16 @@ PLAN_SCHEMA: dict[str, Any] = {
         'title': {'type': 'string'}, 'summary': {'type': 'string'},
         **{key: {'type': 'array', 'items': {'type': 'string'}} for key in ['features', 'out_of_scope', 'risks']},
         'tasks': {'type': 'array', 'items': {'type': 'object', 'required': ['title', 'instructions', 'feature_indexes', 'outcome', 'files', 'depends_on', 'done_when'],
-                  'properties': {'title': {'type': 'string'}, 'instructions': {'type': 'string'}, 'outcome': {'type':'string'}, 'files': {'type':'array','items':{'type':'string'},'minItems':1,'maxItems':3}, 'depends_on': INDEXES, 'interfaces': {'type':'array','maxItems':6,'items':{'type':'object','required':['file','symbol','contract'],'properties':{k:{'type':'string'} for k in ['file','symbol','contract']}}}, 'done_when': {'type':'array','items':{'type':'string'},'minItems':1,'maxItems':4}, 'feature_indexes': INDEXES, 'check_indexes': INDEXES}}},
+                  'properties': {'title': {'type': 'string','minLength':1}, 'instructions': {'type': 'string','minLength':1,'maxLength':1800}, 'outcome': {'type':'string','minLength':1,'maxLength':300}, 'files': {'type':'array','items':{'type':'string'},'minItems':1,'maxItems':3}, 'depends_on': INDEXES, 'interfaces': {'type':'array','maxItems':6,'items':{'type':'object','required':['file','symbol','contract'],'properties':{k:{'type':'string'} for k in ['file','symbol','contract']}}}, 'done_when': {'type':'array','items':{'type':'string'},'minItems':1,'maxItems':4}, 'feature_indexes': {**INDEXES,'minItems':1,'maxItems':3}, 'check_indexes': INDEXES}}},
         'checks': {'type': 'array', 'items': {'type': 'object', 'required': ['name', 'method', 'path', 'status', 'feature_indexes'],
+                   'anyOf':[{'required':['contains']},{'required':['json_contains']},{'required':['json_equals']},{'required':['empty_body'],'properties':{'empty_body':{'const':True}}}],
                    'properties': {'name': {'type': 'string'}, 'method': {'type': 'string', 'enum': ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']},
-                                  'path': {'type': 'string'}, 'status': {'type': 'integer'}, 'feature_indexes': INDEXES,
-                                  'body': {}, 'contains': {'type': 'string'}, 'json_contains': {'type': ['object', 'array']},
+                                  'path': {'type': 'string'}, 'status': {'type': 'integer'}, 'feature_indexes': {**INDEXES,'minItems':1},
+                                  'body': {}, 'contains': {'type': 'string','minLength':1}, 'json_contains': {'anyOf':[{'type':'object','minProperties':1},{'type':'array','minItems':1}]},
                                   'json_equals': {}, 'empty_body': {'type': 'boolean'}, 'restart_before': {'type': 'boolean'}}}},
         'app_kind': {'type': 'string', 'enum': ['server', 'browser']},
         'manual_checks': {'type': 'array', 'items': {'type': 'object', 'required': ['name', 'steps', 'expected', 'feature_indexes'], 'properties': {
-            'name': {'type': 'string'}, 'steps': {'type': 'array', 'items': {'type': 'string'}}, 'expected': {'type': 'string'}, 'feature_indexes': INDEXES}}},
+            'name': {'type': 'string'}, 'steps': {'type': 'array', 'items': {'type': 'string'}}, 'expected': {'type': 'string'}, 'feature_indexes': {**INDEXES,'minItems':1}}}},
         'browser_checks': {'type': 'array', 'items': {'type': 'object', 'required': ['name', 'steps', 'feature_indexes'], 'properties': {
             'name': {'type': 'string'}, 'feature_indexes': INDEXES, 'clock': {'type': 'boolean'}, 'random_seed': {'type': 'integer'}, 'random_values': {'type': 'array', 'items': {'type': 'number'}}, 'steps': {'type': 'array', 'items': {'type': 'object', 'required': ['action'], 'properties': {
                 'action': {'type': 'string', 'enum': ['click', 'fill', 'press', 'wait', 'expect_text', 'expect_visible', 'expect_canvas_changes', 'reload', 'expect_storage', 'key_down', 'key_up', 'advance_time', 'expect_text_exact', 'expect_canvas_still']},

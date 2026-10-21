@@ -1,0 +1,5 @@
+{
+  "file": "tests/fixture_data/watchlist-delivery-v1.json",
+  "sha256": "114bb832f61d4b4b0484321b4a390396803c67177b9757784787276dd45babf4",
+  "provenance": "User-uploaded journal; failed source bodies are not available. Cases are diagnostic-derived controller replays, not captured provider replies."
+}

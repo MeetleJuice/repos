@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any
 from .credentials import atomic_text
-from .schemas import PLAN_SCHEMA
+from .schemas import PLAN_SCHEMA,CODE_SCHEMA
 
 
 @dataclass(frozen=True)
@@ -51,7 +51,8 @@ class CapabilityRegistry:
         if type(budget) is not int or not 0 <= budget <= 4096: budget = 1024 if thinking else 0
         if provider in {'ollama','local'}:
             options = options or {}
-            context = options.get('num_ctx', 16384)
+            configured = options.get('num_ctx', 16384)
+            context = min(configured,context) if record.get('context_limit_published') is True else configured
             # Planner num_predict is a floor, not a model output ceiling. The
             # reservation below still accounts for input within this context.
             output = context-1 if role == 'planner' else min(options.get('num_predict', 8192), context-1)
@@ -76,6 +77,7 @@ class CapabilityRegistry:
                 'max_output_tokens':output_limit,
                 'max_context_tokens':context if valid_context else max(131072, output_limit),
                 'supports_thinking_budget':False,'thinking_budget_default':0,
+                'output_limit_published':published,'context_limit_published':valid_context,
                 'estimated':not (published and valid_context),
                 'source':'OpenRouter /models published top_provider.max_completion_tokens/context_length; missing fields use conservative estimates.'}
         if self.path:
@@ -92,15 +94,18 @@ class CapabilityRegistry:
             if not isinstance(model,str) or len(model)>210: continue
             model = model.removeprefix('models/')
             output = entry.get('outputTokenLimit',entry.get('max_completion_tokens',entry.get('max_output_tokens')))
-            context = entry.get('inputTokenLimit',entry.get('context_length',entry.get('max_context_length')))
-            if type(output) is not int or not 256 <= output <= 1048576: continue
+            context = entry.get('inputTokenLimit',entry.get('context_length',entry.get('max_context_length',entry.get('context_window'))))
+            valid_output=type(output) is int and 256<=output<=1048576
+            valid_context=type(context) is int and 256<=context<=16777216
+            if not valid_output and not valid_context:continue
             previous = self.get(provider,model)
+            resolved_output=output if isinstance(output,int) and valid_output else previous.max_output_tokens
             # Input-only limits are used conservatively as joint budget room.
-            valid_context = type(context) is int and 256 <= context <= 16777216
-            self.overrides[provider+'/'+model] = {'max_output_tokens':output,
-                'max_context_tokens':context if valid_context else max(previous.max_context_tokens,output),
+            self.overrides[provider+'/'+model] = {'max_output_tokens':resolved_output,
+                'max_context_tokens':context if valid_context else max(previous.max_context_tokens,resolved_output),
                 'supports_thinking_budget':previous.supports_thinking_budget,'thinking_budget_default':previous.thinking_budget_default,
-                'estimated':not valid_context,'source':'Authenticated catalogue published output limit; unavailable context retains conservative estimate.'}
+                'output_limit_published':valid_output,'context_limit_published':valid_context,
+                'estimated':not (valid_output and valid_context),'source':'Authenticated catalogue limits; missing fields remain explicitly estimated.'}
             changed = True
         if changed and self.path:
             atomic_text(self.path,json.dumps({'schema':1,'models':self.overrides},indent=2)+'\n')
@@ -117,10 +122,18 @@ class CapabilityRegistry:
         features = max([4]+[len(p.get('features',[])) for p in valid_proposals if isinstance(p.get('features'),list)])
         checks = max([8,features*2+2]+[len(p.get('checks',[])) for p in valid_proposals if isinstance(p.get('checks'),list)])
         estimate = 512 + len(PLAN_SCHEMA['required'])*40 + min(tasks,40)*(640 if structured_tasks else 320) + min(checks,80)*240 + min(features,40)*100
+        from .guided import planner_schema
+        schema=planner_schema(system) or PLAN_SCHEMA
+        if payload.get('planning_stage')=='outline':
+            estimate=512+len(schema['required'])*40+min(checks,15)*240+min(features,12)*100
+        elif payload.get('planning_stage')=='tasks':
+            maximum=payload.get('max_new_tasks',4)
+            maximum=maximum if type(maximum) is int and 1<=maximum<=4 else 4
+            estimate=512+maximum*800
         thinking = cap.thinking_budget_default if cap.supports_thinking_budget else 0
         # Conservative heuristic (about two UTF-8 bytes/token), not a tokenizer
         # guarantee or billing measurement. Reserve schema/message framing too.
-        input_estimate = (len((system+prompt).encode('utf-8',errors='surrogatepass')) + len(json.dumps(PLAN_SCHEMA)) + 1)//2 + 512
+        input_estimate = (len((system+prompt).encode('utf-8',errors='surrogatepass')) + len(json.dumps(schema)) + 1)//2 + 512
         room = min(cap.max_output_tokens, cap.max_context_tokens-input_estimate)
         text = max(self.builtin['planner_output_floor'], options.get('num_predict',4096), 0 if compact else estimate)
         if text+thinking > room: raise ValueError('Planner needs '+str(text+thinking)+' output tokens plus an estimated '+str(input_estimate)+' input tokens; output ceiling is '+str(cap.max_output_tokens)+' and context is '+str(cap.max_context_tokens)+'. Increase Ollama context in planner settings if memory permits, or choose a larger-capacity model; no request was sent.')
@@ -132,6 +145,34 @@ class CapabilityRegistry:
         text = options.get('num_predict', 8192)
         thinking = cap.thinking_budget_default if cap.supports_thinking_budget else 0
         input_estimate = (len((system+prompt).encode('utf-8', errors='surrogatepass'))+1)//2 + 512
+        if provider=='ollama' and options.get('structured_outputs',True):input_estimate+=(len(json.dumps(CODE_SCHEMA))+1)//2
         if text+thinking > min(cap.max_output_tokens, cap.max_context_tokens-input_estimate):
             raise ValueError('Builder output reservation exceeds the model output/context budget. Choose a larger-capacity model or reduce the configured output cap; no request was sent.')
         return PlannerBudget(text+thinking, text, thinking, input_estimate, text)
+
+    def discover_local(self, model: str, data: dict[str,Any]) -> bool:
+        """Record only numeric context metadata, never modelfiles/templates/paths."""
+        info=data.get('model_info',{})
+        if not isinstance(info,dict):return False
+        values=[value for key,value in info.items() if isinstance(key,str) and key.endswith('.context_length') and type(value) is int and 256<=value<=16777216]
+        if not values:return False
+        context=min(values)
+        self.overrides['ollama/'+model]={'max_output_tokens':min(8192,context-1),'max_context_tokens':context,
+            'supports_thinking_budget':False,'thinking_budget_default':0,'estimated':True,
+            'output_limit_published':False,'context_limit_published':True,
+            'source':'Installed Ollama /api/show model_info context_length. Generation room is configured, not a published maximum output or GPU-fit guarantee.'}
+        return True
+
+    def save(self) -> None:
+        if self.path:atomic_text(self.path,json.dumps({'schema':1,'models':self.overrides},indent=2)+'\n')
+
+    def describe(self, provider: str, model: str, options: dict[str,Any] | None = None) -> dict[str,Any]:
+        record=self.overrides.get(provider+'/'+model,self.builtin['models'].get(provider+'/'+model,self.builtin['defaults']))
+        if not isinstance(record,dict):record=self.builtin['defaults']
+        cap=self.get(provider,model,options)
+        published=record.get('estimated') is False
+        return {'provider':provider,'model':model,'model_output_limit':record.get('max_output_tokens') if record.get('output_limit_published',published) else None,
+            'model_context_limit':record.get('max_context_tokens') if record.get('context_limit_published',published) else None,
+            'effective_output_ceiling':cap.max_output_tokens,'configured_context':(options or {}).get('num_ctx',16384) if provider in {'ollama','local'} else None,
+            'effective_context':cap.max_context_tokens,'estimated':cap.estimated,'source':cap.source,
+            'minimum_output_tokens':None,'minimum_note':'No universal useful minimum is published. Foundry planner reserves at least 8192 text tokens; builder configuration starts at 1024. These are application settings, not model minimums.'}

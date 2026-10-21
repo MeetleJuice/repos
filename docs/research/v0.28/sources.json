@@ -1,0 +1,244 @@
+[
+  {
+    "name": "ollama-show",
+    "url": "https://docs.ollama.com/api/show",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "ollama-context",
+    "url": "https://docs.ollama.com/context-length",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "ollama-structured",
+    "url": "https://docs.ollama.com/capabilities/structured-outputs",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "gemini-models",
+    "url": "https://ai.google.dev/gemini-api/docs/models",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "groq-models",
+    "url": "https://console.groq.com/docs/models",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "openrouter-models",
+    "url": "https://openrouter.ai/api/v1/models",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "cloudflare-gpt-oss",
+    "url": "https://developers.cloudflare.com/workers-ai/models/gpt-oss-120b/",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "nvidia-api",
+    "url": "https://docs.api.nvidia.com/nim/reference/llm-apis",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "requesty-api",
+    "url": "https://docs.requesty.ai/api-reference/unified-api/chat-completions",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "huggingface-chat",
+    "url": "https://huggingface.co/docs/inference-providers/tasks/chat-completion",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "qwen2.5-coder-7b",
+    "url": "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "qwen2.5-7b",
+    "url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "deepseek-r1-7b",
+    "url": "https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "qwen2.5vl-3b",
+    "url": "https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "qwen3-embedding",
+    "url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "qwen3.5-9b",
+    "url": "https://huggingface.co/Qwen/Qwen3.5-9B/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "granite4.2-8b",
+    "url": "https://huggingface.co/ibm-granite/granite-4.2-8b/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "lfm2.5-8b",
+    "url": "https://ollama.com/library/lfm2.5:8b",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "nomic-embed",
+    "url": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/raw/main/config.json",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "agent-harness",
+    "url": "https://raw.githubusercontent.com/SWE-agent/mini-swe-agent/main/src/minisweagent/agents/default.py",
+    "retrieved_date": "2026-10-20",
+    "resolved_url": "https://raw.githubusercontent.com/SWE-agent/mini-swe-agent/main/src/minisweagent/agents/default.py",
+    "status": "retrieved",
+    "bytes": 8043,
+    "sha256": "e8ef8aa365942d739c2ec5cb0879f60f377d2dc2de8ec670aaedf3bafb45a4c2"
+  },
+  {
+    "name": "effective-agents",
+    "url": "https://www.anthropic.com/research/building-effective-agents",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "URLError"
+  },
+  {
+    "name": "ollama-api-source",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/api/types.go",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 44562,
+    "sha256": "9754c38dcde72d04339bdc2f2a851ad87c963bc83d2b8515cc90c2b4ae914145"
+  },
+  {
+    "name": "ollama-api-docs",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 54614,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5"
+  },
+  {
+    "name": "ollama-context-docs",
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/context.md",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "HTTPError"
+  },
+  {
+    "name": "qwen25-coder-card",
+    "url": "https://raw.githubusercontent.com/QwenLM/Qwen2.5-Coder/main/README.md",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 21967,
+    "sha256": "7553f06c6f17a7ce22a76995a210b07fb6724d32a0cdc7bd4961ed2866d80fd4"
+  },
+  {
+    "name": "qwen25-card",
+    "url": "https://raw.githubusercontent.com/QwenLM/Qwen2.5/main/README.md",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 24732,
+    "sha256": "0b2c2bb11806f7a00c8465f2586e2e99f15de28622fd5c9b70b83ae1ab18c75d"
+  },
+  {
+    "name": "qwen35-card",
+    "url": "https://raw.githubusercontent.com/QwenLM/Qwen3.5/main/README.md",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 14334,
+    "sha256": "a71ec46607f81d6056336fb0a8431a26a1c7d8db6ac568a0c021c36f1ed3c92e"
+  },
+  {
+    "name": "deepseek-r1-card",
+    "url": "https://raw.githubusercontent.com/deepseek-ai/DeepSeek-R1/main/README.md",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 20736,
+    "sha256": "4ed979e497121ae4dd9f1573da1668219f43be55d62cc0bf2be5429211a67486"
+  },
+  {
+    "name": "google-model-types",
+    "url": "https://raw.githubusercontent.com/googleapis/python-genai/main/google/genai/types.py",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 892712,
+    "sha256": "26783fb2cc0a9a5d19a7293a57741e05548f622c0eced1e16254542e633ce4cc"
+  },
+  {
+    "name": "groq-model-types",
+    "url": "https://raw.githubusercontent.com/groq/groq-python/main/src/groq/types/model.py",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 609,
+    "sha256": "726ae33618c75e72547e0a776a5d01dace0ef8fbc50fe9c79e2ee1f21da9e853"
+  },
+  {
+    "name": "granite-models",
+    "url": "https://raw.githubusercontent.com/ibm-granite/granite-language-models/main/README.md",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "HTTPError"
+  },
+  {
+    "name": "liquid-models",
+    "url": "https://raw.githubusercontent.com/Liquid4All/LFM2/main/README.md",
+    "retrieved_date": "2026-10-20",
+    "status": "unavailable",
+    "error": "HTTPError"
+  },
+  {
+    "name": "lite-model-limits",
+    "url": "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json",
+    "retrieved_date": "2026-10-20",
+    "status": "retrieved",
+    "bytes": 2963049,
+    "sha256": "aea89e3c00c9dea588b454865c44c45a5dc591f0711bc03f198fdbf3376a4858"
+  }
+]

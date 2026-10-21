@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "version": "0.28.0",
+  "baseline": "8cfdd21",
+  "evidence_kind": "Controlled provider fixtures plus real local generated-app execution; no live provider generation or Windows GPU benchmark.",
+  "before": {
+    "command": "python -m unittest tests.test_capacity_delivery.CapacityDeliveryTests.test_account_quota_skips_same_provider_alternate_without_a_second_transport tests.test_capacity_delivery.CapacityDeliveryTests.test_scoped_syntax_rejection_gets_one_same_model_exact_edit_correction -q",
+    "output": "Ran 2 tests in 0.033s\nFAILED (failures=1, errors=1)",
+    "causes": [
+      "HTTP 402 retried a second model on the same provider account.",
+      "Complete-files recovery rejected a valid scoped exact-edit correction."
+    ]
+  },
+  "after": {
+    "focused": {
+      "command": "python -m unittest tests.test_capacity_delivery tests.test_guided_planning tests.test_hybrid_execution tests.test_planner_truncation tests.test_handoffs forge.dashboard.test_dashboard -q",
+      "output": "Ran 61 tests in 1.865s\nOK"
+    },
+    "suite": {
+      "command": "python -m unittest discover -q",
+      "output": "Ran 418 tests in 120.674s\nOK"
+    },
+    "types": {
+      "command": "PYTHONPATH=/tmp/foundry-typecheck python -m mypy --strict <27 modules listed by tools.validate.TYPED>",
+      "output": "Success: no issues found in 27 source files"
+    },
+    "browser": {
+      "command": "Run all 20 tests/browser_<name>_check.py scripts listed by tools/validate.py --browser",
+      "output": "20 scripts exited 0. New capacity_delivery exercises guided planning, approval, source rejection, same-model exact-edit correction, actual acceptance/tests/launch and verified ZIP; model replies are fixtures."
+    },
+    "dashboard": {
+      "commands": [
+        "npm --prefix forge/dashboard run build",
+        "npm --prefix forge/dashboard run typecheck",
+        "npm --prefix forge/dashboard test",
+        "python forge/dashboard/browser_check.py",
+        "python forge/dashboard/launcher_check.py"
+      ],
+      "output": "Build and typecheck exited 0; 4 simulation tests passed; Chromium desktop/mobile observer/source-rejection and separate-window launcher passed."
+    },
+    "removal": {
+      "command": "python forge/dashboard/removal_check.py",
+      "output": "Ran 415 tests in 118.396s\nOK\n328 current-core file hashes preserved; dashboard removed only in a temporary copy; core suite passes; /dashboard returns 404."
+    }
+  },
+  "release_gate": "After packaging, validate actual updater extraction, every archived byte against source, and run the extracted full suite plus capacity-delivery and dashboard browser/launcher checks before publishing. These final archive results are reported in the release response, not assumed here.",
+  "untested": [
+    "Live provider generation quality/quotas and billed token cost",
+    "Actual installed Windows Ollama replies, VRAM fit and latency",
+    "Completion of arbitrary user ideas"
+  ]
+}

@@ -15,6 +15,8 @@ from .calibration import read_calibration
 from .core import Workbench, ACTIVE
 from .history import totals_for
 from .models import connection_info
+from .capabilities import CapabilityRegistry
+from .model_inventory import refresh_local_limits,limit_rows
 from .credentials import CredentialStore, parse_dotenv, read_dotenv
 from .cloud import CloudSetup
 from .routing import uses_cloud, validate_config
@@ -193,7 +195,11 @@ def make_server(port=8765, workbench=None, credentials=None):
                 local_info.update(provider_info.get("ollama",{}))
                 bench.installed_ollama_models=list(local_info.get('models',[]))
                 local_info['compatible']=provider_info.get('local',{})
-                self.json({"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "saved_routes":cloud.saved_profiles(), "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured, "local_calibration":read_calibration(bench.root.parent/"local-calibration-v1.json")})
+                with cloud.capability_lock:
+                    registry=CapabilityRegistry(bench.root.parent/'model-capabilities-v1.json')
+                    refresh_local_limits(registry,local_info.get('models',[]))
+                    model_limits=limit_rows(registry,provider_info,cloud.saved_profiles(),cloud.selected)
+                self.json({"model_limits":model_limits,"providers": provider_info, "docker_installed": runtime["installed"], "docker": runtime, "browser": diagnostics(), "credentials": credentials.status(), "cloud": cloud.checked, "cloud_selected": cloud.selected, "automatic_routes":cloud.automatic_routes, "saved_routes":cloud.saved_profiles(), "cloud_limits": cloud.limits, "cloud_local_model": cloud.local_model, "cloud_order":cloud.order, "routing_mode":cloud.mode, "cloud_timeouts":cloud.timeouts, "cloud_structured":cloud.structured, "local_calibration":read_calibration(bench.root.parent/"local-calibration-v1.json")})
                 return
             if path == '/api/local/setup' and post:
                 if any(thread.is_alive() for thread,_ in bench.jobs.values()):raise ValueError('Stop the active job before changing runtime setup.')

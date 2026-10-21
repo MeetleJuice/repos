@@ -169,7 +169,7 @@ function Dashboard() {
         </div>
         <div className="ifd-timeline">
           <div className="ifd-timeline-heading"><span>ACTIVITY JOURNAL <b>{mode==='simulation'?'SIMULATED':'OBSERVED'}</b></span><strong aria-live="polite">{phase==='paused'?'Paused':currentNode?currentNode.label:'Ready when you are.'}</strong></div>
-          <div className="ifd-events" aria-label="Recent activity">{events.length?events.slice(0,16).map(event=><button key={event.sequence} onClick={()=>{const node=graph.nodes.find(node=>node.id===event.nodeId);if(node)focus(node);}}><i className={'ifd-dot ifd-dot-'+event.status}/><time>{new Date(event.at).toLocaleTimeString()}</time><span>{graph.nodes.find(node=>node.id===event.nodeId)?.label}</span><small>{event.status} · {event.mode}</small></button>):<p>Choose a journey and press Play. The journal will keep the last 60 emitted events in memory.</p>}</div>
+          <div className="ifd-events" aria-label="Recent activity">{events.length?events.slice(0,16).map(event=><button key={event.sequence} title={event.flow} onClick={()=>{const node=graph.nodes.find(node=>node.id===event.nodeId);if(node)focus(node);}}><i className={'ifd-dot ifd-dot-'+event.status}/><time>{new Date(event.at).toLocaleTimeString()}</time><span>{graph.nodes.find(node=>node.id===event.nodeId)?.label}</span><small>{event.status} · {event.mode}</small></button>):<p>Choose a journey and press Play. The journal will keep the last 60 emitted events in memory.</p>}</div>
         </div>
       </section>
       <aside className={'ifd-inspector '+(detailOpen?'ifd-inspector-open':'')}>
