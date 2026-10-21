@@ -19,7 +19,7 @@ from forge.server import make_server
 from forge.scaffolds import starter_files
 from tests.test_workbench import ScriptedModels
 from tests.test_evidence_planning import sqlite_plan
-from tests.test_guided_planning import feature_batches
+from tests.test_guided_planning import feature_batches,outline_replies
 
 HTML='''<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tiny Wins</title><link rel="stylesheet" href="/style.css"></head><body><main><h1>Tiny Wins</h1><form id="form"><input id="title" required placeholder="Your win"><input id="note" placeholder="A note"><button>Add win</button></form><label>Show <select id="filter"><option value="all">All time</option><option value="today">Today</option></select></label><p id="count"></p><p id="message" role="status"></p><ul id="wins"></ul></main><script>
 async function refresh(){const suffix=document.querySelector('#filter').value==='today'?'?filter=today':'';const response=await fetch('/api/records'+suffix);const data=await response.json();document.querySelector('#count').textContent=data.today_count+' wins today';const list=document.querySelector('#wins');list.replaceChildren();for(const item of data.records){const li=document.createElement('li');const text=document.createElement('span');text.textContent=item.title+' — '+item.note;li.append(text);const button=document.createElement('button');button.textContent='Delete';button.onclick=async()=>{if(confirm('Delete this win?')){await fetch('/api/records/'+item.id,{method:'DELETE'});await refresh();}};li.append(button);list.append(li);}}
@@ -32,7 +32,7 @@ def main():
     plan=sqlite_plan();outline={k:v for k,v in plan.items() if k!='tasks'}
     claim={'already_satisfied':{'reason':'The reviewed starter already implements record creation, retrieval and SQLite persistence; retain it and run the approved prefix.',
         'evidence':[{'file':'storage.py','contains':'class Store:\n    def __init__(self, path):'}]}}
-    models=ScriptedModels([outline,*feature_batches(plan['tasks']),claim,{'files':{'index.html':HTML,'style.css':CSS}}])
+    models=ScriptedModels([*outline_replies(outline),*feature_batches(plan['tasks']),claim,{'files':{'index.html':HTML,'style.css':CSS}}])
     info={'ollama':{'connected':True,'models':['qwen2.5-coder:7b']}}
     with tempfile.TemporaryDirectory() as folder,patch('forge.server.connection_info',return_value=info),patch('forge.models.request_json',return_value={}):
         bench=Workbench(Path(folder)/'projects',models);server=make_server(0,bench)

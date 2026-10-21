@@ -1,0 +1,23 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "accessed": "2026-10-21",
+    "status": 200,
+    "bytes": 54614,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/OWASP/CheatSheetSeries/master/cheatsheets/Logging_Cheat_Sheet.md",
+    "accessed": "2026-10-21",
+    "status": 200,
+    "bytes": 28287,
+    "sha256": "ab43825f2095a964542a3ea3392e50c79fe4d51794ae1bdfc3bc246b243c5f39"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/open-telemetry/semantic-conventions-genai/main/docs/gen-ai/gen-ai-spans.md",
+    "accessed": "2026-10-21",
+    "status": 200,
+    "bytes": 84270,
+    "sha256": "df6f7bb1911dfe35d286c84971d8227a8f0e765cb3ad3be1532441371c17b69e"
+  }
+]

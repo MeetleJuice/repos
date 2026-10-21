@@ -14,7 +14,7 @@ from playwright.sync_api import sync_playwright,expect
 from forge.core import Workbench
 from forge.server import make_server
 from forge.scaffolds import starter_files
-from tests.test_guided_planning import responses,feature_batches
+from tests.test_guided_planning import responses,feature_batches,outline_replies
 from tests.test_workbench import ScriptedModels
 from tests.fixtures import APP,TEST
 
@@ -22,7 +22,7 @@ from tests.fixtures import APP,TEST
 def main():
     outline,batch,_=responses()
     foundation=starter_files('web')['app.py']
-    models=ScriptedModels([outline,*feature_batches(batch['tasks']),{'files':{'app.py':'def broken(:\n'}},
+    models=ScriptedModels([*outline_replies(outline),*feature_batches(batch['tasks']),{'files':{'app.py':'def broken(:\n'}},
         {'edits':[{'file':'app.py','search':foundation,'replace':APP}]},
         {'files':{'test_app.py':TEST}}])
     info={'ollama':{'configured':True,'connected':True,'models':['qwen2.5-coder:7b','qwen3-embedding:0.6b']}}
@@ -57,8 +57,8 @@ def main():
                 coding=[call for call in state['model_calls'] if call['role']=='coder']
                 assert len(coding)==3 and coding[0]['model']==coding[1]['model']
                 assert coding[1]['recovery_path']=='task_response_correction'
-                assert models.calls[4]['response_mode']=='focused_changes'
-                assert 'builder_handoff' in models.calls[3]
+                assert models.calls[5]['response_mode']=='focused_changes'
+                assert 'builder_handoff' in models.calls[4]
                 assert state['generation_stats']['exact_edits_applied']==1
                 assert state['checks']['passed'] and state['next_task']==2
                 page.get_by_role('tab',name='Project files').click()

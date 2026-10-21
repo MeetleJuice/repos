@@ -90,7 +90,11 @@ def run_compiled(request: dict[str, Any], generate: Callable[..., dict[str, Any]
         'outline': None, 'tasks': [], 'next_feature': 0}
     if cancel.is_set(): raise InterruptedError('Stopped before guided planning.')
     if draft['outline'] is None:
-        outline = generate(OUTLINE_PROMPT, {**request, 'planning_stage': 'outline'}, validate_compilable_outline)
+        if request.get('outline_planning_policy')=='split_v1':
+            from .outline_planning import create_outline
+            outline = create_outline(request,generate,checkpoint,draft,cancel)
+        else:
+            outline = generate(OUTLINE_PROMPT, {**request, 'planning_stage': 'outline'}, validate_compilable_outline)
         validate_compilable_outline(outline)
         draft['outline'] = copy.deepcopy(outline)
         checkpoint(copy.deepcopy(draft))

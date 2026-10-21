@@ -4,6 +4,11 @@ import re
 from typing import Any
 
 RULES = {
+    'check_structure': 'Acceptance checks must be an array of check objects.',
+    'acceptance_coverage': 'One or more declared features lack acceptance coverage.',
+    'assertion_required': 'An HTTP check lacks a meaningful response assertion.',
+    'mutation_example': 'A successful mutation needs concrete request example data.',
+    'persistence_evidence': 'A restart check must read a value seeded by an earlier mutation.',
     'task_width': 'Task exceeds the configured builder file/feature scope.',
     'feature_scope': 'Task refers to features outside the requested batch.',
     'feature_coverage': 'Requested features are missing task declarations.',
@@ -19,6 +24,13 @@ RULES = {
 
 def classify_finding(code: str, path: str, message: str) -> tuple[str, str]:
     if code == 'guided_contract':
+        for needle,replacement,pointer in (
+            ('Outline checks must be an array','check_structure','/checks'),
+            ('Every feature needs acceptance check coverage','acceptance_coverage','/features'),
+            ('Every check needs contains','assertion_required','/checks'),
+            ('Supply concrete nonempty JSON request example','mutation_example','/checks'),
+            ('Restart checks must GET a concrete value','persistence_evidence','/checks')):
+            if needle in message:code,path=replacement,pointer;break
         for needle, replacement in (
             ('No early business prefix', 'checkpoint_schedule_unsatisfiable'),
             ('too broad', 'task_width'), ('only to the requested feature batch', 'feature_scope'),

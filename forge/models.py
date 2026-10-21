@@ -153,7 +153,8 @@ class ModelClient:
     def _complete(self, system: str, prompt: str) -> dict[str, Any]:
         self.last_usage = {}
         output = self.planner_budget.max_output_tokens if self.planner_budget else self.options['num_predict']
-        self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None,'transport_attempted':False,'timeout_seconds':self.options['timeout_seconds']}
+        self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None,'transport_attempted':False,'timeout_seconds':self.options['timeout_seconds'],
+                              'configured_num_ctx':self.options['num_ctx'],'structured_outputs_requested':self.options['structured_outputs']}
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
         messages[0]["content"] = output_contract(system)
         if self.recovery_mode == "continuation":
@@ -174,11 +175,13 @@ class ModelClient:
         self.last_metadata.update(input_characters=sum(len(m['content']) for m in messages),
                                   effective_request_sha256=hashlib.sha256(json.dumps(messages).encode()).hexdigest())
         if self.provider == "gemini" and self.planner_budget and (system == PLAN or planner_schema(system) is not None or self.planner_budget.thinking_budget > 0):
+            self.last_metadata['api_family']='gemini_generate_content'
             key = key_for('gemini')
             if not key: raise ModelError('Set GEMINI_API_KEY in your local .env file.', 'auth')
             generation: dict[str, Any] = {'maxOutputTokens':output,'temperature':0.2}
             if self.options['structured_outputs']:
                 generation['responseMimeType'] = 'application/json'
+            self.last_metadata['response_format_mode']='json_mime' if self.options['structured_outputs'] else 'off'
             if self.planner_budget.thinking_budget:
                 generation['thinkingConfig'] = {'thinkingBudget':self.planner_budget.thinking_budget}
             gemini_base = PROVIDERS['gemini'][0]
@@ -203,7 +206,9 @@ class ModelClient:
             content = ''.join(part['text'] for part in parts if isinstance(part,dict) and isinstance(part.get('text'),str) and not part.get('thought'))
             self._finish(reason,content)
         elif self.provider == "ollama":
+            self.last_metadata['api_family']='ollama_chat'
             schema = request_schema(system,prompt,complete_recovery)
+            self.last_metadata['response_format_mode']='json_schema' if isinstance(schema,dict) and self.options['structured_outputs'] else 'json_object'
             self.last_metadata['transport_attempted'] = True
             url=os.getenv("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/") + "/api/chat"
             payload: dict[str,Any] = {
@@ -226,6 +231,7 @@ class ModelClient:
                 raise ModelError("Ollama did not return a chat message.")
             content = message.get("content", "")
         else:
+            self.last_metadata['api_family']='openai_chat'
             variable = PROVIDERS[self.provider][1]
             try:
                 base = endpoint(self.provider)
@@ -237,6 +243,7 @@ class ModelClient:
             payload = {"model":self.model,"messages":messages,"temperature":0.2,"max_tokens":output,"stream":False}
             if self.options['structured_outputs']:
                 payload['response_format'] = {"type":"json_object"}
+            self.last_metadata['response_format_mode']='json_object' if self.options['structured_outputs'] else 'off'
             if self.provider == 'cloudflare':
                 payload['options'] = {'rejectIfBusy':True}
             self.last_metadata['transport_attempted'] = True

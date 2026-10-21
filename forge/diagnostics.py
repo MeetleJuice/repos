@@ -17,7 +17,7 @@ import sqlite3
 import subprocess
 import threading
 import time
-from typing import Any
+from typing import Any, Callable
 import uuid
 
 from .providers import SECRET_NAMES
@@ -87,7 +87,7 @@ _IDENTIFIERS = {'provider', 'model', 'role', 'status', 'category', 'error_catego
                 'id', 'time', 'started', 'finished', 'method', 'code', 'severity', 'outcome', 'state',
                 'failure_class', 'response_model', 'response_provider', 'current_version', 'release_version',
                 'previous_version', 'command_template', 'before_sha256', 'after_sha256', 'disposition',
-                'review_codes', 'planning_stage', 'task_planning_policy', 'response_sha256'}
+                'review_codes', 'planning_stage', 'task_planning_policy', 'outline_planning_policy', 'response_sha256', 'response_format_mode', 'api_family'}
 _FREE_TEXT = {'message', 'reason', 'meaning', 'notes', 'note', 'title', 'label', 'summary', 'description',
               'log', 'stdout', 'stderr', 'error', 'error_detail', 'detail', 'diagnosis', 'criteria',
               'done_when', 'expected', 'observed', 'outcome', 'issues', 'request', 'response',
@@ -369,11 +369,13 @@ def resource_snapshot(home: Path) -> dict[str, Any]:
 
 
 class ResourceSampler:
-    def __init__(self, recorder: FlightRecorder, home: Path, interval: float = 30.0) -> None:
+    def __init__(self, recorder: FlightRecorder, home: Path, interval: float = 30.0,
+                 local_probe: Callable[[], dict[str,Any]] | None = None) -> None:
         self.recorder, self.home = recorder, Path(home)
         self.interval = max(1.0, interval)
         self._stop = threading.Event()
         self.thread: threading.Thread | None = None
+        self.local_probe=local_probe
 
     def start(self) -> None:
         if self.thread is not None and self.thread.is_alive():
@@ -396,6 +398,8 @@ class ResourceSampler:
                     current['cpu_utilization_percent'] = None
                 previous = counters
                 self.recorder.record('hardware_sample', current, origin='resource_sampler')
+                if self.local_probe and not self._stop.is_set():
+                    self.recorder.record('local_runtime_sample',self.local_probe(),origin='resource_sampler')
                 total_ram, available = current.get('ram_total_bytes'), current.get('ram_available_bytes')
                 if (total_ram and available is not None and available < total_ram * 0.05) or (current.get('disk_free_bytes') is not None and current['disk_free_bytes'] < 500_000_000):
                     self.recorder.record('resource_pressure', {'available_ram_bytes': available, 'disk_free_bytes': current.get('disk_free_bytes'), 'meaning': 'Observed low resource availability; not proof of a pipeline failure cause.'}, origin='resource_sampler')

@@ -13,6 +13,7 @@
     <script src="/workflow.js" defer></script>
     <script src="/app.js" defer></script>
     <script src="/diagnostics.js" defer></script>
+    <script src="/system-tests.js" defer></script>
     <script src="/activity.js" defer></script>
     <script src="/cloud.js" defer></script>
     <script src="/updates.js" defer></script>
@@ -56,6 +57,7 @@
         <aside id="model-status-panel" aria-label="Model activity"><span class="muted">Model activity · green = observed/catalogue, not app verification</span><div id="model-status-icons"></div></aside>
         <div class="topbar-actions">
           <button id="diag-button" class="quiet" type="button" title="Inspect local evidence and download a private diagnostic report">Diag</button>
+          <button id="system-test-button" class="quiet" type="button">Test</button>
           <button id="update-button" class="update-button">↻ Update</button
           ><button id="connections-button" class="quiet">Models</button
           ><button id="sound-toggle" class="quiet" aria-pressed="false" title="Optional completion sounds">Sound off</button><button id="workspace-button" class="quiet">
@@ -793,6 +795,17 @@ Generated files will appear here after approval.</pre
       </details>
     </dialog>
 
+    <dialog id="system-test-dialog" aria-labelledby="system-test-title">
+      <div class="results-heading"><h2 id="system-test-title">Test Foundry’s connections</h2><button id="system-test-close" class="quiet" type="button" aria-label="Close tests">✕</button></div>
+      <p>Run checks, then use Diag to download the results. These checks never execute your generated app or change model routes.</p>
+      <label for="system-test-mode">What to test</label>
+      <select id="system-test-mode"><option value="quick">Quick checks · storage, controller and catalogues · no generation</option><option value="local">Quick checks + local model responses</option><option value="cloud">Quick checks + local and cloud model responses</option></select>
+      <label id="system-test-consent-label" hidden><input type="checkbox" id="system-test-consent"> I allow fixed cloud probes. API charges may apply. No project content is sent.</label>
+      <p class="muted">Response probes use one saved model per cloud provider and up to two saved local models, at most nine calls. They test a tiny JSON fixture, not project-building ability. Select a project first to test its routes. Stopping takes effect between checks; an in-flight request must finish or time out.</p>
+      <div class="actions"><button id="system-test-start" class="primary" type="button">Run checks</button><button id="system-test-stop" type="button" disabled>Stop after current check</button></div>
+      <p id="system-test-status" role="status" aria-live="polite">No test run loaded.</p>
+      <div id="system-test-results"></div>
+    </dialog>
     <dialog id="diag-dialog" aria-labelledby="diag-title">
       <div class="results-heading">
         <div><span class="eyebrow">MASTER DIAG</span><h2 id="diag-title">Evidence, ready to investigate.</h2></div>

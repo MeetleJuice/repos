@@ -52,7 +52,8 @@ EVENT_FIELDS = {
                       'visible_output_tokens', 'thinking_tokens', 'ollama_load_seconds', 'ollama_eval_seconds',
                       'ollama_prompt_seconds', 'ollama_tokens_per_second', 'failure_class', 'error_category',
                       'review_codes', 'review_findings', 'candidate_shape', 'response_sha256', 'proposal_valid',
-                      'planning_stage', 'task_planning_policy', 'target_feature_indexes'},
+                      'planning_stage', 'task_planning_policy', 'target_feature_indexes', 'configured_num_ctx', 'structured_outputs_requested',
+                      'response_format_mode', 'response_model', 'response_provider', 'api_family'},
     'job_started': {'action', 'execute', 'runtime', 'max_repairs', 'milestones'},
     'job_finished': {'action', 'status', 'seconds', 'next_task', 'model_attempts',
                      'repairs_used', 'repair_count_total'},
@@ -83,6 +84,7 @@ EVENT_FIELDS = {
     'proposal_approved': {'tasks', 'http_checks', 'browser_checks', 'manual_checks'},
 }
 OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase', 'exception_type',
+                    'code', 'rows', 'planned_probes', 'generation_requested', 'cloud_consent', 'passed',
                     'location', 'line', 'launch_id', 'reason', 'event_count', 'method', 'status', 'route',
                     'report_id', 'bytes', 'findings', 'safe_checks_only', 'port', 'update_restart',
                     'workspace_imported', 'error_type', 'operation', 'task', 'task_id', 'file', 'files',
@@ -92,6 +94,10 @@ OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase
                     'frames', 'errno', 'failure_class', 'requested_max_output_tokens', 'num_ctx', 'timeout_seconds',
                     'characters', 'idea_sha256', 'project_created', 'current_version', 'release_version', 'sha256',
                     'pending_health_check', 'backup_saved', 'providers'}
+
+
+EVENT_FIELDS['system_test_result'] = EVENT_FIELDS['model_attempt'] | {
+    'code','status','report_id','exception_type','models_count','generation_tested','response_received','restart_read','cases','inference_tested'}
 
 
 def _safe_recorder(snapshot: dict[str, Any]) -> dict[str, Any]:
@@ -107,7 +113,7 @@ def _safe_recorder(snapshot: dict[str, Any]) -> dict[str, Any]:
             excluded += 1
             continue
         kind = str(record.get('kind', 'unknown'))
-        fields = set(data) if kind in {'hardware_sample', 'resource_pressure'} else EVENT_FIELDS.get(kind, OPERATION_FIELDS)
+        fields = set(data) if kind in {'hardware_sample', 'resource_pressure', 'local_runtime_sample'} else EVENT_FIELDS.get(kind, OPERATION_FIELDS)
         row = {key: record.get(key) for key in ('schema', 'id', 'time', 'kind', 'project_id', 'run_id', 'origin', 'sequence', 'record_sha256')}
         row['data'] = sanitize_event_data(str(kind), {key: value for key, value in data.items() if key in fields}, str(record.get('origin', 'controller')))
         rows.append(row)
@@ -222,9 +228,10 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         raise ValueError('Diagnostic loopback probe refused a redirect.')
 
 
-def _ollama_probe() -> dict[str, Any]:
+def _ollama_probe(route: str = '/api/tags') -> dict[str, Any]:
     """A catalogue GET only: no model loading, inference, credentials or proxies."""
     base = os.getenv('OLLAMA_URL', 'http://127.0.0.1:11434').rstrip('/')
+    if route not in {'/api/tags','/api/ps','/api/version'}:raise ValueError('Unsupported diagnostic runtime route.')
     try:
         parsed = urllib.parse.urlsplit(base)
         port = parsed.port
@@ -236,21 +243,28 @@ def _ollama_probe() -> dict[str, Any]:
         return {'status': 'configuration_error', 'failure': 'Unsafe or invalid local endpoint; no request sent.'}
     try:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
-        request = urllib.request.Request(base + '/api/tags', headers={'User-Agent': 'IdeaFoundry/' + __version__ + ' diagnostic-catalogue'})
+        request = urllib.request.Request(base + route, headers={'User-Agent': 'IdeaFoundry/' + __version__ + ' diagnostic-catalogue'})
         with opener.open(request, timeout=2) as response:
             raw = response.read(200001)
         if len(raw) > 200000:
             raise ValueError('Local model catalogue exceeds diagnostic limit.')
         data = json.loads(raw)
+        if route=='/api/version':
+            version=data.get('version') if isinstance(data,dict) else None
+            return {'status':'available' if isinstance(version,str) and re.fullmatch(r'[A-Za-z0-9_.+-]{1,60}',version) else 'unknown',
+                    'version':version if isinstance(version,str) and re.fullmatch(r'[A-Za-z0-9_.+-]{1,60}',version) else None,'generation_tested':False}
         models = data.get('models') if isinstance(data, dict) else None
         if not isinstance(models, list):
             raise ValueError('Local model catalogue has an unexpected shape.')
         rows = []
         for item in models[:100]:
             if isinstance(item, dict) and isinstance(item.get('name'), str):
-                rows.append({key: item[key] for key in ('name', 'size', 'digest') if key in item})
+                if route=='/api/ps':
+                    rows.append({'model':item['name'],**{key:item[key] for key in ('size','size_vram','context_length')
+                        if type(item.get(key)) is int and 0<=item[key]<=10**18}})
+                else:rows.append({key: item[key] for key in ('name', 'size', 'digest') if key in item})
         return {'status': 'available', 'models': rows, 'models_omitted': max(0, len(models) - 100),
-                'generation_tested': False, 'meaning': 'Catalogue connectivity only; no GPU fit or inference quota claim.'}
+                'generation_tested': False, 'meaning': 'Loaded local model metadata only; no inference or GPU-fit claim.' if route=='/api/ps' else 'Catalogue connectivity only; no GPU fit or inference quota claim.'}
     except urllib.error.HTTPError as exc:
         status = exc.code
         exc.close()
@@ -262,6 +276,10 @@ def _ollama_probe() -> dict[str, Any]:
 def ollama_health() -> dict[str, Any]:
     """Public safe-check seam for integration tests and the diagnostic endpoint."""
     return _ollama_probe()
+
+
+def ollama_process_health() -> dict[str, Any]:
+    return _ollama_probe('/api/ps')
 
 
 def _environment() -> dict[str, Any]:
@@ -442,7 +460,7 @@ def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[
 def _planning_metadata(state: dict[str, Any]) -> dict[str, Any]:
     from .planning_diagnostics import candidate_shape
     draft = state.get('guided_draft') or {}
-    outline = draft.get('outline') or {}
+    outline = draft.get('outline') or draft.get('scope') or {}
     digest = draft.get('request_sha256')
     return {'mode': state.get('planning_mode') if state.get('planning_mode') in {'guided', 'single'} else None,
             'builder_profile': sanitize_event_data('builder_profile', {key: value for key, value in (state.get('builder_profile') or {}).items()
@@ -487,6 +505,14 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
         return value
 
     root = Path(program_root)
+    from .system_tests import read_tests
+    test_report=section('system_tests',lambda:read_tests(bench.root.parent/'diagnostics'/'system-tests-v1.json',bool(getattr(bench,'test_busy',False))))
+    section('local_runtime',ollama_process_health)
+    section('local_runtime_version',lambda:_ollama_probe('/api/version'))
+    if test_report.get('available'):
+        failed=sum(row.get('status')=='failed' for row in test_report.get('rows',[]))
+        if failed:
+            finding('latest_system_tests','confirmed_failure','system_tests',str(failed)+' checks failed in the latest explicit Test run. See system_tests.json for provider/error classes. A failed tiny probe does not establish that all models are unavailable.')
     section('application', lambda: {'version': __version__, 'git': _git_info(root), 'packaged_identity': _build_identity(root),
                                    'active_jobs': sum(thread.is_alive() for thread, _ in bench.jobs.values()),
                                    'workspace_warning_count': len(bench.warnings)})
@@ -686,6 +712,9 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                           'findings': len(findings), 'confirmed_failures': findings_count['confirmed_failure'],
                           'warnings': findings_count['warning'], 'missing_evidence': findings_count['missing_evidence'],
                           'project_count': len(project_rows), 'detailed_project_count': sum('history' in row for row in project_rows),
+                          'latest_test': {'status':test_report.get('status'),'finished':test_report.get('finished'),
+                                          'results':len(test_report.get('rows',[])),
+                                          'failed':sum(row.get('status')=='failed' for row in test_report.get('rows',[]))},
                           'history_records': len(history_records), 'recorder_records': len(recorder.get('records', [])),
                           'collection_seconds': round(time.monotonic() - started, 3)},
               'findings': findings, 'evidence': evidence,

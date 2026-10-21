@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "provenance": {
+    "kind": "synthetic-stage-fixture-with-observed-validator-digest-matches",
+    "report_id": "ec1d6a0819c64e1c898d2cd9e85a4b1c",
+    "original_model_candidates_available": false,
+    "live_model_generation": false,
+    "observed_attempts": 18,
+    "observed_provider_failures": 12,
+    "observed_schema_failures": 6
+  },
+  "scope": {
+    "title": "Tiny Wins \u2014 evidence-ready draft",
+    "summary": "Reuse tested SQLite storage; build the browser interface.",
+    "features": [
+      "Create and list records with SQLite persistence",
+      "Use a responsive accomplishment interface"
+    ],
+    "out_of_scope": [
+      "Accounts"
+    ],
+    "risks": [
+      "Manual UI checks still require actual observations."
+    ],
+    "app_kind": "server",
+    "context_policy": "focused_v1",
+    "task_contract_version": 1
+  },
+  "acceptance": {
+    "checks": [
+      {
+        "name": "Create a concrete record",
+        "method": "POST",
+        "path": "/api/records",
+        "body": {
+          "title": "Saved proof",
+          "note": "Persists"
+        },
+        "status": 201,
+        "json_contains": {
+          "id": 1,
+          "title": "Saved proof"
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Read the created record",
+        "method": "GET",
+        "path": "/api/records",
+        "status": 200,
+        "json_contains": {
+          "records": [
+            {
+              "id": 1,
+              "title": "Saved proof"
+            }
+          ]
+        },
+        "feature_indexes": [
+          0
+        ]
+      },
+      {
+        "name": "Read it after restart",
+        "method": "GET",
+        "path": "/api/records",
+        "status": 200,
+        "restart_before": true,
+        "json_contains": {
+          "records": [
+            {
+              "title": "Saved proof",
+              "note": "Persists"
+            }
+          ]
+        },
+        "feature_indexes": [
+          0
+        ]
+      }
+    ],
+    "api_contracts": [
+      {
+        "method": "POST",
+        "path": "/api/records",
+        "status": 201,
+        "response_kind": "object",
+        "required_fields": [
+          "id",
+          "title",
+          "note",
+          "created_at"
+        ]
+      },
+      {
+        "method": "GET",
+        "path": "/api/records",
+        "status": 200,
+        "response_kind": "object",
+        "required_fields": [
+          "records",
+          "today_count"
+        ]
+      }
+    ],
+    "manual_checks": [
+      {
+        "name": "Browser interaction",
+        "steps": [
+          "Add a win, filter, reload and delete it."
+        ],
+        "expected": "The record persists and the list updates.",
+        "feature_indexes": [
+          1
+        ]
+      }
+    ]
+  },
+  "cases": [
+    {
+      "code": "check_structure",
+      "path": "/checks",
+      "message": "Outline checks must be an array of objects.",
+      "message_sha256": "e703db2e6ec37fad66b2523c29bac5ffdb4ba713200a8789e3ed53451359b5cb"
+    },
+    {
+      "code": "acceptance_coverage",
+      "path": "/features",
+      "message": "Every feature needs acceptance check coverage. Missing feature indexes: [6, 8].",
+      "message_sha256": "fc02458145e66c7418b5f47639802443fddfc5f3029424384ac2a1e900271248"
+    },
+    {
+      "code": "acceptance_coverage",
+      "path": "/features",
+      "message": "Every feature needs acceptance check coverage. Missing feature indexes: [6, 7].",
+      "message_sha256": "3a0a78a125ee57889de3febc0df59a4a370f2b77192e4ccbd96e256d48407ebd"
+    },
+    {
+      "code": "assertion_required",
+      "path": "/checks",
+      "message": "Every check needs contains, nonempty json_contains, or json_equals.",
+      "message_sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b"
+    }
+  ]
+}

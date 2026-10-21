@@ -28,8 +28,9 @@ from .storage import data_home, import_legacy, workspace_lock
 from .runner import runtime_diagnostics
 from .updates import UpdateManager, atomic_json
 from .diagnostics import FlightRecorder, ResourceSampler
-from .diagnostic_report import collect_report, export_report
+from .diagnostic_report import collect_report, export_report, ollama_process_health
 from .ideas import generate_idea
+from .system_tests import SystemTests,probe_targets
 from .lifecycle import exception_hooks, record_exception
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,6 +53,7 @@ def make_server(port=8765, workbench=None, credentials=None):
     updater = UpdateManager(bench.root.parent, ROOT, bench)
     diagnostic_lock = threading.Lock()
     diagnostic_cache = {}
+    system_tests = SystemTests(bench,cloud.check,lambda:connection_info().get('ollama',{}))
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -106,7 +108,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                             raise ValueError("Request body must be a JSON object.")
                     else:
                         body = {}
-                    if post and path in {"/api/updates/check", "/api/diagnostics", "/api/diagnostics/export", "/api/ideas/generate"}:
+                    if post and path in {"/api/updates/check", "/api/diagnostics", "/api/diagnostics/export", "/api/ideas/generate", "/api/system-tests/start", "/api/system-tests/stop"}:
                         self.api(path, post, body)
                     elif post:
                         with bench.lock:
@@ -124,7 +126,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.send_bytes(200, html.encode(), "text/html; charset=utf-8")
                 elif path == "/icon.png":
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "image/png")
-                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/activity.js", "/workflow.js", "/studio.js", "/diagnostics.js", "/studio.css", "/style.css"}:
+                elif path in {"/app.js", "/planning.js", "/updates.js", "/cloud.js", "/activity.js", "/workflow.js", "/studio.js", "/diagnostics.js", "/system-tests.js", "/studio.css", "/style.css"}:
                     self.send_bytes(200, (ROOT / "forge" / "static" / path[1:]).read_bytes(), "text/javascript" if path.endswith(".js") else "text/css")
                 else:
                     self.json({"error": "Not found."}, 404)
@@ -147,6 +149,20 @@ def make_server(port=8765, workbench=None, credentials=None):
                         'seconds': elapsed, 'diagnostic_operation': path.startswith('/api/diagnostics')})
 
         def api(self, path, post, body):
+            if path == '/api/system-tests/status' and not post:
+                self.json(system_tests.status());return
+            if path == '/api/system-tests/stop' and post:
+                self.json(system_tests.stop());return
+            if path == '/api/system-tests/start' and post:
+                mode=body.get('mode','quick')
+                if mode not in ('quick','local','cloud'):raise ValueError('Choose quick, local or cloud tests.')
+                ident=body.get('project_id')
+                if ident:
+                    state=bench.load(ident);profiles=[state['coder'],state['planner']]
+                else:profiles=list(cloud.saved_profiles().values())
+                if mode=='local':profiles=[entry for entry in probe_targets(profiles) if entry['provider'] in {'ollama','local'}]
+                diagnostic_cache.clear()
+                self.json(system_tests.start(profiles,mode!='quick',body.get('cloud_consent') is True));return
             if path in {'/api/diagnostics', '/api/diagnostics/export'} and post:
                 ident = body.get('project_id')
                 if ident is not None:
@@ -376,7 +392,7 @@ def main():
                 publish_instance(home, server.server_port, __version__, nonce)
             except Exception as exc:
                 record_exception(diagnostics, 'desktop_setup_failed', exc)
-            sampler = ResourceSampler(diagnostics, home)
+            sampler = ResourceSampler(diagnostics, home, local_probe=ollama_process_health)
             sampler.start()
             diagnostics.record('application_ready', {'version': __version__, 'port': server.server_port,
                 'pid': os.getpid(), 'warnings': len(bench.warnings)})

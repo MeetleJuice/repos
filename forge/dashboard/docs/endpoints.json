@@ -378,6 +378,18 @@
     "Export the displayed evidence snapshot through direct authenticated fetch", "Diagnostic ZIP download", "Delivery & recovery"
   ],
   [
+    "POST", "/api/system-tests/start", "#system-test-start", "SystemTests.start()", "system-tests.js",
+    "Explicit bounded checks; optional fixed model probes require cloud consent", "renderSystemTests()", "Delivery & recovery"
+  ],
+  [
+    "POST", "/api/system-tests/stop", "#system-test-stop", "SystemTests.stop()", "system-tests.js",
+    "Stop between checks; in-flight requests retain their socket timeout", "renderSystemTests()", "Delivery & recovery"
+  ],
+  [
+    "GET", "/api/system-tests/status", "pollSystemTests()", "SystemTests.status()", "system-tests.js",
+    "Read latest in-memory test state without running checks", "renderSystemTests()", "Delivery & recovery"
+  ],
+  [
     "POST", "/api/ideas/generate", "#generate-idea", "generate_idea()", "diagnostics.js",
     "One isolated local inference request; edit existing input only", "Idea field insertion", "Planning & approval"
   ]

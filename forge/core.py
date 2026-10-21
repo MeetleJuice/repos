@@ -646,6 +646,7 @@ class Workbench:
 
     def start(self, ident, action, options):
         with self.lock:
+            if getattr(self,'test_busy',False):raise ValueError('Wait for system tests to finish or stop them before starting a project job.')
             if self.idea_busy:
                 raise ValueError('Wait for Generate Idea to finish before starting a project job.')
             if self.maintenance:
@@ -1297,16 +1298,20 @@ class Workbench:
                 if mode=='guided':
                     # New drafts only: approved plans and legacy replay contracts stay intact.
                     request['task_planning_policy']='compiled_v1'
+                    request['outline_planning_policy']='split_v1'
                     def checkpoint(draft):
                         state['guided_draft']=draft
-                        state['planning_progress']={'stage':'outline saved' if not draft['tasks'] else 'task batch saved',
+                        outline=draft.get('outline') or draft.get('scope') or {}
+                        stage='scope saved' if draft.get('outline') is None else 'outline saved' if not draft['tasks'] else 'task batch saved'
+                        state['planning_progress']={'stage':stage,
                             'task_planning_policy':draft.get('task_planning_policy'),
-                            'features_planned':draft['next_feature'],'features_total':len(draft['outline']['features']),
+                            'features_planned':draft['next_feature'],'features_total':len(outline.get('features',[])),
                             'tasks':len(draft['tasks']),'meaning':'Unapproved draft only. Final full-proposal review is still required.'}
                         self.trace(state,'guided_plan_checkpoint',state['planning_progress'])
-                        self.event(state,'Guided planning: '+str(draft['next_feature'])+'/'+str(len(draft['outline']['features']))+' features assigned to '+str(len(draft['tasks']))+' tasks. Draft saved; not approved.')
+                        self.event(state,'Guided planning: '+str(draft['next_feature'])+'/'+str(len(outline.get('features',[])))+' features assigned to '+str(len(draft['tasks']))+' tasks. '+stage+'. Draft saved; not approved.')
                     def generate_stage(system,payload,validate):
-                        self.event(state,'Guided planning: '+('define features and acceptance checks' if payload.get('planning_stage')=='outline' else 'plan feature indexes '+str(payload['target_feature_indexes']))+'.')
+                        stage=payload.get('planning_stage')
+                        self.event(state,'Guided planning: '+({'scope':'define scope only','acceptance':'define acceptance against saved scope','outline':'define features and acceptance checks'}.get(stage,'plan feature indexes '+str(payload.get('target_feature_indexes',[]))))+'.')
                         def review_stage(candidate):
                             if state.get('evidence_planning') and payload.get('planning_stage')=='outline' and isinstance(candidate,dict):
                                 candidate={**candidate,'acceptance_policy':'evidence_v1'}

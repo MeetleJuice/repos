@@ -124,7 +124,7 @@ class CapabilityRegistry:
         estimate = 512 + len(PLAN_SCHEMA['required'])*40 + min(tasks,40)*(640 if structured_tasks else 320) + min(checks,80)*240 + min(features,40)*100
         from .guided import planner_schema
         schema=planner_schema(system) or PLAN_SCHEMA
-        if payload.get('planning_stage')=='outline':
+        if payload.get('planning_stage') in {'outline','scope','acceptance'}:
             estimate=512+len(schema['required'])*40+min(checks,15)*240+min(features,12)*100
         elif payload.get('planning_stage') in {'tasks','feature_tasks'}:
             maximum=payload.get('max_new_tasks',4)

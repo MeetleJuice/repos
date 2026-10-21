@@ -22,9 +22,9 @@ class ModelStatus:
         with self.lock:
             self.active = {'provider':provider,'model':model,'role':role,'project':project,'started':time.time()}
 
-    def finish(self, provider: str, model: str, outcome: str) -> None:
+    def finish(self, provider: str, model: str, outcome: str, *, remember: bool = True) -> None:
         with self.lock:
-            self.observed[(provider,model)] = {'state':outcome,'at':time.time()}
+            if remember:self.observed[(provider,model)] = {'state':outcome,'at':time.time()}
             self.active = None
 
     def reject(self, provider: str, model: str) -> None:

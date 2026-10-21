@@ -225,6 +225,7 @@ class UpdateManager:
                 raise ValueError('Finish or stop running jobs before updating.')
             if getattr(self.bench, 'idea_busy', False):
                 raise ValueError('Wait for Generate Idea to finish before updating.')
+            if getattr(self.bench,'test_busy',False):raise ValueError('Wait for system tests to finish before updating.')
             self.bench.maintenance = True
             self.state.update(status='installing', message='Validating download and backing up projects. Keep this terminal open.')
             self.record('update_install_started', {'current_version': current, 'release_version': self.release['version']})
