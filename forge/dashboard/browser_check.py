@@ -31,6 +31,10 @@ def main():
                 page.on('request',lambda request:requests.append((request.method,request.url)))
                 page.goto(base+'/dashboard')
                 expect(page.locator('.ifd-shell')).to_have_attribute('data-layout','ready',timeout=30000)
+                graph=json.loads((Path(__file__).parent/'src/graph.json').read_text())
+                def centered(label):
+                    ident=next(node['id'] for node in graph['nodes'] if node['label']==label)
+                    page.wait_for_function("""id=>{const node=document.querySelector('[data-id="'+CSS.escape(id)+'"]');const view=document.querySelector('.react-flow');if(!node||!view)return false;const a=node.getBoundingClientRect(),b=view.getBoundingClientRect();return Math.abs(a.x+a.width/2-b.x-b.width/2)<4&&Math.abs(a.y+a.height/2-b.y-b.height/2)<4;}""",arg=ident,timeout=5000)
                 assert page.locator('.react-flow__node').count()>10
                 assert page.locator('canvas').count()==0
                 page.locator('[aria-label="Playback tempo"]').select_option('80')
@@ -48,7 +52,7 @@ def main():
                 expect(page.locator('.ifd-shell')).to_have_attribute('data-layout','ready',timeout=30000)
                 page.get_by_role('button',name='Play simulation',exact=False).click()
                 expect(page.locator('.ifd-footer')).to_contain_text('Scenario complete',timeout=10000)
-                assert page.locator('.ifd-failed').count()==1
+                expect(page.locator('.ifd-failed')).to_have_count(1)
                 page.locator('.ifd-stop').click()
                 page.get_by_label('Full map',exact=True).check()
                 expect(page.locator('.ifd-shell')).to_have_attribute('data-layout','ready',timeout=30000)
@@ -84,13 +88,23 @@ def main():
                 assert page.locator('.ifd-events button').count()==0
                 state['status']='building';bench.save(state)
                 expect(page.locator('[data-id="state-building"] .ifd-running')).to_have_count(1,timeout=5000)
+                bench.trace(state,'model_request_started',{'provider':'ollama','model':'fixture','role':'coder'})
+                expect(page.locator('.ifd-events button').filter(has_text='ModelClient.complete()')).to_have_attribute('title',re.compile('model_request_started'),timeout=5000)
+                centered('ModelClient.complete()')
                 bench.trace(state,'model_attempt',{'success':False,'error_category':'transport'})
                 expect(page.locator('.ifd-events')).to_contain_text('ModelClient.complete()',timeout=5000)
-                assert page.locator('.ifd-failed').count()==1
+                expect(page.locator('.ifd-failed')).to_have_count(1,timeout=5000)
+                centered('ModelClient.complete()')
+                page.get_by_label('Follow activity',exact=True).uncheck()
+                viewport=page.locator('.react-flow__viewport').get_attribute('style')
                 bench.trace(state,'code_response_rejected',{'reason':'Fixture: invalid Python; no files replaced','files_replaced':False})
                 expect(page.locator('.ifd-events')).to_contain_text('Workbench.generate_and_apply()',timeout=5000)
                 assert page.locator('.ifd-failed').count()==2
                 expect(page.locator('.ifd-events button').filter(has_text='Workbench.generate_and_apply()')).to_have_attribute('title',re.compile('invalid Python'))
+                page.wait_for_timeout(400)
+                assert page.locator('.react-flow__viewport').get_attribute('style')==viewport,'Unchecked Follow moved the viewport'
+                page.get_by_label('Follow activity',exact=True).check()
+                centered('Workbench.generate_and_apply()')
                 state['status']='generated';bench.save(state)
                 expect(page.locator('.ifd-observed-status')).to_have_text('generated',timeout=5000)
                 assert page.locator('.ifd-running').count()==0

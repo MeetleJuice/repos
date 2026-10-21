@@ -37,10 +37,11 @@ class ModelStatus:
                 self.active['characters']=self.active.get('characters',0)+len(text)
                 self.active['preview']=(self.active.get('preview','')+text)[-2000:]
 
-    def avoid(self, provider: str, model: str) -> bool:
+    def avoid(self, provider: str, model: str, include_response: bool = True) -> bool:
         with self.lock:
             result = self.observed.get((provider,model),{})
-            return result.get('state') in {'model','auth','quota','configuration','response_rejected','schema_error'} and time.time()-result.get('at',0)<300
+            failures={'model','auth','quota','configuration'}|({'response_rejected','schema_error'} if include_response else set())
+            return result.get('state') in failures and time.time()-result.get('at',0)<300
 
     def snapshot(self, checked: dict[str, Any], local: dict[str, Any]) -> dict[str, Any]:
         with self.lock:

@@ -40,6 +40,7 @@ function Dashboard() {
   const [events,setEvents]=useState<Activity[]>([]);const [phase,setPhase]=useState<'idle'|'running'|'paused'|'done'>('idle');
   const [layout,setLayout]=useState<Layout|null>(null);const [error,setError]=useState('');
   const [speed,setSpeed]=useState(600);const [follow,setFollow]=useState(true);
+  const [followTarget,setFollowTarget]=useState<Activity|null>(null);
   const [mode,setMode]=useState<'simulation'|'observed'>('simulation');
   const [projects,setProjects]=useState<{id:string;title:string;status:string}[]>([]);
   const [project,setProject]=useState('');const [observedState,setObservedState]=useState('Not connected');
@@ -48,8 +49,8 @@ function Dashboard() {
   const observer=useMemo(()=>new ReadOnlyObserver(engine,graph),[engine]);
   const searchRef=useRef<HTMLInputElement>(null);
   const selectedRef=useRef(selected);selectedRef.current=selected;
-  const layoutRef=useRef(layout);layoutRef.current=layout;
   const followRef=useRef(follow);followRef.current=follow;
+  const targetRef=useRef(followTarget);targetRef.current=followTarget;
   const {fitView,setCenter}=useReactFlow<ProcessNode,ProcessEdge>();
   const selectedFlow=graph.flows.find(flow=>flow.id===scenario)||graph.flows[0];
   const tour=scenario==='all';
@@ -61,7 +62,7 @@ function Dashboard() {
   useEffect(()=>{
     const controller=new AbortController();let centerTimer:ReturnType<typeof setTimeout>|undefined;setLayout(null);setError('');
     void layoutGraph({...graph,nodes:filteredNodes,edges:filteredEdges},controller.signal).then(result=>{
-      if(!controller.signal.aborted){setLayout(result);const first=result.positions[selectedRef.current?.id||selectedFlow.path[0]]||Object.values(result.positions)[0];if(first)centerTimer=setTimeout(()=>{void setCenter(first.x+WIDTH/2,first.y+HEIGHT/2,{zoom:0.9,duration:0});},50);}
+      if(!controller.signal.aborted){setLayout(result);const first=result.positions[selectedRef.current?.id||selectedFlow.path[0]]||Object.values(result.positions)[0];if(first)centerTimer=setTimeout(()=>{if(followRef.current&&targetRef.current&&result.positions[targetRef.current.nodeId])return;void setCenter(first.x+WIDTH/2,first.y+HEIGHT/2,{zoom:0.9,duration:0});},50);}
     }).catch(reason=>{if(!controller.signal.aborted)setError('Layout unavailable: '+String(reason));});
     return ()=>{controller.abort();clearTimeout(centerTimer);};
   },[filteredNodes,filteredEdges,selectedFlow,setCenter]);
@@ -74,17 +75,19 @@ function Dashboard() {
         next[event.nodeId]=event.status;return next;
       });
       setEvents(current=>[event,...current].slice(0,60));
-      if(event.status==='running'&&followRef.current) {
-        const at=layoutRef.current?.positions[event.nodeId];
-        if(at)void setCenter(at.x+WIDTH/2,at.y+HEIGHT/2,{zoom:0.96,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:260});
-      }
+      if(event.status==='running'||event.mode==='observed'&&event.status!=='idle')setFollowTarget(event);
     });
     const timer=setInterval(()=>{const progress=engine.progress();setPhase(current=>current==='running'&&!progress.running?'done':current);},120);
     return ()=>{unsubscribe();clearInterval(timer);engine.dispose();observer.stop();};
   },[engine,observer,setCenter]);
 
   useEffect(()=>{
-    engine.stop();observer.stop();setPhase('idle');setStatuses({});setEvents([]);setError('');
+    const at=followTarget?layout?.positions[followTarget.nodeId]:undefined;
+    if(follow&&at)void setCenter(at.x+WIDTH/2,at.y+HEIGHT/2,{zoom:0.96,duration:matchMedia('(prefers-reduced-motion: reduce)').matches?0:260});
+  },[follow,followTarget,layout,setCenter]);
+
+  useEffect(()=>{
+    engine.stop();observer.stop();setPhase('idle');setStatuses({});setEvents([]);setFollowTarget(null);setError('');
     setProject('');setObservedState('Not connected');
     let cancelled=false;
     if(mode==='observed')void observer.projects().then(items=>{if(!cancelled)setProjects(items);}).catch(reason=>{if(!cancelled)setError(String(reason));});
@@ -114,10 +117,10 @@ function Dashboard() {
     else {setFullMap(true);}
   },[layout,setCenter]);
   function play() {
-    setError('');setStatuses({});setEvents([]);setPhase('running');
+    setError('');setStatuses({});setEvents([]);setFollowTarget(null);setPhase('running');
     engine.play(tour?graph.flows:[selectedFlow],speed);
   }
-  function stop() {engine.stop();observer.stop();setPhase('idle');setProject('');setObservedState('Stopped · choose a project to reconnect');setStatuses(current=>Object.fromEntries(Object.entries(current).map(([id,status])=>[id,status==='running'?'idle':status])));}
+  function stop() {engine.stop();observer.stop();setFollowTarget(null);setPhase('idle');setProject('');setObservedState('Stopped · choose a project to reconnect');setStatuses(current=>Object.fromEntries(Object.entries(current).map(([id,status])=>[id,status==='running'?'idle':status])));}
   const last=events[0];const currentNode=graph.nodes.find(node=>node.id===last?.nodeId);
 
   return <div className="ifd-shell" data-mode={mode} data-layout={layout?'ready':'loading'}>
@@ -151,7 +154,7 @@ function Dashboard() {
             <optgroup label="Individual routes and branches">{graph.flows.filter(flow=>!['project-plan','guided-plan','project-build','project-verify','manual-review','repair-loop','failed-job','stop-job'].includes(flow.id)).map(flow=><option key={flow.id} value={flow.id}>{flow.label}</option>)}</optgroup>
           </select><button className="ifd-play" onClick={play} disabled={!layout||phase==='running'||phase==='paused'}>▶ Play simulation</button>
           <button className="ifd-icon-button" aria-label={phase==='paused'?'Resume simulation':'Pause simulation'} disabled={!['running','paused'].includes(phase)} onClick={()=>{if(phase==='paused'){engine.resume();setPhase('running');}else{engine.pause();setPhase('paused');}}}>{phase==='paused'?'▶':'Ⅱ'}</button></>
-            :<><label htmlFor="ifd-project" className="ifd-sr">Project to observe</label><select id="ifd-project" value={project} onChange={event=>{setProject(event.target.value);setObservedState(event.target.value?'Connecting…':'Not connected');setStatuses({});setEvents([]);if(event.target.value)observer.watch(event.target.value,setObservedState,setError);else observer.stop();}}><option value="">Choose a saved project…</option>{projects.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select><span className="ifd-observed-status" title={observedState}>{observedState}</span></>}
+            :<><label htmlFor="ifd-project" className="ifd-sr">Project to observe</label><select id="ifd-project" value={project} onChange={event=>{setProject(event.target.value);setObservedState(event.target.value?'Connecting…':'Not connected');setStatuses({});setEvents([]);setFollowTarget(null);if(event.target.value)observer.watch(event.target.value,setObservedState,setError);else observer.stop();}}><option value="">Choose a saved project…</option>{projects.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}</select><span className="ifd-observed-status" title={observedState}>{observedState}</span></>}
           <button className="ifd-stop" onClick={stop}>■ Stop</button>
           <button className="ifd-icon-button" aria-label="Fit graph to view" onClick={()=>void fitView({padding:0.15,duration:0})}>⌖</button>
         </div>

@@ -225,7 +225,7 @@ class Workbench:
                     continue
         return sorted(states, key=lambda p: p["created"], reverse=True)
 
-    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True, review_candidate: Callable[[dict[str, Any]], tuple[dict[str, Any], Review]] | None = None, only_model: tuple[str,str] | None = None) -> dict[str, Any]:
+    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True, review_candidate: Callable[[dict[str, Any]], tuple[dict[str, Any], Review]] | None = None, only_model: tuple[str,str] | None = None, response_rejections: set[tuple[str,str]] | None = None) -> dict[str, Any]:
         """Serialize requests, record the actual provider, and bound an explicit fallback."""
         previous = state["status"]
         if not self.inference_lock.acquire(blocking=False):
@@ -260,6 +260,10 @@ class Workbench:
                 if uses_cloud({'provider':selected['provider']}) and not state.get("job_cloud_consent"):
                     raise ValueError("Explicit cloud consent is required for the selected primary or fallback model.")
                 identity = (selected["provider"], selected["model"])
+                if response_rejections is not None and identity in response_rejections:
+                    failures.append('/'.join(identity)+': response_rejected for this response-recovery scope (no request sent)')
+                    self.event(state,'Skipping '+ '/'.join(identity)+' after its bounded correction in this response-recovery scope; a later task or static-repair context may use it again.')
+                    continue
                 if selected['provider'] in state.get('job_provider_rejections',{}):
                     reason=state['job_provider_rejections'][selected['provider']]
                     failures.append(selected['provider']+': '+reason+' (provider skipped, no request sent)')
@@ -285,7 +289,7 @@ class Workbench:
                     continue
                 recovery_mode, prefix = recoveries.get(index, ('initial', ''))
                 effective_prompt = correction_prompts.get(index, prompt)
-                if pool and only_model is None and recovery_mode == 'initial' and self.model_status.avoid(selected['provider'],selected['model']):
+                if pool and only_model is None and recovery_mode == 'initial' and self.model_status.avoid(selected['provider'],selected['model'],include_response=response_rejections is None):
                     failures.append(selected['provider']+': recent_failure')
                     self.event(state,'Skipping recently failed model for up to five minutes: '+selected['provider']+'/'+selected['model']+'.')
                     continue
@@ -343,6 +347,7 @@ class Workbench:
                             raise ModelError('Repeated identical request reached the three-call run limit. Saved files were kept; review and resume with new evidence.','loop_detected')
                         counts[signature]=counts.get(signature,0)+1
                     self.model_status.start(selected["provider"], selected["model"], role, state['id'])
+                    self.trace(state,'model_request_started',{'provider':selected['provider'],'model':selected['model'],'role':role,'recovery_path':record['recovery_path']})
                     if isinstance(client,ModelClient) and selected['provider'] in {'ollama','local'} and state.get('job_stream_local'):
                         client.cancel_event=cancel
                         client.stream_progress=self.model_status.progress
@@ -388,7 +393,11 @@ class Workbench:
                     if exc.http_status is not None:record["http_status"]=exc.http_status
                     category = 'truncated_output' if exc.category in {'truncated','truncated_output'} else exc.category
                     if pool and selected['provider'] in {'ollama','local'} and category in {'transport','provider','format','parse_error','size'}:
-                        state.setdefault('job_model_rejections',{})[selected['provider']+'/'+selected['model']]=category
+                        if response_rejections is not None and category in {'format','parse_error','size'}:
+                            # A failed continuation still owes its bounded
+                            # same-model shortening before response exclusion.
+                            if recovery_mode!='continuation':response_rejections.add(identity)
+                        else:state.setdefault('job_model_rejections',{})[selected['provider']+'/'+selected['model']]=category
                     record['error_category'] = category
                     record['failure_class'] = category if category in {'truncated_output','parse_error','schema_error','output_budget','configuration'} else 'parse_error' if category == 'format' else 'provider_unavailable' if category in {'auth','rate_limit','provider','transport','quota','request','model','configuration'} else category
                     if category == 'truncated_output' or (role in {'planner', 'coder'} and recovery_mode == 'continuation' and category in {'format','parse_error','output_budget'}):
@@ -960,11 +969,11 @@ class Workbench:
         chain=[route,*route.get('fallbacks',[]),*([route['fallback']] if route.get('fallback') else [])]
         response_attempts=max(2,len(chain)) if all(entry['provider']=='ollama' for entry in chain) else 2
         if structured:response_attempts=max(response_attempts,min(12,2*len(chain)))
-        corrections=set();preferred=None
+        corrections=set();preferred=None;response_rejections=set() if structured else None
         for attempt in range(response_attempts):
             correcting=preferred;preferred=None
             try:
-                response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel,only_model=correcting)
+                response = self.call_model(state, "coder", CODE, json.dumps(payload), cancel,only_model=correcting,response_rejections=response_rejections)
                 for _ in range(3):
                     expanded=retrieve_context(response,payload,self.context_files(state['id']))
                     if expanded is None:break
@@ -973,11 +982,12 @@ class Workbench:
                     state['generation_stats']['context_retrievals']+=1
                     self.trace(state,'task_context_expanded',{'included_files':payload['task_context']['included_files'],'remaining':payload['task_context']['retrievals_remaining']})
                     if cancel.is_set():raise InterruptedError('Stopped before context follow-up.')
-                    response=self.call_model(state,'coder',CODE,json.dumps(payload),cancel)
+                    response=self.call_model(state,'coder',CODE,json.dumps(payload),cancel,response_rejections=response_rejections)
                 if isinstance(response,dict) and 'request_context' in response:raise ContextRequestError('Task context retrieval limit reached.')
             except ModelError as exc:
                 if correcting and attempt+1<response_attempts:
-                    state.setdefault('job_model_rejections',{})['/'.join(correcting)]=exc.category
+                    if response_rejections is not None:response_rejections.add(correcting)
+                    else:state.setdefault('job_model_rejections',{})['/'.join(correcting)]=exc.category
                     self.event(state,'Focused response correction failed on '+ '/'.join(correcting)+': '+str(exc)+'. Advancing to the remaining configured route.')
                     continue
                 if exc.category not in {"format", "parse_error"} or attempt:
@@ -1015,9 +1025,11 @@ class Workbench:
                         self.model_status.reject(provider,model)
                         self.trace(state,"code_response_rejected",{"provider":provider,"model":model,"reason":str(exc),"files_replaced":False})
                         identity=(provider,model)
-                        if structured and identity not in corrections and any(message in str(exc) for message in ('Rejected invalid Python','Task scope violation')):
+                        if structured and identity not in corrections and any(message in str(exc) for message in ('Rejected invalid Python','Task scope violation','search must match exactly once','Task produced no source changes')):
                             corrections.add(identity);preferred=identity
-                        elif route.get("fallbacks") or structured and route.get('fallback'):
+                        elif response_rejections is not None:
+                            response_rejections.add(identity)
+                        elif route.get("fallbacks"):
                             state.setdefault("job_model_rejections",{})[provider+"/"+model]="response_rejected"
                     if attempt+1==response_attempts:
                         raise
@@ -1029,9 +1041,10 @@ class Workbench:
             stats = state.setdefault("generation_stats", {})
             stats["rejected_responses"] = stats.get("rejected_responses", 0) + 1
             if structured and (preferred is not None or payload.get('response_mode')=='focused_changes'):
-                payload={**payload,'response_validation_error':error,'response_mode':'focused_changes',
+                complete_edit='search must match exactly once' in error
+                payload={**payload,'response_validation_error':error,'response_mode':'complete_files' if complete_edit else 'focused_changes',
                     'instruction':'The rejected candidate was NOT saved. Implement only the original task using CURRENT supplied source. '
-                    'Return exact edits for existing files, or complete contents only for approved changed/new files. '
+                    +('Return complete corrected contents only for approved changed/new files; do not return edits, because the previous search did not match. ' if complete_edit else 'Return exact edits for existing files, or complete contents only for approved changed/new files. ')+
                     'Preserve task_packet, its file scope, frozen tests and checks. Do not rewrite other files or inline the UI into app.py. '
                     'Use the error as feedback, never as permission to widen scope. Return existing-source evidence only if the original task is already implemented.'}
                 continue
@@ -1089,6 +1102,11 @@ class Workbench:
             if state.get('pending_task') and state['plan'].get('task_contract_version')==1:
                 index=state['pending_task']['cursor']
                 repair_payload.update(current_task=state['plan']['tasks'][index],task_packet=task_packet(state['plan'],index,state['next_task']))
+                repair_payload['repair_brief']={'schema':1,'reported_defects':list(state['preflight']['issues']),
+                    'editable_files':list(repair_payload['task_packet']['files']),
+                    'goal':'Correct these static defects in the current saved candidate, preserving the original approved task and earlier behavior. No future features.',
+                    'response_rule':'Return {"files":{"approved/path.py":"complete corrected source"}} or {"edits":[{"file":"approved/path.py","search":"unique exact current text","replace":"corrected text"}]}. failure, frozen_tests, instruction, source_map and repair_brief are input metadata, never filenames. A summary alone is not a repair.',
+                    'http_test_rule':'Use urllib.request.Request(url, data=body_bytes, headers=headers, method=method), then urllib.request.urlopen(request, timeout=3). Never pass headers or method directly to urlopen. Keep existing frozen tests unchanged.'}
             self.generate_and_apply(state,repair_payload,cancel,repair=True)
             state["repair_count"] += 1
             remaining -= 1
