@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.31.0",
+  "version": "0.32.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.31.0.zip",
-  "sha256": "862f73ab97e14a54996d878cc0e3a114ba5c5cd41ef2419175c03c3712e491bd",
-  "notes": "Master Diag: persistent private flight recorder, shared controller/Dashboard event IDs, bounded retention and integrity checks, safe local investigations and a downloadable Codex-ready evidence ZIP. Source, prompts, model prose, manual notes and credentials are excluded by default; missing evidence and unproven causes stay explicit. Independent launcher records preserve startup/import/exit/update recovery evidence. Windows adds a current-user mascot desktop shortcut backed by a private stable launcher; physical Windows verification is still required. Generate Idea makes one isolated configured Ollama request, preserves edited input, and never starts a project. Existing projects, approved checks, consent gates and update rollback remain intact. Packaged build identity links reports to source bytes; fixtures do not prove live-model quality or GPU fit."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.32.0.zip",
+  "sha256": "e82f39a2144753209aa948a66aae7fc91bb2282df3e6d1162600f655a5928ff3",
+  "notes": "Focused planning and expanded Diag: new guided/proof drafts request one feature at a time; Foundry assigns sequential dependencies, feature references and ready HTTP prefixes before full proposal review. Saved drafts resume by exact request identity. Impossible early checkpoints are rejected at outline time; each compiled stage stops after six invalid proposals while provider outages use the separate job allowance. Diag includes rule codes, safe candidate shapes, draft progress and retained attempt metrics, with up to 25 detailed projects, 4,000 history events per project and 20,000 recorder events. Limits, unknowns and omissions are explicit. Original prompts, source, credentials and free-text model logs remain excluded. Approved projects, frozen checks, cloud/execution consent and rollback are preserved. Fixture tests do not establish live-model quality or Windows GPU performance."
 }
