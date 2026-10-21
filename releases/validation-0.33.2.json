@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "version": "0.33.2",
+  "artifact": {
+    "version": "0.33.2",
+    "bytes": 2863747,
+    "sha256": "a88dd6339d36f49d204551972e276d456e009fa66de735d3f016e3c58b56e046",
+    "identity": {
+      "schema": 1,
+      "version": "0.33.2",
+      "source_commit": "cce3edf01ff6d2441e583d3d6365638724b0a211",
+      "tracked_modified_files": 0,
+      "meaning": "Git identity at packaging time; source_tree_sha256 identifies packaged file bytes excluding this metadata.",
+      "source_tree_sha256": "acc307f4e560b2a1d7605ee71ed31f0f5e5b2d06949556d51278314a2d9f8b8f",
+      "source_file_count": 420
+    }
+  },
+  "regression": {
+    "before": {
+      "command": "python -m unittest tests.test_acceptance_boundary -q",
+      "tests": 3,
+      "failures": 3
+    },
+    "after": {
+      "same_command": true,
+      "tests": 7,
+      "passed": true
+    },
+    "recovery_path": "schema_correction at acceptance, before feature_tasks; existing bounded fallback/stop if correction remains invalid",
+    "original_model_candidate_available": false,
+    "fixture_provenance": "Synthetic text and values with observed five-check shape and restart_evidence /checks/3 plus false_restart /checks/4/name paths."
+  },
+  "source_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 527,
+    "seconds": 136.613,
+    "passed": true,
+    "log_sha256": "ce703a712ee3edd8710e6a356db4025931925e828aaa1962fcfca18dd865d674"
+  },
+  "archive_suite": {
+    "command": "python -m unittest discover -q",
+    "tests": 527,
+    "seconds": 140.011,
+    "passed": true,
+    "log_sha256": "123b3d983a08e1a6a2b7def66e03064adc91791dfcb8a06509eb5597d8b585eb"
+  },
+  "types": {
+    "command": "PYTHONPATH=/tmp/foundry-typecheck python -m mypy --strict <36 forge modules from tools.validate.TYPED>",
+    "result": "Success: no issues found in 36 source files"
+  },
+  "source_browser_checks": [
+    "evidence_planning",
+    "guided_planning",
+    "capacity_delivery",
+    "system_tests",
+    "diagnostics",
+    "dashboard/browser_check",
+    "dashboard/launcher_check"
+  ],
+  "extracted_browser_checks": {
+    "evidence": {
+      "passed": true,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.",
+      "sha256": "fbcff6d74d8738f163620805f459853ce60047b221378271ec2bd1842c5ca92b"
+    },
+    "guided": {
+      "passed": true,
+      "output": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence.",
+      "sha256": "4cc7b5766f7329aae9372ab5d649c5a421e475f0d154b5919a469a77cf8d2e91"
+    },
+    "system-tests": {
+      "passed": true,
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.",
+      "sha256": "26c2e0466ca6f7ec44fa0b0a6f42794d20cbf1ca363683f0c1349cb2aff4e303"
+    },
+    "dashboard": {
+      "passed": true,
+      "output": "PASS: Chromium desktop/mobile; local ELK worker; 289 disjoint HTML nodes / 445 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors.",
+      "sha256": "e5b004e8b40aa4f39e8a73069ab0f119c4112f8589143e5a87f69dcd1282fed5"
+    }
+  },
+  "dashboard": {
+    "typecheck": "passed",
+    "node_tests": 4,
+    "node_tests_passed": 4,
+    "production_build": "passed",
+    "nodes": 289,
+    "edges": 445,
+    "scenarios": 178
+  },
+  "integrity": {
+    "archive_matches_source_files": 420,
+    "all_18_frozen_sets_match": true,
+    "prior_frozen_entries_unchanged": true,
+    "production_extract_release_passed": true
+  },
+  "intermediate_failures": [
+    {
+      "command": "python -m unittest discover -q",
+      "tests": 527,
+      "failures": 1,
+      "cause": "Dashboard source location still referenced pre-edit core.py lines before graph regeneration.",
+      "resolution": "Regenerated graph and production assets; focused graph assertion and full suite passed."
+    }
+  ],
+  "untested": [
+    "Live model generation, quota and quality",
+    "Windows GPU performance and universal model fitness"
+  ],
+  "publication": "Public manifest/archive verification is performed after pushing; this file records pre-publication local evidence."
+}
