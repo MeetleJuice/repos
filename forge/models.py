@@ -96,6 +96,8 @@ def extract_json(content: str) -> dict[str, Any]:
 
 
 def output_contract(system: str) -> str:
+    if (stage_schema:=planner_schema(system)) is not None:
+        return system+'\nSTAGE OUTPUT SCHEMA:'+json.dumps(stage_schema)+'\nReturn an instance of this schema, never the schema itself or a wrapper. Use exact enum values. Checks and manual_checks are arrays of named objects, not dictionaries or strings. Omit unused optional fields instead of returning null. Keep all requested behavior; only the complete reviewed proposal can be approved.'
     if system != PLAN: return system
     return system + "\nAUTHORITATIVE ROOT OUTPUT CONTRACT (not a wrapper): " + json.dumps({"required":PLAN_SCHEMA["required"],"browser_behavior_evidence":"manual_checks or browser_checks"},separators=(",", ":")) + "\nReturn the proposal itself, never a proposal/plan wrapper, JSON schema or source files. Be concise; every feature needs task and acceptance coverage."
 

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "baseline": "core 0.28.0 \u00b7 source excerpts checked by tests",
+  "baseline": "core 0.28.1 \u00b7 source excerpts checked by tests",
   "nodes": [
     {
       "id": "document",
@@ -938,7 +938,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 278,
+      "line": 280,
       "excerpt": "def connection_info() -> dict[str, Any]:",
       "description": ""
     },
@@ -1988,7 +1988,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 143,
+      "line": 145,
       "excerpt": "    def complete(self, system: str, prompt: str) -> dict[str, Any]:",
       "description": ""
     },
@@ -2218,7 +2218,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 103,
+      "line": 105,
       "excerpt": "def request_schema(system: str, prompt: str, complete: bool = False) -> dict[str,Any] | str:",
       "description": ""
     },
@@ -2248,7 +2248,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 285,
+      "line": 287,
       "excerpt": "        data = request_json(os.getenv(\"OLLAMA_URL\", \"http://127.0.0.1:11434\").rstrip(\"/\") + \"/api/tags\", timeout=5)",
       "description": ""
     },
@@ -2258,7 +2258,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 206,
+      "line": 208,
       "excerpt": "            url=os.getenv(\"OLLAMA_URL\", \"http://127.0.0.1:11434\").rstrip(\"/\") + \"/api/chat\"",
       "description": ""
     },
@@ -2268,7 +2268,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 291,
+      "line": 293,
       "excerpt": "        data=request_json(endpoint('local')+'/models',None,",
       "description": ""
     },
@@ -2298,7 +2298,7 @@
       "kind": "api",
       "category": "Models & routing",
       "source": "forge/models.py",
-      "line": 185,
+      "line": 187,
       "excerpt": "            result = request_json(gemini_base.removesuffix('/openai')+'/models/'+urllib.parse.quote(self.model,safe='')+':generateContent', {",
       "description": ""
     },

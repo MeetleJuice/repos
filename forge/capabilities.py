@@ -134,6 +134,10 @@ class CapabilityRegistry:
         # Conservative heuristic (about two UTF-8 bytes/token), not a tokenizer
         # guarantee or billing measurement. Reserve schema/message framing too.
         input_estimate = (len((system+prompt).encode('utf-8',errors='surrogatepass')) + len(json.dumps(schema)) + 1)//2 + 512
+        # Guided schemas are now present in the textual system instruction for
+        # every adapter. Ollama also sends its native format schema separately.
+        if planner_schema(system) is not None and provider=='ollama' and options.get('structured_outputs',True):
+            input_estimate+=(len(json.dumps(schema))+1)//2
         room = min(cap.max_output_tokens, cap.max_context_tokens-input_estimate)
         text = max(self.builtin['planner_output_floor'], options.get('num_predict',4096), 0 if compact else estimate)
         if text+thinking > room: raise ValueError('Planner needs '+str(text+thinking)+' output tokens plus an estimated '+str(input_estimate)+' input tokens; output ceiling is '+str(cap.max_output_tokens)+' and context is '+str(cap.max_context_tokens)+'. Increase Ollama context in planner settings if memory permits, or choose a larger-capacity model; no request was sent.')
