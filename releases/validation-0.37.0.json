@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "version": "0.37.0",
+  "theme": "Observable task, context and recovery loop",
+  "source_commit": "96dacc57bf28d8e9b5add35605380b286c761f96",
+  "artifact": {
+    "identity": {
+      "schema": 1,
+      "version": "0.37.0",
+      "source_commit": "96dacc57bf28d8e9b5add35605380b286c761f96",
+      "tracked_modified_files": 0,
+      "meaning": "Git identity at packaging time; source_tree_sha256 identifies packaged file bytes excluding this metadata.",
+      "source_tree_sha256": "00e9188b3f9a66b1f13587db792de055d1bf10eb2a1349822ff43b603cd739d6",
+      "source_file_count": 448
+    },
+    "bytes": 2942385,
+    "sha256": "14e8d136b0f16f78c209aa4db62382f2cb6c6dab061c0cf3bd805834d0225435",
+    "archive_source_matches_checkout": true,
+    "production_extractor_passed": true
+  },
+  "checks": {
+    "source": {
+      "command": "python -m unittest discover -q",
+      "tests": 572,
+      "seconds": 146.826,
+      "output": "Ran 572 tests in 146.826s\n\nOK\n"
+    },
+    "extracted": {
+      "command": "python -m unittest discover -q",
+      "tests": 572,
+      "seconds": 145.726,
+      "output": "Ran 572 tests in 145.726s\n\nOK\n"
+    },
+    "focused": {
+      "command": "python -m unittest tests.test_run_diagnostics tests.test_system_tests tests.test_capacity_delivery tests.test_handoffs -q",
+      "tests": 43,
+      "seconds": 9.462,
+      "output": "Ran 43 tests in 9.462s\n\nOK\n"
+    }
+  },
+  "strict_types": {
+    "modules": 39,
+    "output": "Success: no issues found in 39 source files"
+  },
+  "dashboard": {
+    "nodes": 309,
+    "edges": 485,
+    "scenarios": 186,
+    "node_tests": 4,
+    "typecheck": "passed",
+    "production_build": "passed",
+    "source_browser_output": "PASS: Chromium desktop/mobile; local ELK worker; 309 disjoint HTML nodes / 485 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors.",
+    "extracted_browser_output": "PASS: Chromium desktop/mobile; local ELK worker; 309 disjoint HTML nodes / 485 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors.",
+    "extracted_launcher_output": "PASS: visible top workbench Dashboard button; distinct Chromium browser window; graph loads; opener detached; repeated clicks reuse window; blocked popup exposes keyboard-focusable fallback; reopen works; unsaved idea preserved; mobile has no overflow; no project/model job or JavaScript error."
+  },
+  "workbench_browsers": [
+    {
+      "name": "run_diagnostics",
+      "exit_code": 0,
+      "seconds": 7.718,
+      "output": "PASS: real fixture application failure -> repair -> matching-source behavioral pass -> quick Test/Diag UI -> correlated ZIP evidence and manifest; no extra inference, project mutation, private prompt/source export or browser errors. No live model claim.\n"
+    },
+    {
+      "name": "planning_coherence",
+      "exit_code": 0,
+      "seconds": 14.242,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "name": "feature_acceptance",
+      "exit_code": 0,
+      "seconds": 9.817,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: granular creation through feature acceptance correction, scoped task generation, unchanged human approval, actual SQLite/server/browser checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "name": "brand",
+      "exit_code": 0,
+      "seconds": 4.835,
+      "output": "PASS: larger desktop/mobile emblem; independent flame animation; true in-flight controller activity and completion; status-error clearing; persistent motion pause; reduced motion; no horizontal overflow or JavaScript errors. No live model quality tested.\n"
+    },
+    {
+      "name": "system_tests",
+      "exit_code": 0,
+      "seconds": 5.832,
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n"
+    },
+    {
+      "name": "diagnostics",
+      "exit_code": 0,
+      "seconds": 2.55,
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested.\n"
+    },
+    {
+      "name": "evidence_planning",
+      "exit_code": 0,
+      "seconds": 9.981,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\n"
+    },
+    {
+      "name": "capacity_delivery",
+      "exit_code": 0,
+      "seconds": 6.924,
+      "output": "PASS: Plan for my builder -> validated outline/scoped tasks -> unchanged approval -> rejected Python -> same-model exact-edit correction -> sequential build -> real acceptance/tests/launch -> verified ZIP; frozen foundation retained; metadata-only model limits and embedding exclusion; mobile/no JS errors. Model replies are fixtures, not live-model quality evidence.\n"
+    },
+    {
+      "name": "workflow_overview",
+      "exit_code": 0,
+      "seconds": 7.101,
+      "output": "PASS: fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "task_contract",
+      "exit_code": 0,
+      "seconds": 5.569,
+      "output": "PASS: structured task UI, scope rejection/correction and protected ZIP export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "hybrid_execution",
+      "exit_code": 0,
+      "seconds": 7.305,
+      "output": "PASS: hybrid mode setup, cloud planner/local builder dispatch, source-supported no-change receipt and real verification/ZIP; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "delivery_control",
+      "exit_code": 0,
+      "seconds": 9.18,
+      "output": "PASS: explicit local-only calibration, focused source request, task readiness/evidence and source-bound export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "orchestration",
+      "exit_code": 0,
+      "seconds": 7.682,
+      "output": "PASS: explicit orchestration preset; primary/secondary cloud failures reach local planning; no pre-consent inference; sequential local-only coding without unused cloud consent; task outcome/criteria/checklist; real milestone/final HTTP, unit and launch checks; invocation allowance; verified ZIP/work checklist; mobile/privacy/no JS errors. Model replies are fixtures, not live quality measurements.\n"
+    },
+    {
+      "name": "local_harness",
+      "exit_code": 0,
+      "seconds": 8.337,
+      "output": "Version 0.38.0 is ready. Press the Update button in the app to apply changes.\nPASS: local-compatible setup/discovery choices persist; no cloud requests/consent; actual local SSE preview; scoped Stop control; finish gate; real generated-app verification and ZIP; human-controlled update-ready event/banner; mobile/reduced motion/no JS errors. Model responses are fixtures.\n"
+    },
+    {
+      "name": "guided_planning",
+      "exit_code": 0,
+      "seconds": 9.72,
+      "output": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence.\n"
+    },
+    {
+      "name": "local_failover",
+      "exit_code": 0,
+      "seconds": 7.187,
+      "output": "PASS: fresh project automatically detects local backups without model setup; two transport failures advance to third distinct Ollama model; two rejected code responses advance to third distinct builder; unchanged saved primary/approved plan; actual app verification and ZIP; no cloud calls/mobile overflow/JS errors. Model replies are fixtures.\n"
+    },
+    {
+      "name": "model_studio",
+      "exit_code": 0,
+      "seconds": 8.133,
+      "output": "PASS: local-only no-cloud setup, two-local failover, existing plan/files preservation, separate route previews, keyboard details, persistent accents/volume/mute, user-gesture audio with silent reload/history, one cue per observed terminal transition, reduced-motion/mobile and real generated-app verification/ZIP. No live provider or GPU claims.\n"
+    },
+    {
+      "name": "model_activity",
+      "exit_code": 0,
+      "seconds": 5.501,
+      "output": "PASS: seven provider icons and installed local models, embedding distinction, true in-flight animation, reduced-motion state, success and quota transitions, working cleared, model dialog navigation, mobile, privacy and no JS errors.\n"
+    },
+    {
+      "name": "automatic_routing",
+      "exit_code": 0,
+      "seconds": 8.132,
+      "output": "PASS: automatic catalogue setup, role routes persisted, missing Cloudflare config skipped, no pre-consent inference, model error and invalid proposals advance without restart, actual app verification, current project preservation, mobile, no secret values or JavaScript errors.\n"
+    },
+    {
+      "name": "proposal_import",
+      "exit_code": 0,
+      "seconds": 2.484,
+      "output": "PASS: five-task stale proposal \u2192 imported two-task reviewed repair \u2192 persistent reload/cards \u2192 explicit editor save/check feedback \u2192 approval; no inference, source mutation or execution; token and recycled-plan guards; mobile.\n"
+    },
+    {
+      "name": "upgrade",
+      "exit_code": 0,
+      "seconds": 10.504,
+      "output": "Version 0.38.0 is ready. Press the Update button in the app to apply changes.\nPASS: tested foundation, clear missing-Docker state, consent, actual verification, protected test export, project search, update dialog, desktop/mobile and no JS errors.\n"
+    },
+    {
+      "name": "arcade",
+      "exit_code": 0,
+      "seconds": 25.83,
+      "output": "PASS: real plan/build/HTTP/tests/launch/Chromium/manual/export pipeline; rendered keyboard/pointer movement, pause freeze, collision/game-over, restart, high-score refresh persistence; mobile layout; broken JS rejected.\n"
+    },
+    {
+      "name": "cloud",
+      "exit_code": 0,
+      "seconds": 9.993,
+      "output": "PASS: UTF-16 Notepad .env.txt \u2192 private key import \u2192 checked catalogues \u2192 persisted cloud route \u2192 consent gate \u2192 Gemini/Groq/OpenRouter failover \u2192 real generated-app HTTP/tests/launch \u2192 cooldown skip \u2192 saved project settings; no secret responses, auth boundary, mobile and no JS errors.\n"
+    },
+    {
+      "name": "provider_pool",
+      "exit_code": 0,
+      "seconds": 9.114,
+      "output": "PASS: seven-key private import; missing Cloudflare account then local configuration import; seven catalogues; reordered route; timeout/JSON settings persisted; seven-tier failover; actual app verification/export; mobile; no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "repair",
+      "exit_code": 0,
+      "seconds": 31.046,
+      "output": "PASS: actual uploaded shield collision fails in Chromium \u2192 bounded exact-edit repair \u2192 same frozen browser/HTTP/regression checks pass; collection/pause/consumption/second collision/restart verified; failed format recovery retains notes and enables retry; direct successful repair makes one coder request, no planning/execution, mobile and no JavaScript errors.\n"
+    },
+    {
+      "name": "starter_recovery",
+      "exit_code": 0,
+      "seconds": 2.249,
+      "output": "PASS: actual failed empty-plan screen \u2192 explicit standard-plan recovery \u2192 approval; direct standard creation; zero extra model calls; no code execution; authenticated endpoint; mobile layout.\n"
+    },
+    {
+      "name": "planning",
+      "exit_code": 0,
+      "seconds": 7.511,
+      "output": "PASS: semantic recovery in 3 requests, explicit fallback, context/output controls, cloud consent visibility, live edit review with no inference, approval gate, restart evidence and mobile layout.\n"
+    }
+  ],
+  "extracted_browsers": [
+    {
+      "name": "run_diagnostics",
+      "returncode": 0,
+      "output": "PASS: real fixture application failure -> repair -> matching-source behavioral pass -> quick Test/Diag UI -> correlated ZIP evidence and manifest; no extra inference, project mutation, private prompt/source export or browser errors. No live model claim.\n"
+    },
+    {
+      "name": "system_tests",
+      "returncode": 0,
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n"
+    },
+    {
+      "name": "diagnostics",
+      "returncode": 0,
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested.\n"
+    },
+    {
+      "name": "planning_coherence",
+      "returncode": 0,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures.\n"
+    }
+  ],
+  "frozen_regressions": {
+    "manifest": "frozen-regressions-v21.json",
+    "sets": 22,
+    "previous_sets_unchanged": 21
+  },
+  "before": {
+    "missing_repair_attribution": "======================================================================\nFAIL: test_diag_exports_selected_execution_without_prompt_or_code (tests.test_run_diagnostics.RunDiagnosticsTests.test_diag_exports_selected_execution_without_prompt_or_code)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_run_diagnostics.py\", line 54, in test_diag_exports_selected_execution_without_prompt_or_code\n    self.assertIsNotNone(latest, 'Diag must explain the selected build, separate from planning/history.')\nAssertionError: unexpectedly None : Diag must explain the selected build, separate from planning/history.\n\n======================================================================\nFAIL: test_repair_is_attributed_and_checked_against_the_same_source (tests.test_run_diagnostics.RunDiagnosticsTests.test_repair_is_attributed_and_checked_against_the_same_source)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_run_diagnostics.py\", line 33, in test_repair_is_attributed_and_checked_against_the_same_source\n    self.assertEqual(len(starts), 1, 'The real repair must have a correlated start record.')\nAssertionError: 0 != 1 : The real repair must have a correlated start record.\n\n----------------------------------------------------------------------\nRan 2 tests in 5.589s\n\nFAILED (failures=2)",
+    "unchanged_static_loop": "======================================================================\nFAIL: test_unchanged_static_repair_does_not_spend_the_remaining_budget (tests.test_run_diagnostics.RunDiagnosticsTests.test_unchanged_static_repair_does_not_spend_the_remaining_budget)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_run_diagnostics.py\", line 26, in test_unchanged_static_repair_does_not_spend_the_remaining_budget\n    self.assertEqual(len(models.calls), 3, 'One unchanged static repair must stop before spending two more calls.')\nAssertionError: 5 != 3 : One unchanged static repair must stop before spending two more calls.\n\n----------------------------------------------------------------------\nRan 1 test in 0.183s\n\nFAILED (failures=1)"
+  },
+  "controlled_improvements": {
+    "unchanged_static_fixture_model_calls_before": 5,
+    "unchanged_static_fixture_model_calls_after": 3,
+    "structured_fixture_json_characters_before": 1901,
+    "structured_fixture_json_characters_after": 1879,
+    "provider_token_or_cost_claim": false,
+    "live_repair_quality_claim": false
+  },
+  "limitations": [
+    "No live provider generation or Windows Ollama/GPU test performed.",
+    "Accepted model replies, source changes and task saves are not proof of behavioral success.",
+    "Source-matched later checks are historical observations, not causality or current source freshness.",
+    "Older histories may lack boundaries, attribution and usage; unknowns are retained.",
+    "No automatic model ranking, framework migration, extra evaluator or source self-modification added."
+  ]
+}
