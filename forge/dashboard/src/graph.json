@@ -1838,7 +1838,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 201,
+      "line": 214,
       "excerpt": "  try { renderDiagnosticSession(await api('/api/diagnostics/session/stop', {})); }",
       "description": "Stop owned checks between operations and collect partial evidence; in-flight reads retain timeouts"
     },
@@ -1868,7 +1868,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 201,
+      "line": 214,
       "excerpt": "  try { renderDiagnosticSession(await api('/api/diagnostics/session/stop', {})); }",
       "description": "Returns to Stop owned checks between operations and collect partial evidence; in-flight reads retain timeouts. This is UI/controller progress, not behavioral verification."
     },
@@ -1878,7 +1878,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 210,
+      "line": 223,
       "excerpt": "    const response = await fetch(\"/api/diagnostics/session/export\", {",
       "description": "Direct authenticated download of the exact completed session snapshot; no recollection"
     },
@@ -1908,7 +1908,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 210,
+      "line": 223,
       "excerpt": "    const response = await fetch(\"/api/diagnostics/session/export\", {",
       "description": "Returns to Direct authenticated download of the exact completed session snapshot; no recollection. This is UI/controller progress, not behavioral verification."
     },
@@ -1918,7 +1918,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/diagnostics.js",
-      "line": 264,
+      "line": 277,
       "excerpt": "    const result = await api(\"/api/ideas/generate\", {project_id: projectId,",
       "description": "One isolated local inference request; edit existing input only"
     },
@@ -1948,7 +1948,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/diagnostics.js",
-      "line": 264,
+      "line": 277,
       "excerpt": "    const result = await api(\"/api/ideas/generate\", {project_id: projectId,",
       "description": "Returns to One isolated local inference request; edit existing input only. This is UI/controller progress, not behavioral verification."
     },
@@ -3148,7 +3148,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/diagnostics.js",
-      "line": 271,
+      "line": 284,
       "excerpt": "    $(\"idea\").value = result.idea.trim();",
       "description": ""
     },

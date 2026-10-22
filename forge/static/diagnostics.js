@@ -185,11 +185,24 @@ async function startDiagnosticSession(mode = 'quick') {
 }
 $("diag-button").onclick = async () => {
   if (!$("diag-dialog").open) $("diag-dialog").showModal();
+  // The previous completed snapshot must not remain downloadable while this
+  // click is selecting/rejoining a session asynchronously.
+  diagBusy = true;
+  clearTimeout(diagTimer);
+  $("diag-dialog").setAttribute('aria-busy', 'true');
+  $("diag-run").disabled = true;
+  $("diag-export").disabled = true;
+  $("diag-status").textContent = 'Checking diagnostic session…';
   try {
     const session = await api('/api/diagnostics/session/status');
     if (session.status === 'running') renderDiagnosticSession(session);
     else await startDiagnosticSession();
-  } catch (error) { $("diag-status").textContent = error.message; }
+  } catch (error) {
+    diagBusy = false;
+    $("diag-dialog").setAttribute('aria-busy', 'false');
+    $("diag-run").disabled = false;
+    $("diag-status").textContent = error.message;
+  }
 };
 $("diag-run").onclick = () => startDiagnosticSession($("diag-mode").value);
 $("diag-mode").onchange = () => {

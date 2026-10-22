@@ -64,4 +64,6 @@ Larger projects, correction packets and long accepted prefixes can still exceed 
 
 ## Next measurements
 
+Extracted-release browser testing caught a stale-export race during Diag reopen. A deterministic regression holds the session-status request open: the old UI leaves Download enabled, while the fixed UI immediately disables it and displays lookup progress. The complete owned-session download must still succeed afterward. The failed unpublished candidate is retained only as local development evidence; it was not delivered through the updater.
+
 Measure accepted prefixes, missing-contract errors, correction outcomes and timeout totals on a fresh local run. Only add stage-specific model ranking, additional reviewers or broader tools after controlled evidence shows a benefit. Preserve complete request identity, task authority and source-bound verification during any future optimization.

@@ -12,6 +12,7 @@ Diagnostic (11) showed the planner repeatedly losing API/scenario facts between 
 - **Scoped model failures:** rejection of one feature's content does not automatically exclude that model from later different stages. Existing account controls, transport cooldowns, consent and attempt limits remain.
 - **Better budget evidence:** new stage requests use their actual schema in estimates. The output floor remains 8192. Refusals report required/effective context rather than presenting an unexplained list of identical provider names.
 - **Stronger Diag:** four new API/scenario guards run without inference. Planning probe version 2 uses the evidence policy and requires a concrete create request and saved-title assertion. Old probe passes are weaker evidence and remain historical results.
+- **Reliable Diag reopen:** reopening the panel immediately disables the old download and shows session lookup progress. A delayed status response can no longer leave the previous snapshot labeled ready while a new session is being selected.
 
 No approved plan/check is rewritten. Saved legacy drafts and modes retain their policies. Explicitly choosing the new versioned strategy starts a new unapproved draft and retains the previous draft for inspection. ZIP exports, private keys, provider routes, execution approval and generated-app verification remain compatible.
 

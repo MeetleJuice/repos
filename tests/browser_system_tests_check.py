@@ -53,7 +53,15 @@ def main():
                 expect(page.locator('#system-test-results')).to_contain_text('Model response test')
                 assert len(models.calls)==3
                 assert all(call=={'numbers':[2,5],'operation':'add'} for call in models.calls[1:])
-                page.locator('#system-test-close').click();page.locator('#diag-button').click()
+                page.locator('#system-test-close').click()
+                pending_status=[]
+                page.route('**/api/diagnostics/session/status',lambda route:pending_status.append(route))
+                page.locator('#diag-button').click()
+                expect(page.locator('#diag-export')).to_be_disabled()
+                expect(page.locator('#diag-status')).to_contain_text('Checking diagnostic session')
+                assert len(pending_status)==1
+                pending_status[0].continue_()
+                page.unroute('**/api/diagnostics/session/status')
                 expect(page.locator('#diag-status')).to_contain_text('Evidence ready',timeout=15000)
                 expect(page.locator('#diag-summary')).to_contain_text('Latest Test: finished')
                 with page.expect_download() as pending:page.locator('#diag-export').click()
@@ -74,7 +82,7 @@ def main():
                 assert not errors,errors
                 browser.close()
         finally:server.shutdown();server.server_close()
-    print('PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.')
+    print('PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> delayed Diag reopen disables stale download -> owned persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.')
 
 
 if __name__=='__main__':main()
