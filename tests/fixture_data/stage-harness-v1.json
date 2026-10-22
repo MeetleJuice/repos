@@ -1,0 +1,1340 @@
+{
+  "schema": 1,
+  "provenance": {
+    "report_id": "f911bae465334efd8748a632f3a2fe2b",
+    "source_version": "0.38.0",
+    "kind": "captured_sanitized_ledger_with_synthetic_contract_cases",
+    "limitation": "Original model response bodies are unavailable. Candidate examples are synthetic, never reconstructed captured replies or a live-model benchmark."
+  },
+  "observed_records": [
+    {
+      "id": "1c55bc76d8b841f685c8855ded73f161",
+      "time": "2026-10-22T14:34:47.005663+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "job_started",
+      "origin": "controller",
+      "data": {
+        "action": "plan",
+        "execute": false,
+        "runtime": "docker"
+      }
+    },
+    {
+      "id": "c5f59b521a31463088b69bb0d5638a4e",
+      "time": "2026-10-22T14:34:59.883704+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5-coder:7b",
+        "attempt_id": "2b4b4796f590450cae0332889a28c4b4",
+        "success": true,
+        "input_characters": 14430,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "scope",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 3712,
+        "input_estimate_tokens": 9790,
+        "candidate_shape": {
+          "object": true,
+          "features_count": 7,
+          "check_structure": [],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": [],
+          "uncovered_feature_indexes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        "response_sha256": "99d11fca5a29aa624a115190339887f790dcb5c43e03fd632dd1a8f6cff9ffff",
+        "proposal_valid": true,
+        "review_findings": [],
+        "prompt_tokens": 3554,
+        "completion_tokens": 199,
+        "finish_reason": "stop",
+        "observed_output_tokens": 199,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "76c8e5499f7d7e87017d89135278db5bd3ded901119581ea6b440a413b4eb2be",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5-coder:7b",
+        "ollama_load_seconds": 5.101,
+        "ollama_eval_seconds": 5.058,
+        "ollama_prompt_seconds": 2.395,
+        "ollama_tokens_per_second": 39.34,
+        "seconds": 12.62
+      }
+    },
+    {
+      "id": "84286cd19e7941d69508be2992af9450",
+      "time": "2026-10-22T14:35:11.187558+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5-coder:7b",
+        "attempt_id": "f9a0331cf6bf45cebaaf16fe37ef7327",
+        "success": false,
+        "input_characters": 11154,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8151,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "text"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "19f1c32cf7367bc8f5027e476fc89971a32ed36782470793334daa1c5dfdaae1",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "response_shape",
+            "path": "/checks/1/json_contains",
+            "message": {
+              "content_omitted": true,
+              "bytes": 60,
+              "sha256": "2a486c7616a0642360aa46513be684e4d82898e0dccf27de55111525f047df58"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "response_shape",
+            "path": "/checks/2/json_contains",
+            "message": {
+              "content_omitted": true,
+              "bytes": 60,
+              "sha256": "2a486c7616a0642360aa46513be684e4d82898e0dccf27de55111525f047df58"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "mutation_example",
+            "path": "/checks/0",
+            "message": {
+              "content_omitted": true,
+              "bytes": 150,
+              "sha256": "acc455d3ebcd7a2134d849fb708324a370437ec10c7c2f828c0236c1349fad32"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/0",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/1",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/2",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "persistence_evidence",
+            "path": "/checks/2",
+            "message": {
+              "content_omitted": true,
+              "bytes": 152,
+              "sha256": "2f1008b15aa8d1d4aa3c779f66648e3dde67d7df0e35759a7bd2aec88a60dfa3"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "persistence_seed_state",
+            "path": "/checks/2",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "1a9f74886ed006d018782c0f4d4c5d8815098921e8da6def368c99344d78b073"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "response_shape",
+          "response_shape",
+          "mutation_example",
+          "missing_api_contract",
+          "missing_api_contract",
+          "missing_api_contract",
+          "persistence_evidence",
+          "persistence_seed_state"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 2856,
+        "completion_tokens": 361,
+        "finish_reason": "stop",
+        "observed_output_tokens": 361,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5-coder:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 9.126,
+        "ollama_prompt_seconds": 1.906,
+        "ollama_tokens_per_second": 39.56,
+        "seconds": 11.23
+      }
+    },
+    {
+      "id": "3e444f34874a4eb88cc9cb9b0c6a892d",
+      "time": "2026-10-22T14:35:21.516824+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5-coder:7b",
+        "attempt_id": "9d435341c64640feb273a312f720dcc0",
+        "success": false,
+        "input_characters": 13566,
+        "recovery_path": "schema_correction",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 9357,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "text"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "49954368fefd9f8af2b315c22ea6bb998145e2cb5f6991db326d81a3b97f34f2",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "response_shape",
+            "path": "/checks/1/json_contains",
+            "message": {
+              "content_omitted": true,
+              "bytes": 60,
+              "sha256": "2a486c7616a0642360aa46513be684e4d82898e0dccf27de55111525f047df58"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "response_shape",
+            "path": "/checks/2/json_contains",
+            "message": {
+              "content_omitted": true,
+              "bytes": 60,
+              "sha256": "2a486c7616a0642360aa46513be684e4d82898e0dccf27de55111525f047df58"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/0",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/1",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/2",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "response_shape",
+          "response_shape",
+          "missing_api_contract",
+          "missing_api_contract",
+          "missing_api_contract"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3439,
+        "completion_tokens": 387,
+        "finish_reason": "stop",
+        "observed_output_tokens": 387,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5-coder:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 9.735,
+        "ollama_prompt_seconds": 0.441,
+        "ollama_tokens_per_second": 39.75,
+        "seconds": 10.29
+      }
+    },
+    {
+      "id": "7ebac9ae20ed4e31a8f88b6d8fdfc1ad",
+      "time": "2026-10-22T14:37:21.647509+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen3.5:9b",
+        "attempt_id": "8bf316f0983e437f867d25f3c9021d9a",
+        "success": false,
+        "input_characters": 11154,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8151,
+        "transport_kind": "timeout",
+        "error_category": "transport",
+        "failure_class": "provider_unavailable",
+        "finish_reason": null,
+        "observed_output_tokens": null,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "seconds": 120.1
+      }
+    },
+    {
+      "id": "4bd2eb517e2d460b8a987de80cd3d91b",
+      "time": "2026-10-22T14:37:50.790489+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "deepseek-r1:7b",
+        "attempt_id": "380725f11b3447b2a94a7e567fa97dad",
+        "success": false,
+        "input_characters": 11154,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8151,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "empty"
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "text"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "a233a5e4888709fe6994ef3126316ec1d8f1df6eb173075c2b1e01c3ef2c68b8",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/0",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/1",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/2",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/3",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "persistence_evidence",
+            "path": "/checks/3",
+            "message": {
+              "content_omitted": true,
+              "bytes": 152,
+              "sha256": "2f1008b15aa8d1d4aa3c779f66648e3dde67d7df0e35759a7bd2aec88a60dfa3"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "persistence_seed_state",
+            "path": "/checks/3",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "1a9f74886ed006d018782c0f4d4c5d8815098921e8da6def368c99344d78b073"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "missing_api_contract",
+          "missing_api_contract",
+          "missing_api_contract",
+          "missing_api_contract",
+          "persistence_evidence",
+          "persistence_seed_state"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 2846,
+        "completion_tokens": 793,
+        "finish_reason": "stop",
+        "observed_output_tokens": 793,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "deepseek-r1:7b",
+        "ollama_load_seconds": 6.756,
+        "ollama_eval_seconds": 20.28,
+        "ollama_prompt_seconds": 1.925,
+        "ollama_tokens_per_second": 39.1,
+        "seconds": 29.11
+      }
+    },
+    {
+      "id": "671aae2e86ce4ba5b4c2d4bc87ab70c1",
+      "time": "2026-10-22T14:38:18.412913+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "deepseek-r1:7b",
+        "attempt_id": "f6b9b363fb65400a9b0917f21476a125",
+        "success": false,
+        "input_characters": 13570,
+        "recovery_path": "schema_correction",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 9359,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "empty"
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "text"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "d1062b30f33af227b1ebbf05394ce3beaa99f77482d942aea288ac6a53a5ac6d",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/0",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/1",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/2",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/3",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "persistence_evidence",
+            "path": "/checks/3",
+            "message": {
+              "content_omitted": true,
+              "bytes": 152,
+              "sha256": "2f1008b15aa8d1d4aa3c779f66648e3dde67d7df0e35759a7bd2aec88a60dfa3"
+            },
+            "severity": "error"
+          },
+          {
+            "code": "persistence_seed_state",
+            "path": "/checks/3",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "1a9f74886ed006d018782c0f4d4c5d8815098921e8da6def368c99344d78b073"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "missing_api_contract",
+          "missing_api_contract",
+          "missing_api_contract",
+          "missing_api_contract",
+          "persistence_evidence",
+          "persistence_seed_state"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3412,
+        "completion_tokens": 1064,
+        "finish_reason": "stop",
+        "observed_output_tokens": 1064,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "deepseek-r1:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 27.037,
+        "ollama_prompt_seconds": 0.415,
+        "ollama_tokens_per_second": 39.35,
+        "seconds": 27.59
+      }
+    },
+    {
+      "id": "6e8349d6091c4a6198a0747aaa43cb87",
+      "time": "2026-10-22T14:38:36.901466+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "attempt_id": "2ec0244a341a4b0480a95741e770668d",
+        "success": false,
+        "input_characters": 11154,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8151,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 1,
+          "manual_checks_count": 1,
+          "browser_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "bc2e78bf3bc6de695ab2584c9bbb8e2893d17dfac80d83d48a0665930869a51c",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/0",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "missing_api_contract"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 2856,
+        "completion_tokens": 397,
+        "finish_reason": "stop",
+        "observed_output_tokens": 397,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5:7b",
+        "ollama_load_seconds": 6.392,
+        "ollama_eval_seconds": 9.983,
+        "ollama_prompt_seconds": 1.952,
+        "ollama_tokens_per_second": 39.77,
+        "seconds": 18.45
+      }
+    },
+    {
+      "id": "019b19621df4444b8212893218c57561",
+      "time": "2026-10-22T14:38:49.022025+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "attempt_id": "072d97bad2da4c41ba236f4ab48bf3e3",
+        "success": true,
+        "input_characters": 12916,
+        "recovery_path": "schema_correction",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 9032,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 1,
+          "manual_checks_count": 1,
+          "browser_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "b61ecdd99305122aa3e06a9349de3afd94be8ba2b3ead9bea4ab96b6a1557015",
+        "proposal_valid": true,
+        "review_findings": [],
+        "prompt_tokens": 3285,
+        "completion_tokens": 461,
+        "finish_reason": "stop",
+        "observed_output_tokens": 461,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 11.669,
+        "ollama_prompt_seconds": 0.318,
+        "ollama_tokens_per_second": 39.51,
+        "seconds": 12.09
+      }
+    },
+    {
+      "id": "57cbedcd401d43fb878cd1f1c93e28bf",
+      "time": "2026-10-22T14:39:00.408416+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "attempt_id": "4e5fb5971b8a4a3185d239d881fad046",
+        "success": false,
+        "input_characters": 12392,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          1
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8770,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 1,
+          "manual_checks_count": 1,
+          "browser_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "f09a0b84664d85322cd61ec5bea461f32d571f4e542cf4091b3ab4e8b426a3d1",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/1",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "missing_api_contract"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3208,
+        "completion_tokens": 421,
+        "finish_reason": "stop",
+        "observed_output_tokens": 421,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 10.617,
+        "ollama_prompt_seconds": 0.496,
+        "ollama_tokens_per_second": 39.65,
+        "seconds": 11.24
+      }
+    },
+    {
+      "id": "465088793c214a8c887907ea23160d3a",
+      "time": "2026-10-22T14:39:04.727371+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "attempt_id": "ab482484c5d744fdae22ab9d63949dad",
+        "success": false,
+        "input_characters": 14100,
+        "recovery_path": "schema_correction",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          1
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 9624,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 1,
+          "manual_checks_count": 0,
+          "browser_checks_count": 0,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true,
+              "assertion_fields": [
+                "assertion"
+              ],
+              "assertion_valid": true,
+              "invalid_assertion_fields": [],
+              "assertion_kind": "json_subset"
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "bed9fdedf0d0f3a79d473a752e0a9caec94fb2c5cfc67f39b10f103dfeacbdda",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "missing_api_contract",
+            "path": "/checks/1",
+            "message": {
+              "content_omitted": true,
+              "bytes": 109,
+              "sha256": "e79004a9b3d91c44e7d163d49f64b7e75f37f2fc4941e1f8c42a4c82f905e79d"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "missing_api_contract"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3651,
+        "completion_tokens": 152,
+        "finish_reason": "stop",
+        "observed_output_tokens": 152,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 3.811,
+        "ollama_prompt_seconds": 0.349,
+        "ollama_tokens_per_second": 39.88,
+        "seconds": 4.29
+      }
+    },
+    {
+      "id": "e9ad4397d1d9442e8c9cca569b446644",
+      "time": "2026-10-22T14:41:04.826672+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen3:8b",
+        "attempt_id": "eacfec2902b946e1ac149f616e1d9fd3",
+        "success": false,
+        "input_characters": 12392,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          1
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8770,
+        "transport_kind": "timeout",
+        "error_category": "transport",
+        "failure_class": "provider_unavailable",
+        "finish_reason": null,
+        "observed_output_tokens": null,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "seconds": 120.07
+      }
+    },
+    {
+      "id": "72f6c0a879af4bc49663c30b7608801e",
+      "time": "2026-10-22T14:43:04.953694+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "granite4.2:8b",
+        "attempt_id": "ff00a9137171406295187742b51d1b1e",
+        "success": false,
+        "input_characters": 12392,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          1
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8770,
+        "transport_kind": "timeout",
+        "error_category": "transport",
+        "failure_class": "provider_unavailable",
+        "finish_reason": null,
+        "observed_output_tokens": null,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "schema_sha256": "ff227c6f96bcabdaf4e1cbc4993f5888cc9698e23dd158365800291ac9408c06",
+        "schema_version": 2,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "seconds": 120.1
+      }
+    },
+    {
+      "id": "c64814432c3a4bd5afb11679fd442ea1",
+      "time": "2026-10-22T14:43:05.019686+00:00",
+      "run_id": "0442b84576a946b2a25572ff7131bfc2",
+      "kind": "job_finished",
+      "origin": "controller",
+      "data": {
+        "action": "plan",
+        "status": "error",
+        "seconds": 497.997,
+        "next_task": 0,
+        "model_attempts": 12,
+        "repairs_used": 0,
+        "repair_count_total": 0
+      }
+    }
+  ],
+  "expected_latest_run": {
+    "recorded_attempts": 12,
+    "schema_rejections": 7,
+    "timeout_attempts": 3,
+    "timeout_seconds": 360.27,
+    "model_seconds": 497.18
+  },
+  "synthetic_cases": [
+    {
+      "name": "known_contract_omitted",
+      "expected_legacy": "missing_api_contract",
+      "expected_v3": "known registry reused"
+    },
+    {
+      "name": "wrong_response_array",
+      "expected_v3": "response_shape"
+    },
+    {
+      "name": "unknown_endpoint",
+      "expected_v3": "missing_api_contract"
+    },
+    {
+      "name": "missing_mutation_body",
+      "expected_v3": "mutation_example"
+    },
+    {
+      "name": "changed_memory_prefix",
+      "expected_v3": "stop before inference"
+    },
+    {
+      "name": "16k_complete_staged_plan",
+      "expected_v3": "proposed with unchanged checks and 8192 output floor"
+    }
+  ]
+}

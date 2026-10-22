@@ -1,10 +1,8 @@
-# Idea Foundry 0.38.0
+# Idea Foundry 0.39.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
-**New: one Diag workflow.** Click **Diag**, watch safe checks and evidence collection, then download the matching ZIP. Optional tests include a real acceptance-schema probe using fixed synthetic data. Planning failures now have precise assertion paths and validity flags; new feature-by-feature drafts use a portable assertion format compiled into the existing approval checks. [v0.38.0 findings and test steps](docs/RELEASE-0.38.0.md).
-
-**New: Plan feature by feature.** An explicit new workflow saves acceptance for one feature at a time, gives bookkeeping to the controller and excludes obsolete rejected-plan context from feature requests. Final approval and behavioral tests remain required. The larger forge emblem has flowing blue/cyan flame contours and a pause control. [v0.35.0 audit, changes and test steps](docs/RELEASE-0.35.0.md).
+**New: a stage-specific planning harness.** Click **Plan feature by feature →**. Scope, acceptance and task design receive focused context; project memory preserves validated API/scenario facts and detects drift. Known starter contracts no longer depend on model redeclaration. Budget evidence and Diag's planning probe are stronger. [v0.39.0 findings and test steps](docs/RELEASE-0.39.0.md).
 
 **Diag → Download ZIP.** Default checks do not generate text or run app code. Under **More checks & tools**, explicitly select local JSON, local planning or consented cloud probes, then **Run selected checks & collect**. Close/reopen to rejoin a running session; Stop collects partial evidence after the current operation returns. Busy jobs get passive collection with checks marked skipped. Separate Test tools remain under this section for compatibility. Probes never change saved routes or establish project-building ability.
 

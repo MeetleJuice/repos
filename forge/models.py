@@ -165,7 +165,7 @@ class ModelClient:
             self.last_metadata['schema_sha256'] = hashlib.sha256(json.dumps(request_schema(system,prompt),sort_keys=True).encode()).hexdigest()
             try:stage_payload=json.loads(prompt)
             except ValueError:stage_payload={}
-            self.last_metadata['schema_version'] = 2 if isinstance(stage_payload,dict) and stage_payload.get('acceptance_planning_policy') == 'feature_v2' else 1
+            self.last_metadata['schema_version'] = 3 if isinstance(stage_payload,dict) and stage_payload.get('planning_context_policy')=='stage_v1' else 2 if isinstance(stage_payload,dict) and stage_payload.get('acceptance_planning_policy') == 'feature_v2' else 1
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
         messages[0]["content"] = output_contract(system)
         if self.recovery_mode == "continuation":

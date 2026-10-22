@@ -5,6 +5,8 @@ import math
 from typing import Any
 
 RULES = {
+    'browser_not_requested':'Browser automation was not enabled; use manual interface checks.',
+    'probe_mutation_required':'The fixed create-record probe requires a real mutation body and saved-value assertion.',
     'assertion_value': 'An assertion field has an empty or invalid value.',
     'task_endpoint_mismatch': 'A task names an endpoint outside the accepted API/check contract.',
     'duplicate_task': 'A task repeats earlier instructions, outcome, criteria and file scope.',
@@ -58,7 +60,7 @@ def candidate_shape(candidate: Any) -> dict[str, Any]:
     from .assertions import assertion_shape
     if not isinstance(candidate, dict): return {'object': False}
     result: dict[str, Any] = {'object': True}
-    for field in ('features', 'checks', 'manual_checks', 'browser_checks', 'tasks'):
+    for field in ('features', 'checks', 'manual_checks', 'browser_checks', 'tasks', 'api_contracts'):
         value = candidate.get(field)
         if isinstance(value, list): result[field+'_count'] = len(value)
     result['check_structure'] = [{'index': index,
@@ -108,6 +110,7 @@ def latest_planning_run(records: list[dict[str, Any]]) -> dict[str, Any]:
         'status':finish.get('status'),'seconds':finish.get('seconds'),
         'recorded_attempts':len(attempts),'reported_attempts':finish.get('model_attempts'),
         'schema_rejections':sum(a.get('category')=='schema_error' or a.get('failure_class')=='schema_error' for a in attempts),
+        'budget_rejections':sum(a.get('failure_class')=='output_budget' for a in attempts),
         'timeout_attempts':sum(a.get('transport_kind')=='timeout' for a in attempts),
         'model_seconds':round(sum(a['seconds'] for a in attempts if type(a.get('seconds')) in {int,float} and math.isfinite(a['seconds']) and a['seconds']>=0),3) if attempts and all(type(a.get('seconds')) in {int,float} and math.isfinite(a['seconds']) and a['seconds']>=0 for a in attempts) else None,
         'stages':stages,'timeout_seconds':round(sum(a['seconds'] for a in attempts if a.get('transport_kind')=='timeout' and type(a.get('seconds')) in {int,float} and math.isfinite(a['seconds']) and a['seconds']>=0),3),

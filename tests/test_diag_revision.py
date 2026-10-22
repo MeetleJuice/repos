@@ -238,16 +238,16 @@ class DiagnosticSessionTests(unittest.TestCase):
     def test_fixed_planning_probe_is_explicit_and_does_not_use_project_data(self):
         reply={'checks':[{'name':'Create record','method':'POST','path':'/api/records','status':201,
                          'body':{'title':'Diagnostic sample'},'assertion':{'kind':'json_subset','expected':{'id':1,'title':'Diagnostic sample'}}}],
-               'api_contracts':[{'method':'POST','path':'/api/records','status':201,'response_kind':'object','required_fields':['id','title']}]}
+               'api_contracts':[{'method':'POST','path':'/api/records','status':201,'response_kind':'object','required_fields':['id','title','note','created_at']}]}
         with tempfile.TemporaryDirectory() as folder:
             bench,models,runner,session=self.make(folder,[reply])
             session.start(None,[{'provider':'ollama','model':'fixture'},{'provider':'groq','model':'never-call-cloud'}],'planning')
             self.finish(session)
             row=next(r for r in runner.status()['rows'] if r['code']=='planner_stage_probe')
             self.assertEqual(row['status'],'passed',row)
-            self.assertEqual(row['schema_version'],2)
+            self.assertEqual(row['schema_version'],3)
             self.assertEqual(len(row['schema_sha256']),64)
-            self.assertEqual(models.calls[0]['acceptance_planning_policy'],'feature_v2')
+            self.assertEqual(models.calls[0]['acceptance_planning_policy'],'feature_v3')
             self.assertFalse(runner.status()['project_content_sent'])
             self.assertEqual(bench.list_projects(),[])
             self.assertEqual(len(models.calls),1)

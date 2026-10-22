@@ -73,11 +73,17 @@ def create_outline(request: dict[str, Any], generate: Callable[..., dict[str, An
                    checkpoint: Callable[[dict[str, Any]], None], draft: dict[str, Any],
                    cancel: threading.Event) -> dict[str, Any]:
     if draft.get('scope') is None:
-        scope=generate(SCOPE_PROMPT,{**request,'planning_stage':'scope'},validate_scope)
+        if request.get('planning_context_policy')=='stage_v1':
+            from .stage_context import project_request
+            projected,manifest=project_request(request,'scope')
+            packet={'request':projected,'context_manifest':manifest,'planning_context_policy':'stage_v1','planning_stage':'scope',
+                    'task_planning_policy':request.get('task_planning_policy')}
+        else:packet={**request,'planning_stage':'scope'}
+        scope=generate(SCOPE_PROMPT,packet,validate_scope)
         validate_scope(scope);draft['scope']=copy.deepcopy(scope);checkpoint(copy.deepcopy(draft))
     scope=draft['scope'];validate_scope(scope)
     if cancel.is_set():raise InterruptedError('Validated scope saved. Resume planning to define acceptance checks.')
-    if request.get('acceptance_planning_policy') in {'feature_v1','feature_v2'}:
+    if request.get('acceptance_planning_policy') in {'feature_v1','feature_v2','feature_v3'}:
         from .feature_acceptance import create_acceptance
         return create_acceptance(request,scope,generate,checkpoint,draft,cancel)
     def validate(candidate: dict[str, Any]) -> None:assemble(scope,candidate,request)

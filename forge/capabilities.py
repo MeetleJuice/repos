@@ -27,6 +27,12 @@ class PlannerBudget:
     estimated_required_tokens: int
 
 
+class BudgetError(ValueError):
+    def __init__(self, message: str, facts: dict[str,Any]) -> None:
+        self.facts=facts
+        super().__init__(message)
+
+
 class CapabilityRegistry:
     def __init__(self, path: Path | None = None) -> None:
         self.path = path
@@ -110,7 +116,7 @@ class CapabilityRegistry:
         if changed and self.path:
             atomic_text(self.path,json.dumps({'schema':1,'models':self.overrides},indent=2)+'\n')
 
-    def reserve(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str, compact: bool = False) -> PlannerBudget:
+    def reserve(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str, compact: bool = False, *, contract_system: str | None = None) -> PlannerBudget:
         cap = self.get(provider, model, options, role='planner')
         try: payload = json.loads(prompt)
         except ValueError: payload = {}
@@ -123,8 +129,8 @@ class CapabilityRegistry:
         checks = max([8,features*2+2]+[len(p.get('checks',[])) for p in valid_proposals if isinstance(p.get('checks'),list)])
         estimate = 512 + len(PLAN_SCHEMA['required'])*40 + min(tasks,40)*(640 if structured_tasks else 320) + min(checks,80)*240 + min(features,40)*100
         from .guided import planner_schema
-        schema=planner_schema(system) or PLAN_SCHEMA
-        if payload.get('planning_stage') in {'outline','scope','acceptance'}:
+        schema=planner_schema(contract_system or system) or PLAN_SCHEMA
+        if payload.get('planning_stage') in {'outline','scope','acceptance'} or contract_system is not None and payload.get('planning_stage')=='acceptance_feature':
             estimate=512+len(schema['required'])*40+min(checks,15)*240+min(features,12)*100
         elif payload.get('planning_stage') in {'tasks','feature_tasks'}:
             maximum=payload.get('max_new_tasks',4)
@@ -134,13 +140,23 @@ class CapabilityRegistry:
         # Conservative heuristic (about two UTF-8 bytes/token), not a tokenizer
         # guarantee or billing measurement. Reserve schema/message framing too.
         input_estimate = (len((system+prompt).encode('utf-8',errors='surrogatepass')) + len(json.dumps(schema)) + 1)//2 + 512
+        if contract_system is not None:
+            # The rendered system already contains the textual stage schema.
+            # Count that once, plus the actual separate native schema if used.
+            input_estimate=(len((system+prompt).encode('utf-8',errors='surrogatepass'))+1)//2+512
         # Guided schemas are now present in the textual system instruction for
         # every adapter. Ollama also sends its native format schema separately.
-        if planner_schema(system) is not None and provider=='ollama' and options.get('structured_outputs',True):
+        if planner_schema(contract_system or system) is not None and provider=='ollama' and options.get('structured_outputs',True):
             input_estimate+=(len(json.dumps(schema))+1)//2
         room = min(cap.max_output_tokens, cap.max_context_tokens-input_estimate)
         text = max(self.builtin['planner_output_floor'], options.get('num_predict',4096), 0 if compact else estimate)
-        if text+thinking > room: raise ValueError('Planner needs '+str(text+thinking)+' output tokens plus an estimated '+str(input_estimate)+' input tokens; output ceiling is '+str(cap.max_output_tokens)+' and context is '+str(cap.max_context_tokens)+'. Increase Ollama context in planner settings if memory permits, or choose a larger-capacity model; no request was sent.')
+        if text+thinking > room:
+            raise BudgetError('Planner needs '+str(text+thinking)+' output tokens plus an estimated '+str(input_estimate)+' input tokens; output ceiling is '+str(cap.max_output_tokens)+' and context is '+str(cap.max_context_tokens)+'. Increase Ollama context in planner settings if memory permits, or choose a larger-capacity model; no request was sent.',
+                {'requested_max_output_tokens':text+thinking,'reserved_text_output_tokens':text,'thinking_budget':thinking,
+                 'input_estimate_tokens':input_estimate,'required_context_tokens':input_estimate+text+thinking,
+                 'configured_num_ctx':options.get('num_ctx') if provider in {'ollama','local'} else None,
+                 'effective_context_tokens':cap.max_context_tokens,'context_shortfall_tokens':max(0,input_estimate+text+thinking-cap.max_context_tokens),
+                 'max_output_ceiling':cap.max_output_tokens})
         return PlannerBudget(text+thinking, text, thinking, input_estimate, estimate)
 
     def reserve_builder(self, provider: str, model: str, options: dict[str, Any], system: str, prompt: str) -> PlannerBudget:

@@ -11,6 +11,7 @@ let ideaInputRevision = 0;
 const diagnosticCheckLabels = {
   private_storage:'Private workspace storage', controller_smoke:'Planning validation checks',
   planning_guards:'Adversarial planning checks', loop_guards:'Repair evidence safeguards',
+  stage_harness_guards:'Stage context & API registry safeguards',
   project_execution:'Selected build · evidence audit only', project_plan:'Selected proposal · local review only',
   local_catalogue:'Ollama connection', provider_catalogue:'Provider catalogue · not generation',
   fixed_json_probe:'Model response test · small JSON fixture', planner_stage_probe:'Local planning · acceptance-schema fixture',
@@ -41,10 +42,16 @@ function renderDiagnosticReport(report) {
   const coverage = document.createElement("p");
   coverage.textContent = `${summary.detailed_project_count ?? "Unknown"} detailed projects · ${summary.history_records ?? "Unknown"} controller events · ${summary.recorder_records ?? "Unknown"} recorder events. Includes planning structure, validation rule codes and retained attempt metrics.`;
   $("diag-summary").append(coverage);
+  if (summary.selected_planning_memory?.schema) {
+    const memory = summary.selected_planning_memory;
+    const detail = document.createElement('p');
+    detail.textContent = `Selected project memory: ${memory.accepted_features} features with validated acceptance · ${memory.known_contracts} API contracts · ${memory.check_count} HTTP checks. Prefix identity is included in the ZIP. These are unapproved planning facts, not execution evidence.`;
+    $("diag-summary").append(detail);
+  }
   if (summary.selected_planning?.available) {
     const run = summary.selected_planning;
     const planning = document.createElement('p');
-    planning.textContent = `Latest selected planning run: ${run.recorded_attempts ?? 'unknown'} attempts · ${run.schema_rejections ?? 0} rejected drafts · ${run.timeout_attempts ?? 0} timeouts · ${run.model_seconds ?? 'unknown'} model seconds. Rules: ${(run.review_codes || []).join(', ') || 'none retained'}. No task execution is implied.`;
+    planning.textContent = `Latest selected planning run: ${run.recorded_attempts ?? 'unknown'} attempts · ${run.schema_rejections ?? 0} rejected drafts · ${run.budget_rejections ?? 0} budget refusals · ${run.timeout_attempts ?? 0} timeouts · ${run.model_seconds ?? 'unknown'} model seconds. Rules: ${(run.review_codes || []).join(', ') || 'none retained'}. No task execution is implied.`;
     $("diag-summary").append(planning);
   }
   if (summary.selected_execution?.available) {

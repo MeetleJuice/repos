@@ -20,6 +20,7 @@ function renderPlanningProgress(project, busy) {
     ? `${progress.stage === "complete proposal ready for review" ? "Assembled proposal ready for review" : "Unapproved planning draft saved"} · ${progress.features_planned}/${progress.features_total} features planned · ${progress.tasks} tasks. Changing the idea or revision starts a new draft.`
     : "A saved draft is not an approved proposal or implementation evidence.";
   if (progress?.acceptance_features_planned) document.getElementById('guided-progress').textContent += ` Acceptance evidence saved for ${progress.acceptance_features_planned}/${progress.features_total} features.`;
+  if (progress?.memory) document.getElementById('guided-progress').textContent += ` Project memory: ${progress.memory.known_contracts} API contracts and ${progress.memory.check_count} acceptance checks. These are validated declarations, not proof of execution.`;
   if (progress && !project.approved && project.status === "error" && progress.tasks !== (project.plan?.tasks?.length || 0)) {
     document.getElementById("guided-progress").textContent += " Task counts in the retained older proposal below do not describe this current draft. No new task has been built.";
   }
@@ -31,6 +32,7 @@ function renderPlanningProgress(project, busy) {
     const item = document.createElement("li");
     const reasons = (call.review_findings || []).slice(0, 4).map(finding => `${finding.path}: ${finding.message}`).join("; ");
     item.textContent = `${call.provider}/${call.model} · ${call.error_category || "schema_error"}${call.transport_kind ? " / " + call.transport_kind : ""} · ${reasons || call.error_detail || "No detailed reason retained in this older attempt."}`;
+    if (call.required_context_tokens) item.textContent += ` Budget estimate: ${call.input_estimate_tokens} input + ${call.requested_max_output_tokens} reserved output = ${call.required_context_tokens}; effective context ${call.effective_context_tokens ?? call.configured_num_ctx}.`;
     list.append(item);
   }
 }
@@ -202,6 +204,11 @@ async function reviewEditor() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('plan-with-memory').addEventListener('click',()=>{
+    const submit=document.getElementById('propose');if(submit.disabled)return;
+    const mode=document.getElementById('new-plan-mode');mode.value='granular';mode.dispatchEvent(new Event('change'));
+    document.getElementById('idea-form').requestSubmit(submit);
+  });
   document.getElementById('plan-with-proof').addEventListener('click',()=>{
     const submit=document.getElementById('propose');if(submit.disabled)return;
     const mode=document.getElementById('new-plan-mode');mode.value='proof';mode.dispatchEvent(new Event('change'));

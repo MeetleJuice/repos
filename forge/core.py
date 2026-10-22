@@ -271,6 +271,7 @@ class Workbench:
             stage_rejections = 0
             stage_payload = json.loads(prompt) if role == 'planner' else {}
             compiled_stage = stage_payload.get('task_planning_policy') == 'compiled_v1'
+            stage_harness = role=='planner' and stage_payload.get('planning_context_policy')=='stage_v1'
             budget_failed = False
             for index, (selected, is_fallback) in enumerate(choices):
                 if cancel.is_set():
@@ -296,7 +297,8 @@ class Workbench:
                     failures.append(selected['provider']+': temporary transport/service circuit cooldown (no request sent)')
                     continue
                 rejected = state.get("job_model_rejections", {})
-                if rejected.get(selected["provider"] + "/" + selected["model"]):
+                rejection = rejected.get(selected["provider"] + "/" + selected["model"])
+                if rejection and (not stage_harness or rejection not in {'schema_error','response_rejected','format','parse_error','size'}):
                     self.event(state, "Skipping model already rejected during this job: " + selected["provider"] + "/" + selected["model"] + ".")
                     failures.append(selected['provider']+'/'+selected['model']+': '+str(rejected[selected['provider']+'/'+selected['model']])+' (already rejected)')
                     continue
@@ -312,7 +314,7 @@ class Workbench:
                     continue
                 recovery_mode, prefix = recoveries.get(index, ('initial', ''))
                 effective_prompt = correction_prompts.get(index, prompt)
-                if pool and only_model is None and recovery_mode == 'initial' and self.model_status.avoid(selected['provider'],selected['model'],include_response=response_rejections is None):
+                if pool and only_model is None and recovery_mode == 'initial' and self.model_status.avoid(selected['provider'],selected['model'],include_response=response_rejections is None and not stage_harness):
                     failures.append(selected['provider']+': recent_failure')
                     self.event(state,'Skipping recently failed model for up to five minutes: '+selected['provider']+'/'+selected['model']+'.')
                     continue
@@ -333,6 +335,14 @@ class Workbench:
                     record.update(planning_stage=stage_payload.get('planning_stage', 'single'),
                                   task_planning_policy=stage_payload.get('task_planning_policy'),
                                   target_feature_indexes=stage_payload.get('target_feature_indexes', []))
+                    if stage_harness:
+                        from .stage_context import digest
+                        from .models import request_schema
+                        record.update(planning_context_policy='stage_v1',context_manifest_sha256=digest(stage_payload.get('context_manifest',{})),
+                                      planning_memory_sha256=digest(stage_payload.get('planning_memory',{})),
+                                      schema_version=3,schema_sha256=digest(request_schema(system,effective_prompt)))
+                        memory=stage_payload.get('planning_memory')
+                        if isinstance(memory,dict):record.update({key:memory.get(key) for key in ('known_contracts','accepted_features','check_count')})
                 client = None
                 try:
                     state["status"] = previous
@@ -347,13 +357,15 @@ class Workbench:
                         if role in {'planner', 'coder'}:
                             try:
                                 reserve = registry.reserve if role == 'planner' else registry.reserve_builder
-                                budget = reserve(selected['provider'],selected['model'],client.options,budget_system+prefix,effective_prompt)
+                                budget = reserve(selected['provider'],selected['model'],client.options,budget_system+prefix,effective_prompt,**({'contract_system':system} if stage_harness else {}))
                             except ValueError as exc:
                                 if role != 'planner': raise ModelError(str(exc),'output_budget') from None
                                 try:
-                                    budget = registry.reserve(selected['provider'],selected['model'],client.options,budget_system+prefix,effective_prompt,compact=True)
-                                except ValueError:
-                                    raise ModelError(str(exc),'output_budget') from None
+                                    budget = registry.reserve(selected['provider'],selected['model'],client.options,budget_system+prefix,effective_prompt,compact=True,**({'contract_system':system} if stage_harness else {}))
+                                except ValueError as compact_error:
+                                    from .capabilities import BudgetError
+                                    if isinstance(compact_error,BudgetError):record.update(compact_error.facts)
+                                    raise ModelError(str(compact_error),'output_budget') from None
                                 if recovery_mode == 'initial':
                                     recovery_mode = 'budget_compaction'
                                     record['recovery_path'] = recovery_mode
@@ -424,14 +436,18 @@ class Workbench:
                                             'earlier_acceptance and scope stay fixed; wire_examples illustrate format only. '
                                             'Do not return feature_indexes or copy other features. Do not add restart/delete checks unless this feature needs them. '
                                             'Preserve request.existing_project approved baseline checks. '
-                                            + ('Use assertion:{kind,expected}; no legacy assertion fields.' if stage_payload.get('acceptance_planning_policy')=='feature_v2'
+                                            + ('Use assertion:{kind,expected}; no legacy assertion fields.' if stage_payload.get('acceptance_planning_policy') in {'feature_v2','feature_v3'}
                                                else 'Each check needs meaningful contains/json_contains/json_equals, or empty_body:true.'))
+                                        if stage_harness:
+                                            from .stage_context import check_contract_context
+                                            feedback['contract_feedback']=check_contract_context(result.get('checks',[]),stage_payload.get('earlier_acceptance',{}))
+                                            feedback['correction_instruction']+=' Reuse earlier_acceptance.api_contracts and planning_memory sample references. Preserve the documented response wrapper; supply actual mutation body data. Unknown new routes need explicit contracts.'
                                 choices.insert(index+1, (selected, is_fallback))
                                 correction_prompts[index+1] = json.dumps(feedback)
                                 recoveries[index+1] = ("schema_correction", "")
                                 self.event(state, "Proposal failed deterministic review; one focused correction on " + selected["provider"] + "/" + selected["model"] + ".")
                                 continue
-                            state.setdefault("job_model_rejections", {})[selected["provider"] + "/" + selected["model"]] = "schema_error"
+                            if not stage_harness:state.setdefault("job_model_rejections", {})[selected["provider"] + "/" + selected["model"]] = "schema_error"
                             failures.append(selected["provider"] + ": schema_error")
                             self.event(state, "Proposal correction failed; advancing to the next model without restarting the route.")
                             continue
@@ -622,13 +638,14 @@ class Workbench:
                 result.append({"name": name, "kind": "modified" if name in before else "added", "diff": "\n".join(lines)[:20000]})
         return result
 
-    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None, acceptance_wire_version: int = 1) -> dict[str, Any]:
+    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None, acceptance_wire_version: int = 1, browser_automation: bool = False) -> dict[str, Any]:
         if self.maintenance:
             raise ValueError("An update is being installed. Wait for the restart.")
         if plan_mode not in {'single','guided','proof','granular'}:
             raise ValueError('Choose single, guided, proof or granular planning.')
-        if type(acceptance_wire_version) is not int or acceptance_wire_version not in {1,2}:
-            raise ValueError('Acceptance wire version must be 1 or 2.')
+        if type(acceptance_wire_version) is not int or acceptance_wire_version not in {1,2,3}:
+            raise ValueError('Acceptance wire version must be 1, 2 or 3.')
+        if type(browser_automation) is not bool:raise ValueError('Browser automation preference must be a boolean.')
         if local_timeout is not None and (type(local_timeout) is not int or local_timeout not in {120,300,600}):
             raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
         if type(use_reviewed_plan) is not bool or (use_reviewed_plan and starter != "arcade"):
@@ -652,7 +669,7 @@ class Workbench:
         self.trace(state, "project_created", {"starter":starter, "idea_characters":len(state["idea"]), "planner":planner, "coder":coder}, "user")
         if use_reviewed_plan:
             return self.load_starter_plan(ident)
-        self.start(ident, "plan", {"cloud_consent": cloud_consent, 'plan_mode':plan_mode, 'local_timeout':local_timeout, 'acceptance_wire_version':acceptance_wire_version})
+        self.start(ident, "plan", {"cloud_consent": cloud_consent, 'plan_mode':plan_mode, 'local_timeout':local_timeout, 'acceptance_wire_version':acceptance_wire_version, 'browser_automation':browser_automation})
         return self.load(ident)
 
     def insights(self):
@@ -688,9 +705,12 @@ class Workbench:
             if action=='build' and (state.get('plan') or {}).get('acceptance_policy')=='evidence_v1' and options.get('execute') and options.get('milestones',True) is not True:
                 raise ValueError('This evidence-ready plan requires its approved checkpoints during execution. Enable Check runnable milestones during this build, or generate files without execution.')
             if options.get('plan_mode','single') not in {'single','guided','proof','granular'}:raise ValueError('Choose single, guided, proof or granular planning.')
-            if 'acceptance_wire_version' in options and (type(options['acceptance_wire_version']) is not int or options['acceptance_wire_version'] not in {1,2}):
-                raise ValueError('Acceptance wire version must be 1 or 2.')
+            if 'acceptance_wire_version' in options and (type(options['acceptance_wire_version']) is not int or options['acceptance_wire_version'] not in {1,2,3}):
+                raise ValueError('Acceptance wire version must be 1, 2 or 3.')
             if options.get('local_timeout') is not None and (type(options['local_timeout']) is not int or options['local_timeout'] not in {120,300,600}):raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
+            if 'browser_automation' in options:
+                if type(options['browser_automation']) is not bool:raise ValueError('Browser automation preference must be a boolean.')
+                if action=='plan':state['browser_automation_requested']=options['browser_automation']
             state['job_local_timeout']=options.get('local_timeout') if action=='plan' else None
             if type(options.get('stream_local',False)) is not bool:raise ValueError('Local streaming setting must be a JSON boolean.')
             state['job_stream_local']=options.get('stream_local',False)
@@ -1343,7 +1363,10 @@ class Workbench:
                 if options.get('plan_mode') in {'proof','granular'}:state['evidence_planning']=True
                 if options.get('plan_mode')=='granular':
                     state['feature_acceptance']=True
-                    state['acceptance_wire_version']=options.get('acceptance_wire_version',state.get('acceptance_wire_version',1))
+                    selected_wire=options.get('acceptance_wire_version',state.get('acceptance_wire_version',1))
+                    if selected_wire!=state.get('acceptance_wire_version',1) and state.get('guided_draft'):
+                        state['previous_guided_draft']=copy.deepcopy(state['guided_draft'])
+                    state['acceptance_wire_version']=selected_wire
                 elif options.get('plan_mode') in {'single','guided','proof'}:state.pop('feature_acceptance',None)
                 if state.get('evidence_planning'):
                     from .acceptance import GUIDANCE
@@ -1396,7 +1419,14 @@ class Workbench:
                     # New drafts only: approved plans and legacy replay contracts stay intact.
                     request['task_planning_policy']='compiled_v1'
                     request['outline_planning_policy']='split_v1'
-                    if state.get('feature_acceptance'):request['acceptance_planning_policy']='feature_v2' if state.get('acceptance_wire_version')==2 else 'feature_v1'
+                    if state.get('feature_acceptance'):
+                        version=state.get('acceptance_wire_version',1)
+                        request['acceptance_planning_policy']='feature_v3' if version==3 else 'feature_v2' if version==2 else 'feature_v1'
+                        if version==3:
+                            from .stage_context import interface_index
+                            request['planning_context_policy']='stage_v1'
+                            request['planning_interfaces']=interface_index(planning_source)
+                            request['browser_automation_requested']=state.get('browser_automation_requested') is True
                     def checkpoint(draft):
                         state['guided_draft']=draft
                         outline=draft.get('outline') or draft.get('scope') or {}
@@ -1410,6 +1440,10 @@ class Workbench:
                             'features_planned':draft['next_feature'],'features_total':len(outline.get('features',[])),
                             'acceptance_features_planned':acceptance,
                             'tasks':len(draft['tasks']),'meaning':'Unapproved draft only. Final full-proposal review is still required.'}
+                        memory=(draft.get('acceptance_draft') or {}).get('planning_memory')
+                        if isinstance(memory,dict):
+                            state['planning_progress']['memory']={key:memory.get(key) for key in (
+                                'schema','policy','accepted_features','check_count','known_contracts','request_sha256','accepted_prefix_sha256')}
                         self.trace(state,'guided_plan_checkpoint',state['planning_progress'])
                         self.event(state,'Guided planning: '+str(draft['next_feature'])+'/'+str(len(outline.get('features',[])))+' features assigned to '+str(len(draft['tasks']))+' tasks. '+stage+'. Draft saved; not approved.')
                     def generate_stage(system,payload,validate):

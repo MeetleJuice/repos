@@ -1,0 +1,54 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "status": "retrieved",
+    "bytes": 54614,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5",
+    "file": "0"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/thinking.md",
+    "status": "unavailable",
+    "exception_type": "HTTPError"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/openai-agents-python/main/docs/context.md",
+    "status": "retrieved",
+    "bytes": 9975,
+    "sha256": "fff7dab722cb80c7afc7cf3b44858b7560e0bc54b389e84fb812c8d3aa37a240",
+    "file": "2"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/openai-agents-python/main/docs/running_agents.md",
+    "status": "retrieved",
+    "bytes": 36463,
+    "sha256": "881e6986fde7e8143bbb722577a04ed169f49a5bdf3c64f29124a5ffc42fb7bf",
+    "file": "3"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/anthropic-cookbook/main/patterns/agents/workflows.ipynb",
+    "status": "unavailable",
+    "exception_type": "HTTPError"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/anthropic-cookbook/main/patterns/agents/evaluator_optimizer.ipynb",
+    "status": "retrieved",
+    "bytes": 10815,
+    "sha256": "3d50881c3d7974ae30c27535f4ea0b344740c7b4c3efbd2acfa9e6e4a875493c",
+    "file": "5"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/anthropic-cookbook/main/patterns/agents/README.md",
+    "status": "retrieved",
+    "bytes": 848,
+    "sha256": "2425d60f34e1b071ac958d187a54e76b126bbd08517ba9f4377ec3304191c3db",
+    "file": "6"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/openai-agents-python/main/docs/sessions/index.md",
+    "status": "retrieved",
+    "bytes": 32211,
+    "sha256": "ca09eca46c0f55621fe97389c3a37a3be205b6876a3c9f0c68ab80afefef6506",
+    "file": "7"
+  }
+]

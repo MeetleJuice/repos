@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "provenance": "Synthetic identical request, real controller/native adapter, mocked responses. No live inference or speed/quality claim.",
+  "before": {
+    "version": "0.38.0",
+    "status": "error",
+    "error": "Configured route exhausted. Some models could not fit the output/context reservation; other provider failures are listed here: ollama: output_budget; ollama: output_budget; ollama: output_budget; ollama: output_budget; ollama: output_budget; ollama: output_budget",
+    "fixture_adapter_invocations": 0,
+    "stages": [],
+    "budgets": [
+      {
+        "model": "qwen2.5-coder:7b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "qwen2.5-coder:7b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "qwen3.5:9b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "qwen3.5:9b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "deepseek-r1:7b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "deepseek-r1:7b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "qwen2.5:7b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "qwen2.5:7b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "qwen3:8b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "qwen3:8b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "granite4.2:8b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      },
+      {
+        "model": "granite4.2:8b",
+        "input_estimate": 9565,
+        "output_reserved": 8192,
+        "fits": false
+      }
+    ],
+    "real_network_calls": 0,
+    "live_model_quality_claim": false
+  },
+  "after": {
+    "version": "0.39.0",
+    "status": "proposed",
+    "error": null,
+    "fixture_adapter_invocations": 5,
+    "stages": [
+      "scope",
+      "acceptance_feature",
+      "acceptance_feature",
+      "feature_tasks",
+      "feature_tasks"
+    ],
+    "budgets": [
+      {
+        "model": "qwen2.5-coder:7b",
+        "input_estimate": 4530,
+        "output_reserved": 8192,
+        "fits": true
+      },
+      {
+        "model": "qwen2.5-coder:7b",
+        "input_estimate": 8002,
+        "output_reserved": 8192,
+        "fits": true
+      },
+      {
+        "model": "qwen2.5-coder:7b",
+        "input_estimate": 8075,
+        "output_reserved": 8192,
+        "fits": true
+      },
+      {
+        "model": "qwen2.5-coder:7b",
+        "input_estimate": 8066,
+        "output_reserved": 8192,
+        "fits": true
+      },
+      {
+        "model": "qwen2.5-coder:7b",
+        "input_estimate": 8063,
+        "output_reserved": 8192,
+        "fits": true
+      }
+    ],
+    "real_network_calls": 0,
+    "live_model_quality_claim": false
+  }
+}

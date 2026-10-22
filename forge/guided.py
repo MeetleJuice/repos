@@ -35,8 +35,8 @@ BATCH_SCHEMA: dict[str,Any]={'type':'object','required':['tasks'],'additionalPro
 
 
 def planner_schema(system: str) -> dict[str,Any] | None:
-    from .feature_acceptance import WIRE_PROMPT, WIRE_SCHEMA
-    if system==WIRE_PROMPT:return WIRE_SCHEMA
+    from .feature_acceptance import WIRE_PROMPT, WIRE_SCHEMA, MEMORY_PROMPT
+    if system in {WIRE_PROMPT,MEMORY_PROMPT}:return WIRE_SCHEMA
     from .feature_acceptance import PROMPT as FEATURE_ACCEPTANCE_PROMPT, SCHEMA as FEATURE_ACCEPTANCE_SCHEMA
     if system==FEATURE_ACCEPTANCE_PROMPT:return FEATURE_ACCEPTANCE_SCHEMA
     from .outline_planning import SCOPE_PROMPT,SCOPE_SCHEMA,ACCEPTANCE_PROMPT,ACCEPTANCE_SCHEMA

@@ -42,6 +42,12 @@ _wire_check['required'].append('assertion')
 _wire_check['properties']['assertion'] = {'type':'object','additionalProperties':False,'required':['kind','expected'],
     'properties':{'kind':{'type':'string','enum':['text','json_subset','json_exact','empty']},'expected':{}}}
 
+MEMORY_POLICY='feature_v3'
+MEMORY_PROMPT='''GOAL: Define minimal acceptance for target_feature only, using the supplied assertion wire schema.
+CONTEXT: request contains unchanged user/baseline requirements. scope is fixed. earlier_acceptance is the validated unapproved prefix; planning_memory indexes its declared API contracts and sample mutations. Read those facts before inventing routes, response shapes or IDs. Their existence does not prove app execution. Controller-generated wire_examples match the selected starter and are examples only.
+CONSTRAINTS: HTTP checks use assertion:{kind,expected}: text requires nonempty string; json_subset requires meaningful nonempty JSON; json_exact preserves any exact value; empty requires expected:null. Canonical json_contains/json_equals in earlier data describe saved checks, never response field names. Reuse the API registry, including object wrappers such as {records:[...]}; declare api_contracts only for new endpoints. Each successful POST/PUT/PATCH needs concrete body data or a legitimate request_body_optional_reason. All checks share one database in order. Reuse earlier live sample values; restart_before belongs on a GET of that same previously seeded, undeleted record. Do not add a restart scenario to an unrelated feature or add deletion when not requested. UI features use meaningful manual_checks; return browser_checks only when request explicitly enables browser automation. Never return feature_indexes, tasks, source, wrappers or claims of execution. Preserve earlier checks and selected starter contracts exactly. Unknown new business endpoints need explicit API contracts. No fabricated values, guessed array shapes or empty persistence proof.
+DONE WHEN: Return one small current-feature object. The controller assigns references and validates the complete prefix with the same production reviewer before saving project memory. Full-proposal review and human approval still follow.'''
+
 
 def packet_request(request: dict[str,Any]) -> tuple[dict[str,Any],dict[str,Any]]:
     omitted={'previous_proposal','starter_source','implementation_context','file_ownership','builder_profile'}
@@ -53,6 +59,10 @@ def packet_request(request: dict[str,Any]) -> tuple[dict[str,Any],dict[str,Any]]
 
 def _review(scope: dict[str,Any], fields: dict[str,Any], request: dict[str,Any], count: int) -> None:
     if count==0:
+        if request.get('acceptance_planning_policy')==MEMORY_POLICY:
+            from .stage_context import seed_contracts
+            if fields!=seed_contracts({'checks':[]},request):raise ValueError('Unexpected acceptance before its first feature.')
+            return
         if any(fields.get(key) for key in SCHEMA['properties']):raise ValueError('Unexpected acceptance before its first feature.')
         return
     prefix={**copy.deepcopy(scope),**copy.deepcopy(fields),'features':scope['features'][:count]}
@@ -68,6 +78,11 @@ def compile_feature(scope: dict[str,Any], earlier: dict[str,Any], candidate: dic
     if not isinstance(candidate,dict) or set(candidate)-set(SCHEMA['properties']) or 'checks' not in candidate:
         raise ValueError('Return only the current feature acceptance fields, with checks as an array.')
     result=copy.deepcopy(earlier);covered=False
+    if request.get('acceptance_planning_policy')==MEMORY_POLICY:
+        from .stage_context import seed_contracts
+        result=seed_contracts(result,request)
+        if candidate.get('browser_checks') and request.get('browser_automation_requested') is not True:
+            raise StageValidationError([('browser_not_requested','/browser_checks','Use manual_checks unless browser automation was explicitly enabled for this request.')])
     for field in ('checks','manual_checks','browser_checks'):
         rows=candidate.get(field,[])
         if not isinstance(rows,list) or len(rows)>4:raise ValueError('Use at most four acceptance items per feature and field.')
@@ -94,38 +109,61 @@ def compile_feature(scope: dict[str,Any], earlier: dict[str,Any], candidate: dic
 
 def create_acceptance(request: dict[str,Any], scope: dict[str,Any], generate: Callable[...,dict[str,Any]],
                       checkpoint: Callable[[dict[str,Any]],None], draft: dict[str,Any], cancel: threading.Event) -> dict[str,Any]:
-    policy = WIRE_POLICY if request.get('acceptance_planning_policy') == WIRE_POLICY else POLICY
+    policy = request.get('acceptance_planning_policy') if request.get('acceptance_planning_policy') in {WIRE_POLICY,MEMORY_POLICY} else POLICY
     saved=draft.get('acceptance_draft') or {'policy':policy,'next_feature':0,'fields':{'checks':[]}}
     saved=copy.deepcopy(saved);first=saved.get('next_feature')
     if saved.get('policy')!=policy or type(first) is not int or not 0<=first<=len(scope['features']):raise ValueError('Invalid feature acceptance checkpoint.')
     fields=saved.get('fields')
     if not isinstance(fields,dict):raise ValueError('Invalid saved acceptance fields.')
+    if policy==MEMORY_POLICY:
+        from .stage_context import seed_contracts,project_memory
+        memory=project_memory(request,scope,fields,first)
+        if saved.get('planning_memory') is not None and saved['planning_memory']!=memory:
+            raise ValueError('Saved project planning memory does not match its validated prefix. Start a new unapproved draft.')
+        if first and saved.get('planning_memory') is None:raise ValueError('Saved acceptance prefix has no bound planning memory.')
+        seeded=seed_contracts(fields,request)
+        if first and seeded!=fields:raise ValueError('Saved acceptance prefix is missing registered contracts.')
+        fields=seeded
     _review(scope,fields,request,first)
     projected,manifest=packet_request(request)
+    if policy==MEMORY_POLICY:
+        from .stage_context import project_request
+        projected,manifest=project_request(request,'acceptance_feature')
     examples=copy.deepcopy(ACCEPTANCE_EXAMPLES)
     for row in examples['persistence_sequence']:row.pop('feature_indexes',None)
     examples['ui_coverage'].pop('feature_indexes',None)
     examples['coverage_rule']='Provide evidence for target_feature only; the controller assigns its index. Do not repeat earlier checks.'
-    if policy == WIRE_POLICY:
+    if policy in {WIRE_POLICY,MEMORY_POLICY}:
         for row in examples['persistence_sequence']:
             for field, kind in (('json_contains','json_subset'),('json_equals','json_exact'),('contains','text'),('empty_body','empty')):
                 if field in row:
                     value=row.pop(field)
                     row['assertion']={'kind':kind,'expected':None if kind=='empty' else value}
+    if policy==MEMORY_POLICY:
+        from .stage_context import stage_examples
+        examples=stage_examples(request)
     for target in range(first,len(scope['features'])):
         if cancel.is_set():raise InterruptedError('Validated feature acceptance saved; resume at the next feature.')
         prior=copy.deepcopy(fields)
         def canonical(candidate: dict[str,Any]) -> dict[str,Any]:
-            return compile_wire(candidate) if policy == WIRE_POLICY else candidate
+            return compile_wire(candidate) if policy in {WIRE_POLICY,MEMORY_POLICY} else candidate
         def validate(candidate: dict[str,Any]) -> None:compile_feature(scope,prior,canonical(candidate),target,request)
-        reply=generate(WIRE_PROMPT if policy==WIRE_POLICY else PROMPT,{'planning_stage':'acceptance_feature','task_planning_policy':'compiled_v1',
+        packet_examples=examples
+        if policy==MEMORY_POLICY and any(c.get('method')=='POST' and 200<=c.get('status',0)<300 for c in prior.get('checks',[])):
+            packet_examples={'meaning':'The exact validated sample sequence is already in earlier_acceptance.checks; use its values and JSON wrappers instead of adding a fresh synthetic sample.',
+                             'sample_checks_ref':'earlier_acceptance.checks','api_registry_ref':'earlier_acceptance.api_contracts'}
+        packet={'planning_stage':'acceptance_feature','task_planning_policy':'compiled_v1',
             'acceptance_planning_policy':policy,'request':projected,'context_manifest':manifest,'scope':scope,
             'target_feature_index':target,'target_feature':scope['features'][target],
             'target_feature_indexes':[target],
-            'earlier_acceptance':prior,'wire_examples':examples,
-            'max_new_http_checks':min(4,15-len(prior.get('checks',[])))},validate)
+            'earlier_acceptance':prior,'wire_examples':packet_examples,
+            'max_new_http_checks':min(4,15-len(prior.get('checks',[])))}
+        if policy==MEMORY_POLICY:
+            packet.update(planning_context_policy='stage_v1',planning_memory=project_memory(request,scope,prior,target))
+        reply=generate(MEMORY_PROMPT if policy==MEMORY_POLICY else WIRE_PROMPT if policy==WIRE_POLICY else PROMPT,packet,validate)
         fields=compile_feature(scope,prior,canonical(reply),target,request)
         draft['acceptance_draft']={'policy':policy,'next_feature':target+1,'fields':copy.deepcopy(fields)}
+        if policy==MEMORY_POLICY:draft['acceptance_draft']['planning_memory']=project_memory(request,scope,fields,target+1)
         checkpoint(copy.deepcopy(draft))
     if cancel.is_set():raise InterruptedError('All feature acceptance saved; resume for the complete outline review.')
     return assemble(scope,fields,request)

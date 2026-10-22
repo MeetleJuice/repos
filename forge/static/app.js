@@ -583,7 +583,8 @@ $("idea-form").onsubmit = handle(async () => {
       ...models,
       cloud_consent: $("create-cloud").checked,
       plan_mode: $("new-plan-mode").value,
-      acceptance_wire_version: 2,
+      acceptance_wire_version: 3,
+      browser_automation: $("new-browser-automation").checked,
       local_timeout: $("new-plan-mode").value !== "single" ? Number($("new-local-timeout").value) : null,
     });
     localStorage.setItem("foundry-models", JSON.stringify(models));
@@ -634,7 +635,7 @@ $("plan-guided").onclick = handle(() => job("plan", {
 }));
 $("plan-granular").onclick = handle(() => job("plan", {
   plan_mode: "granular",
-  acceptance_wire_version: 2,
+  acceptance_wire_version: 3,
   local_timeout: Number($("guided-local-timeout").value),
   revision: $("revision").value || current.last_revision || "",
 }));

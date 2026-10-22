@@ -177,7 +177,7 @@ class SystemTests:
         self.bench.model_status.start(provider,model,'system_test')
         outcome='failed'
         try:
-            result=run_probe(client,provider,model,target,self.bench.root.parent/'model-capabilities-v1.json')
+            result=run_probe(client,provider,model,target,self.bench.root.parent/'model-capabilities-v1.json',version=2)
             outcome='responded' if result['response_accepted'] else 'schema_error'
             return result
         except ModelError as exc:
@@ -188,7 +188,8 @@ class SystemTests:
                     'response_received':metadata.get('finish_reason') is not None or metadata.get('observed_output_tokens') is not None,
                     **{key:value for key,value in getattr(client,'last_metadata',{}).items() if key in {
                         'configured_num_ctx','requested_max_output_tokens','observed_output_tokens','finish_reason',
-                        'timeout_seconds','transport_attempted','schema_sha256','schema_version','response_format_mode'}}}
+                        'timeout_seconds','transport_attempted','schema_sha256','schema_version','response_format_mode',
+                        'required_context_tokens','context_shortfall_tokens','effective_context_tokens','input_estimate_tokens','reserved_text_output_tokens'}}}
         finally:self.bench.model_status.finish(provider,model,outcome,remember=False)
 
     def _project_execution(self) -> dict[str, Any]:
@@ -212,6 +213,8 @@ class SystemTests:
             self._row('private_storage',self._storage);self._row('controller_smoke',self._controller)
             from .coherence import guard_probes
             self._row('planning_guards',guard_probes);self._row('project_plan',self._project_review)
+            from .stage_context import guard_probes as stage_guards
+            self._row('stage_harness_guards',stage_guards)
             from .run_diagnostics import loop_guards
             self._row('loop_guards',loop_guards);self._row('project_execution',self._project_execution)
             self._row('local_catalogue',lambda:{'status':'passed' if self.local().get('connected') else 'failed','generation_tested':False})

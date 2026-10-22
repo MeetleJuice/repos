@@ -20,7 +20,7 @@ from tests.fixtures import PLAN
 def main():
     reply={'checks':[{'name':'Create record','method':'POST','path':'/api/records','status':201,
                      'body':{'title':'Diagnostic sample'},'assertion':{'kind':'json_subset','expected':{'id':1,'title':'Diagnostic sample'}}}],
-           'api_contracts':[{'method':'POST','path':'/api/records','status':201,'response_kind':'object','required_fields':['id','title']}]}
+           'api_contracts':[{'method':'POST','path':'/api/records','status':201,'response_kind':'object','required_fields':['id','title','note','created_at']}]}
     with tempfile.TemporaryDirectory() as folder,patch('forge.server.connection_info',return_value={'ollama':{'connected':True,'models':['fixture']}}), \
          patch('forge.cloud.CloudSetup.check',return_value={}),patch('forge.diagnostic_report._ollama_probe',return_value={'status':'unavailable'}):
         models=ScriptedModels([PLAN,reply]);bench=Workbench(Path(folder)/'projects',models)
@@ -60,8 +60,8 @@ def main():
                 page.locator('#diag-mode').select_option('planning');page.locator('#diag-run').click()
                 expect(page.locator('#diag-status')).to_contain_text('Evidence ready · finished',timeout=15000)
                 row=next(r for r in session.report['evidence']['system_tests']['rows'] if r['code']=='planner_stage_probe')
-                assert row['status']=='passed' and row['schema_version']==2
-                assert len(models.calls)==2 and models.calls[1]['acceptance_planning_policy']=='feature_v2'
+                assert row['status']=='passed' and row['schema_version']==3 and row['probe_version']==2
+                assert len(models.calls)==2 and models.calls[1]['acceptance_planning_policy']=='feature_v3'
                 assert 'PRIVATE PROJECT' not in json.dumps(models.calls[1])
                 assert state_path.read_bytes()==before
                 page.locator('#diag-mode').select_option('cloud');page.locator('#diag-run').click()

@@ -59,11 +59,17 @@ def main(granular=False,hybrid=False):
                 if granular:
                     page.locator('#new-plan-mode').select_option('granular')
                     expect(page.locator('#new-local-timeout')).to_have_value('120')
-                    page.locator('#propose').click()
-                else:page.locator('#plan-with-proof').click()
+                    page.locator('#plan-with-memory').click()
+                else:
+                    page.locator('#other-planning-methods summary').click()
+                    page.locator('#plan-with-proof').click()
                 expect(page.locator('#project-status')).to_have_text('proposed',timeout=15000)
                 state=bench.list_projects()[0];ident=state['id'];frozen=copy.deepcopy(state['plan'])
                 assert state['evidence_planning'] and frozen['acceptance_policy']=='evidence_v1'
+                if granular:
+                    assert state['acceptance_wire_version']==3
+                    assert state['planning_progress']['memory']['known_contracts']==5
+                    expect(page.locator('#guided-progress')).to_contain_text('Project memory: 5 API contracts')
                 expected=['scope','acceptance_feature','acceptance_feature','acceptance_feature','feature_tasks','feature_tasks'] if granular else ['scope','acceptance','acceptance','feature_tasks','feature_tasks']
                 assert [call['planning_stage'] for call in models.calls[:len(expected)]]==expected
                 assert state['model_calls'][1]['failure_class']=='schema_error'

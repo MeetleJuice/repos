@@ -96,7 +96,10 @@ OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase
                     'pending_health_check', 'backup_saved', 'providers'}
 
 LOOP_FIELDS = {'repair_id', 'execution_stage', 'task', 'attempt_id'}
-EVENT_FIELDS['model_attempt'] |= LOOP_FIELDS | {'schema_sha256', 'schema_version'}
+EVENT_FIELDS['model_attempt'] |= LOOP_FIELDS | {'schema_sha256', 'schema_version', 'planning_context_policy',
+    'context_manifest_sha256','planning_memory_sha256','required_context_tokens','context_shortfall_tokens','effective_context_tokens'}
+EVENT_FIELDS['model_attempt'] |= {'known_contracts','accepted_features','check_count'}
+EVENT_FIELDS['guided_plan_checkpoint'] |= {'memory'}
 EVENT_FIELDS['model_request_started'] |= LOOP_FIELDS | {'requested_max_output_tokens', 'timeout_seconds', 'request_sha256'}
 EVENT_FIELDS['code_response_rejected'] |= LOOP_FIELDS
 EVENT_FIELDS['task_readiness'] = {'schema', 'task', 'passed', 'review_codes', 'plan_sha256', 'source_sha256',
@@ -117,7 +120,7 @@ EVENT_FIELDS['system_test_result'] = EVENT_FIELDS['model_attempt'] | {
     'response_accepted','http_response_received','run_id','available','attempts','reported_attempts','tasks_started','tasks_saved',
     'readiness_failures','coverage','repairs','model_results','model_details_omitted','unattributed_attempts','repair_details_omitted','recorded_status','decisions',
     'task_results','task_details_omitted','started_requests','pending_requests','pending_request_details_omitted','requests_without_identity',
-    'generated_code_executed','project_content_sent'}
+    'generated_code_executed','project_content_sent','probe_version'}
 
 
 def _safe_recorder(snapshot: dict[str, Any]) -> dict[str, Any]:
@@ -490,6 +493,10 @@ def _planning_metadata(state: dict[str, Any], records: list[dict[str,Any]] | Non
             'stored_review_passed':(state.get('plan_review') or {}).get('passed'),
             'latest_run':latest_planning_run(records or []),
             'mode': state.get('planning_mode') if state.get('planning_mode') in {'guided', 'single'} else None,
+            'memory':sanitize_event_data('planning_memory', {key:value for key,value in (
+                (draft.get('acceptance_draft') or {}).get('planning_memory') or {}).items() if key in {
+                'schema','policy','request_sha256','scope_sha256','accepted_prefix_sha256','accepted_features','check_count','known_contracts'}}),
+            'previous_draft_retained':isinstance(state.get('previous_guided_draft'),dict),
             'builder_profile': sanitize_event_data('builder_profile', {key: value for key, value in (state.get('builder_profile') or {}).items()
                 if key in {'schema', 'max_editable_files', 'max_feature_indexes', 'smallest_output_ceiling', 'available_files', 'protected_existing_files'}}),
             'draft': {'task_planning_policy': 'compiled_v1' if draft.get('task_planning_policy') == 'compiled_v1' else None,
@@ -748,6 +755,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                           'warnings': findings_count['warning'], 'missing_evidence': findings_count['missing_evidence'],
                           'project_count': len(project_rows), 'detailed_project_count': sum('history' in row for row in project_rows),
                           'selected_project_review':next((row.get('planning',{}).get('current_review') for row in project_rows if row.get('project_id')==project_id),None),
+                          'selected_planning_memory':next((row.get('planning',{}).get('memory') for row in project_rows if row.get('project_id')==project_id),None),
                           'selected_planning':next((row.get('planning',{}).get('latest_run') for row in project_rows if row.get('project_id')==project_id),None),
                           'selected_execution':next((row.get('execution') for row in project_rows if row.get('project_id')==project_id),None),
                           'latest_test': {'status':test_report.get('status'),'finished':test_report.get('finished'),

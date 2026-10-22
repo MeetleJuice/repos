@@ -250,7 +250,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.cloud_consent(body.get("planner", {}), body.get("coder", {}), body)
                     if not bench.installed_ollama_models and body.get('planner',{}).get('provider')=='ollama':
                         bench.installed_ollama_models=list(connection_info().get('ollama',{}).get('models',[]))
-                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True, body.get("use_reviewed_plan", False), body.get('plan_mode','single'), body.get('local_timeout'), body.get('acceptance_wire_version',1)), 201)
+                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True, body.get("use_reviewed_plan", False), body.get('plan_mode','single'), body.get('local_timeout'), body.get('acceptance_wire_version',1), body.get('browser_automation',False)), 201)
                 else:
                     self.json(bench.list_projects())
                 return

@@ -140,14 +140,23 @@ def run_compiled(request: dict[str, Any], generate: Callable[..., dict[str, Any]
         projected={key:copy.deepcopy(value) for key,value in request.items() if key!='previous_proposal'}
         manifest={'policy':'task_contract_v1','available_fields':sorted(request),
             'omitted_fields':[{'field':'previous_proposal','sha256':hashlib.sha256(json.dumps(request['previous_proposal'],sort_keys=True).encode()).hexdigest()}] if 'previous_proposal' in request else []}
+        if request.get('planning_context_policy')=='stage_v1':
+            from .stage_context import project_request
+            projected,manifest=project_request(request,'feature_tasks')
         target_acceptance={field:[copy.deepcopy(row) for row in outline.get(field,[]) if target in row.get('feature_indexes',[])] for field in ('checks','manual_checks','browser_checks')}
-        response = generate(FEATURE_PROMPT, {'request': projected, 'context_manifest':manifest,
+        packet={'request': projected, 'context_manifest':manifest,
             'outline': outline, 'earlier_tasks': earlier, 'target_feature':outline['features'][target],
             'target_acceptance':target_acceptance,
             'planning_stage': 'feature_tasks', 'task_planning_policy': POLICY,
             'target_feature_indexes': [target], 'next_task_index': len(earlier), 'max_new_tasks': maximum,
             'builder_profile': request.get('builder_profile', {}),
-            'controller_owned_fields': ['depends_on', 'feature_indexes', 'check_indexes']}, validate)
+            'controller_owned_fields': ['depends_on', 'feature_indexes', 'check_indexes']}
+        if request.get('planning_context_policy')=='stage_v1':
+            from .stage_context import project_memory,builder_contract
+            packet.update(planning_context_policy='stage_v1',planning_memory=project_memory(request,outline,
+                {key:outline[key] for key in ('checks','manual_checks','browser_checks','api_contracts') if key in outline},len(outline['features'])))
+            packet['builder_profile']=builder_contract(request.get('builder_profile',{}))
+        response = generate(FEATURE_PROMPT,packet,validate)
         tasks = compile_tasks(response, outline, earlier, target, maximum, request.get('builder_profile'))
         draft.update(tasks=tasks, next_feature=target+1,
                      references={'tasks': [{'id': 'T'+str(i+1).zfill(3), 'index': i,

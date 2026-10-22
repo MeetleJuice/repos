@@ -36,6 +36,7 @@ def main():
                 page.on('pageerror',lambda error:errors.append(str(error)))
                 page.goto('http://127.0.0.1:'+str(server.server_port))
                 page.locator('#idea').fill('A small local task tracker with SQLite storage')
+                page.locator('#other-planning-methods summary').click()
                 page.locator('#plan-for-builder').click()
                 expect(page.locator('#project-status')).to_have_text('proposed',timeout=15000)
                 state=bench.list_projects()[0];ident=state['id']

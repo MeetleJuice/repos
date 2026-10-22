@@ -174,6 +174,21 @@ flow('feature-acceptance','Feature planning · saved acceptance batches before t
      [root,feature_button,start,job,proc('run_compiled()','forge/task_planning.py'),proc('create_acceptance()','forge/feature_acceptance.py'),
       call,model,proc('compile_feature()','forge/feature_acceptance.py'),feature_saved,
       proc('run_compiled()','forge/task_planning.py'),call,model,proc('compile_tasks()','forge/task_planning.py'),proposal,state_ids['proposed']])
+stage_button=node('stage-plan-button','#plan-with-memory · feature-by-feature submit','ui','Planning & approval','forge/static/planning.js',"getElementById('plan-with-memory')")
+stage_request=proc('stage_context.project_request()','forge/stage_context.py','Planning & approval')
+stage_registry=proc('stage_context.api_registry()','forge/stage_context.py','Planning & approval')
+stage_memory=proc('stage_context.project_memory()','forge/stage_context.py','Planning & approval')
+stage_compile=proc('compile_feature()','forge/feature_acceptance.py','Planning & approval')
+flow('stage-scope-context','Feature-by-feature · scope context and explicit output reservation','Planning & approval',
+     [root,stage_button,start,job,proc('create_outline()','forge/outline_planning.py'),stage_request,call,
+      proc('CapabilityRegistry.reserve()','forge/capabilities.py','Models & routing'),model,proc('validate_scope()','forge/outline_planning.py')])
+flow('stage-acceptance-memory','Known API contracts · bound unapproved prefix memory','Planning & approval',
+     [root,job,proc('create_acceptance()','forge/feature_acceptance.py'),proc('stage_context.seed_contracts()','forge/stage_context.py'),
+      stage_registry,stage_memory,stage_request,call,model,stage_compile,review_plan_node,stage_memory,feature_saved])
+flow('stage-task-context','Static interfaces · actual builder constraints · approved task boundary','Planning & approval',
+     [root,job,proc('stage_context.interface_index()','forge/stage_context.py'),proc('run_compiled()','forge/task_planning.py'),
+      stage_request,proc('stage_context.builder_contract()','forge/stage_context.py'),call,model,
+      proc('compile_tasks()','forge/task_planning.py'),proposal,state_ids['proposed']])
 flow('focused-builder','Focused Ollama task · native scoped JSON','Build & verification',[root,job,generate,handoff,call,model,native,response,apply])
 ready=proc('task_readiness()','forge/run_diagnostics.py','Build & verification')
 worker=proc('Workbench._generate_and_apply()')
@@ -211,6 +226,12 @@ flow('unified-diag','Diag · checks then immutable report, exact export','Delive
 flow('diag-planner-probe','Explicit local planning probe · synthetic stage, actual schema and reviewer','Delivery & recovery',
      [root,diag_start,diag_run,proc('SystemTests._planning_probe()','forge/system_tests.py'),proc('run_probe()','forge/planner_probe.py'),model,
       proc('compile_wire()','forge/assertions.py'),proc('compile_feature()','forge/feature_acceptance.py'),review_plan_node])
+flow('diag-stage-guards','Diag · four fixed API/scenario guards without inference','Delivery & recovery',
+     [root,diag_run,proc('SystemTests._run()','forge/system_tests.py'),proc('stage_context.guard_probes()','forge/stage_context.py'),
+      stage_compile,review_plan_node,proc('SystemTests._row()','forge/system_tests.py')])
+flow('diag-probe-semantic-policy','Optional planning probe v2 · concrete create scenario','Delivery & recovery',
+     [root,diag_run,proc('SystemTests._planning_probe()','forge/system_tests.py'),proc('probe_payload()','forge/planner_probe.py'),
+      stage_registry,stage_memory,proc('run_probe()','forge/planner_probe.py'),model,stage_compile,review_plan_node])
 flow('acceptance-wire-v2','New feature acceptance · portable assertion wire to unchanged approval checks','Planning & approval',
      [root,start,job,proc('create_acceptance()','forge/feature_acceptance.py'),call,model,proc('compile_wire()','forge/assertions.py'),
       proc('compile_assertion()','forge/assertions.py'),proc('compile_feature()','forge/feature_acceptance.py'),review_plan_node])
