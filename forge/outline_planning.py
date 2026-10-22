@@ -77,7 +77,7 @@ def create_outline(request: dict[str, Any], generate: Callable[..., dict[str, An
         validate_scope(scope);draft['scope']=copy.deepcopy(scope);checkpoint(copy.deepcopy(draft))
     scope=draft['scope'];validate_scope(scope)
     if cancel.is_set():raise InterruptedError('Validated scope saved. Resume planning to define acceptance checks.')
-    if request.get('acceptance_planning_policy')=='feature_v1':
+    if request.get('acceptance_planning_policy') in {'feature_v1','feature_v2'}:
         from .feature_acceptance import create_acceptance
         return create_acceptance(request,scope,generate,checkpoint,draft,cancel)
     def validate(candidate: dict[str, Any]) -> None:assemble(scope,candidate,request)

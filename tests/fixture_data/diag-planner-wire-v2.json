@@ -1,0 +1,865 @@
+{
+  "schema": 1,
+  "provenance": {
+    "kind": "captured_sanitized_ledger_and_synthetic_controller_cases",
+    "report_id": "4ba010aec9c7430e94c16053bc08c9a5",
+    "source_version": "0.37.0",
+    "limitation": "Original model response bodies were not collected. Ledger metadata is observed; synthetic candidates test controller invariants, not reconstructed replies or live model quality."
+  },
+  "records": [
+    {
+      "id": "404aaa9d201849cd9a2aea0f36d94b4f",
+      "time": "2026-10-22T12:42:25.044981+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "job_started",
+      "origin": "controller",
+      "data": {
+        "action": "plan",
+        "execute": false,
+        "runtime": "docker"
+      }
+    },
+    {
+      "id": "87b9b22246654944807e57e85948f081",
+      "time": "2026-10-22T12:44:25.358209+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen3.5:9b",
+        "attempt_id": "087be23cd66f4050b1e9d3bfd6a4fa1d",
+        "success": false,
+        "input_characters": 12535,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "scope",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 3712,
+        "input_estimate_tokens": 8843,
+        "transport_kind": "timeout",
+        "error_category": "transport",
+        "failure_class": "provider_unavailable",
+        "finish_reason": null,
+        "observed_output_tokens": null,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "seconds": 120.1
+      }
+    },
+    {
+      "id": "557520aaef4a499ab23deaf238e98f58",
+      "time": "2026-10-22T12:44:51.438119+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "deepseek-r1:7b",
+        "attempt_id": "201d659149da47109ada578040c04185",
+        "success": true,
+        "input_characters": 12535,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "scope",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 3712,
+        "input_estimate_tokens": 8843,
+        "candidate_shape": {
+          "object": true,
+          "features_count": 11,
+          "check_structure": [],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": [],
+          "uncovered_feature_indexes": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        "response_sha256": "86d31454f64eb7c0330402f0df14e83e23ee3533c0b2d5517375c1b4f5f27d81",
+        "proposal_valid": true,
+        "review_findings": [],
+        "prompt_tokens": 3120,
+        "completion_tokens": 668,
+        "finish_reason": "stop",
+        "observed_output_tokens": 668,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "deepseek-r1:7b",
+        "ollama_load_seconds": 6.77,
+        "ollama_eval_seconds": 17.04,
+        "ollama_prompt_seconds": 2.116,
+        "ollama_tokens_per_second": 39.2,
+        "seconds": 26.06
+      }
+    },
+    {
+      "id": "e1a1e888d9144565a245ca906b111ea1",
+      "time": "2026-10-22T12:45:14.453510+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "deepseek-r1:7b",
+        "attempt_id": "4c8be8c88f794a56bb000d491fbb3f3c",
+        "success": false,
+        "input_characters": 12335,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8742,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 2,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": true,
+              "has_assertion": false
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": true,
+              "has_assertion": false
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "567904d02c1e10d6f9b98d429d7aa6a3ea1a260e6f1024bf8819014f80197c83",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "structure",
+            "path": "/",
+            "message": {
+              "content_omitted": true,
+              "bytes": 69,
+              "sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "structure"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3032,
+        "completion_tokens": 822,
+        "finish_reason": "stop",
+        "observed_output_tokens": 822,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "deepseek-r1:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 20.713,
+        "ollama_prompt_seconds": 1.997,
+        "ollama_tokens_per_second": 39.69,
+        "seconds": 22.91
+      }
+    },
+    {
+      "id": "8c180bf3ffa14dcbbe3c05ed71493088",
+      "time": "2026-10-22T12:45:43.127454+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "deepseek-r1:7b",
+        "attempt_id": "541efaad679048d8a5295026322dd82e",
+        "success": false,
+        "input_characters": 14005,
+        "recovery_path": "schema_correction",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 9577,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": true,
+              "has_assertion": false
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": true,
+              "has_assertion": false
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": true,
+              "has_assertion": false
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": true,
+              "has_body": true,
+              "has_assertion": false
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "e3e6c14e1e4ac11551fa15069a3502d68627e771206c02c6e5a0ed9152d701f7",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "structure",
+            "path": "/",
+            "message": {
+              "content_omitted": true,
+              "bytes": 69,
+              "sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "structure"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3399,
+        "completion_tokens": 1113,
+        "finish_reason": "stop",
+        "observed_output_tokens": 1113,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "deepseek-r1:7b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 28.257,
+        "ollama_prompt_seconds": 0.27,
+        "ollama_tokens_per_second": 39.39,
+        "seconds": 28.65
+      }
+    },
+    {
+      "id": "0342e7e51e864e7f825759b0e1d6cd56",
+      "time": "2026-10-22T12:46:05.745516+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "attempt_id": "936b731b9b894693a4bb7ee073f70013",
+        "success": false,
+        "input_characters": 12335,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8742,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "ca568f9cb76d983be57f8e0f19379ef6a469a178b8f654bd247c48387e7e4318",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "structure",
+            "path": "/",
+            "message": {
+              "content_omitted": true,
+              "bytes": 69,
+              "sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "structure"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3042,
+        "completion_tokens": 547,
+        "finish_reason": "stop",
+        "observed_output_tokens": 547,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5:7b",
+        "ollama_load_seconds": 6.533,
+        "ollama_eval_seconds": 13.887,
+        "ollama_prompt_seconds": 2.055,
+        "ollama_tokens_per_second": 39.39,
+        "seconds": 22.59
+      }
+    },
+    {
+      "id": "0254029a4fc740c49c25e4cb3edf6fc8",
+      "time": "2026-10-22T12:46:20.164932+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen2.5:7b",
+        "attempt_id": "f713799e7e7e4806993a4ad7f2484d9a",
+        "success": false,
+        "input_characters": 14817,
+        "recovery_path": "schema_correction",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 9983,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "ca568f9cb76d983be57f8e0f19379ef6a469a178b8f654bd247c48387e7e4318",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "structure",
+            "path": "/",
+            "message": {
+              "content_omitted": true,
+              "bytes": 69,
+              "sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "structure"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3675,
+        "completion_tokens": 547,
+        "finish_reason": "stop",
+        "observed_output_tokens": 547,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "qwen2.5:7b",
+        "ollama_load_seconds": 0.007,
+        "ollama_eval_seconds": 13.81,
+        "ollama_prompt_seconds": 0.458,
+        "ollama_tokens_per_second": 39.61,
+        "seconds": 14.39
+      }
+    },
+    {
+      "id": "93210455ec74405eb651ab2d18b177fd",
+      "time": "2026-10-22T12:48:20.310499+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "qwen3:8b",
+        "attempt_id": "d307fc30c486423f94aa121f255c48b2",
+        "success": false,
+        "input_characters": 12335,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8742,
+        "transport_kind": "timeout",
+        "error_category": "transport",
+        "failure_class": "provider_unavailable",
+        "finish_reason": null,
+        "observed_output_tokens": null,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "seconds": 120.11
+      }
+    },
+    {
+      "id": "db4204ec001b43c89b5af81e90ff2f62",
+      "time": "2026-10-22T12:50:20.465267+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "granite4.2:8b",
+        "attempt_id": "98a6cb5e23e34e83a177b88eae2eedf6",
+        "success": false,
+        "input_characters": 12335,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8742,
+        "transport_kind": "timeout",
+        "error_category": "transport",
+        "failure_class": "provider_unavailable",
+        "finish_reason": null,
+        "observed_output_tokens": null,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "seconds": 120.13
+      }
+    },
+    {
+      "id": "cdb2c4dd2adb47b9b1f98595bb9da1d7",
+      "time": "2026-10-22T12:50:41.279118+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "lfm2.5:8b",
+        "attempt_id": "7f777565c2734fe9bb999db73a2cd144",
+        "success": false,
+        "input_characters": 12335,
+        "recovery_path": "initial",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 8742,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "5ce628eabc4d4922a27afc3cdddeca71d41a4cb300b8b6050c19464abca0d0d7",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "structure",
+            "path": "/",
+            "message": {
+              "content_omitted": true,
+              "bytes": 69,
+              "sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "structure"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3078,
+        "completion_tokens": 368,
+        "finish_reason": "stop",
+        "observed_output_tokens": 368,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "lfm2.5:8b",
+        "ollama_load_seconds": 7.651,
+        "ollama_eval_seconds": 3.005,
+        "ollama_prompt_seconds": 9.997,
+        "ollama_tokens_per_second": 122.46,
+        "seconds": 20.79
+      }
+    },
+    {
+      "id": "68f12b0b75a54b90acdb0d18bcee8a06",
+      "time": "2026-10-22T12:50:44.852451+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "model_attempt",
+      "origin": "controller",
+      "data": {
+        "role": "planner",
+        "provider": "ollama",
+        "model": "lfm2.5:8b",
+        "attempt_id": "b6f56254ba7c443daa66a9e8804eaef1",
+        "success": false,
+        "input_characters": 14457,
+        "recovery_path": "schema_correction",
+        "max_output_ceiling": 32767,
+        "capability_estimated": true,
+        "transport_attempted": true,
+        "timeout_seconds": 120,
+        "planning_stage": "acceptance_feature",
+        "task_planning_policy": "compiled_v1",
+        "target_feature_indexes": [
+          0
+        ],
+        "requested_max_output_tokens": 8192,
+        "reserved_text_output_tokens": 8192,
+        "thinking_budget": 0,
+        "estimated_required_output_tokens": 4992,
+        "input_estimate_tokens": 9803,
+        "candidate_shape": {
+          "object": true,
+          "checks_count": 4,
+          "manual_checks_count": 1,
+          "check_structure": [
+            {
+              "index": 0,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": true,
+              "has_assertion": true
+            },
+            {
+              "index": 1,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 2,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            },
+            {
+              "index": 3,
+              "feature_indexes": [],
+              "restart_before": false,
+              "has_body": false,
+              "has_assertion": true
+            }
+          ],
+          "task_structure": [],
+          "manual_check_structure": [],
+          "browser_check_structure": []
+        },
+        "response_sha256": "5ce628eabc4d4922a27afc3cdddeca71d41a4cb300b8b6050c19464abca0d0d7",
+        "proposal_valid": false,
+        "review_findings": [
+          {
+            "code": "structure",
+            "path": "/",
+            "message": {
+              "content_omitted": true,
+              "bytes": 69,
+              "sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b"
+            },
+            "severity": "error"
+          }
+        ],
+        "review_codes": [
+          "structure"
+        ],
+        "failure_class": "schema_error",
+        "error_category": "schema_error",
+        "prompt_tokens": 3581,
+        "completion_tokens": 373,
+        "finish_reason": "stop",
+        "observed_output_tokens": 373,
+        "configured_num_ctx": 32768,
+        "structured_outputs_requested": true,
+        "api_family": "ollama_chat",
+        "response_format_mode": "json_schema",
+        "response_model": "lfm2.5:8b",
+        "ollama_load_seconds": 0.006,
+        "ollama_eval_seconds": 3.086,
+        "ollama_prompt_seconds": 0.323,
+        "ollama_tokens_per_second": 120.87,
+        "seconds": 3.55
+      }
+    },
+    {
+      "id": "ee5a2dcc2ebe4436bf94327a46223bea",
+      "time": "2026-10-22T12:50:44.920350+00:00",
+      "run_id": "74d8b06ee16441729365554a06c0d853",
+      "kind": "job_finished",
+      "origin": "controller",
+      "data": {
+        "action": "plan",
+        "status": "error",
+        "seconds": 499.861,
+        "next_task": 0,
+        "model_attempts": 10,
+        "repairs_used": 0,
+        "repair_count_total": 0
+      }
+    }
+  ],
+  "expected_observation": {
+    "recorded_attempts": 10,
+    "schema_rejections": 6,
+    "timeout_attempts": 3,
+    "timeout_seconds": 360.34,
+    "model_seconds": 499.28,
+    "acceptance_accepted": 0
+  },
+  "legacy_message_signature": {
+    "sha256": "02ed12c6c35605258686d251447148dcc4cab44ebdc7c57a4473a2f7508af94b",
+    "bytes": 69,
+    "known_source_literal": "Every check needs contains, nonempty json_contains, or json_equals.",
+    "meaning": "Exact known source literal identity; no rejected response body is available."
+  },
+  "synthetic_wire_cases": [
+    {
+      "assertion": {
+        "kind": "json_subset",
+        "expected": {}
+      },
+      "expected_code": "assertion_value"
+    },
+    {
+      "assertion": {
+        "kind": "text",
+        "expected": ""
+      },
+      "expected_code": "assertion_value"
+    },
+    {
+      "assertion": {
+        "kind": "json_exact",
+        "expected": []
+      },
+      "expected_field": "json_equals",
+      "expected_value": []
+    },
+    {
+      "assertion": {
+        "kind": "json_subset",
+        "expected": {
+          "title": "Café 🐜"
+        }
+      },
+      "expected_field": "json_contains",
+      "expected_value": {
+        "title": "Café 🐜"
+      }
+    }
+  ]
+}

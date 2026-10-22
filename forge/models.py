@@ -161,6 +161,11 @@ class ModelClient:
         output = self.planner_budget.max_output_tokens if self.planner_budget else self.options['num_predict']
         self.last_metadata = {'requested_max_output_tokens':output,'finish_reason':None,'observed_output_tokens':None,'transport_attempted':False,'timeout_seconds':self.options['timeout_seconds'],
                               'configured_num_ctx':self.options['num_ctx'],'structured_outputs_requested':self.options['structured_outputs']}
+        if (stage_schema := planner_schema(system)) is not None:
+            self.last_metadata['schema_sha256'] = hashlib.sha256(json.dumps(request_schema(system,prompt),sort_keys=True).encode()).hexdigest()
+            try:stage_payload=json.loads(prompt)
+            except ValueError:stage_payload={}
+            self.last_metadata['schema_version'] = 2 if isinstance(stage_payload,dict) and stage_payload.get('acceptance_planning_policy') == 'feature_v2' else 1
         messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
         messages[0]["content"] = output_contract(system)
         if self.recovery_mode == "continuation":

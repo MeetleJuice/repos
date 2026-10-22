@@ -1,0 +1,49 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/ollama/ollama/main/docs/api.md",
+    "status": "retrieved",
+    "bytes": 54614,
+    "sha256": "96db03080e385dbabf5d70e75f298d41b75983bc30975cae56f7119f848dd0f5"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/ggml-org/llama.cpp/master/grammars/README.md",
+    "status": "retrieved",
+    "bytes": 18051,
+    "sha256": "e1874c0f08abbcfe45eff0b7b0290faa58f630981bf94274e2d99751ef3b0208"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/openai-cookbook/main/examples/agents_sdk/session_memory.ipynb",
+    "status": "retrieved",
+    "bytes": 63048,
+    "sha256": "e1f8e1f160005e7f219600dcd2666b885dfc1c4e230939eef3b3a52b5ac0c184"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/anthropic-cookbook/main/patterns/agents/evaluator_optimizer.ipynb",
+    "status": "retrieved",
+    "bytes": 10815,
+    "sha256": "3d50881c3d7974ae30c27535f4ea0b344740c7b4c3efbd2acfa9e6e4a875493c"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/codex/main/codex-rs/core/prompt.md",
+    "status": "unavailable",
+    "exception_type": "HTTPError"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/open-telemetry/semantic-conventions/main/docs/gen-ai/gen-ai-events.md",
+    "status": "retrieved",
+    "bytes": 397,
+    "sha256": "3b873322528382c2c9a28109d3e7067b764bb1e22230332abd392e91800335f0"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/openai-agents-python/main/docs/running_agents.md",
+    "status": "retrieved",
+    "bytes": 36463,
+    "sha256": "881e6986fde7e8143bbb722577a04ed169f49a5bdf3c64f29124a5ffc42fb7bf"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/open-telemetry/semantic-conventions-genai/main/docs/gen-ai/gen-ai-events.md",
+    "status": "retrieved",
+    "bytes": 5211,
+    "sha256": "6003d091a7cdb4c537b483b1ebe2c2e414cfc4ffde797e43c5439de0dd2ac0bc"
+  }
+]

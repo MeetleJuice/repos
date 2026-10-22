@@ -370,12 +370,12 @@
     "Delivery & recovery"
   ],
   [
-    "POST", "/api/diagnostics", "#diag-button", "collect_report()", "diagnostics.js",
-    "Read-only local investigation; no inference or generated code execution", "renderDiagnosticReport()", "Delivery & recovery"
+    "POST", "/api/diagnostics", "Legacy API client · no current button", "collect_report()", "diagnostics.js",
+    "Compatibility endpoint: synchronous collection; current Diag uses session/start", "Legacy JSON response", "Delivery & recovery"
   ],
   [
-    "POST", "/api/diagnostics/export", "#diag-export", "export_report()", "diagnostics.js",
-    "Export the displayed evidence snapshot through direct authenticated fetch", "Diagnostic ZIP download", "Delivery & recovery"
+    "POST", "/api/diagnostics/export", "Legacy API client · no current button", "export_report()", "diagnostics.js",
+    "Compatibility endpoint: cached or newly collected report, not the session export", "Legacy ZIP response", "Delivery & recovery"
   ],
   [
     "POST", "/api/system-tests/start", "#system-test-start", "SystemTests.start()", "system-tests.js",
@@ -388,6 +388,22 @@
   [
     "GET", "/api/system-tests/status", "pollSystemTests()", "SystemTests.status()", "system-tests.js",
     "Read latest in-memory test state without running checks", "renderSystemTests()", "Delivery & recovery"
+  ],
+  [
+    "POST", "/api/diagnostics/session/start", "#diag-button / #diag-run", "DiagnosticSession.start()", "diagnostics.js",
+    "Run safe checks or explicitly selected fixed probes, then collect one owned snapshot", "renderDiagnosticSession()", "Delivery & recovery"
+  ],
+  [
+    "GET", "/api/diagnostics/session/status", "pollDiagnosticSession()", "DiagnosticSession.status()", "diagnostics.js",
+    "Progress and completed report; closing the panel does not cancel a session", "renderDiagnosticSession()", "Delivery & recovery"
+  ],
+  [
+    "POST", "/api/diagnostics/session/stop", "#diag-stop", "DiagnosticSession.stop()", "diagnostics.js",
+    "Stop owned checks between operations and collect partial evidence; in-flight reads retain timeouts", "renderDiagnosticSession()", "Delivery & recovery"
+  ],
+  [
+    "POST", "/api/diagnostics/session/export", "#diag-export", "DiagnosticSession.export()", "diagnostics.js",
+    "Direct authenticated download of the exact completed session snapshot; no recollection", "Diagnostic ZIP download", "Delivery & recovery"
   ],
   [
     "POST", "/api/ideas/generate", "#generate-idea", "generate_idea()", "diagnostics.js",

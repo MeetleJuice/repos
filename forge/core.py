@@ -418,7 +418,14 @@ class Workbench:
                                         'Never alter any approved baseline checks or frozen tests in request.existing_project. '
                                         'No tasks, source code, invented execution results or silently dropped requirements.')
                                     if stage_payload.get('planning_stage')=='acceptance_feature':
-                                        feedback['correction_instruction'] += ' Only correct the current target feature. Earlier acceptance is fixed. Do not return feature_indexes; the controller assigns them. Do not copy checks for other features.'
+                                        feedback['correction_instruction'] = (
+                                            'Correct only the rejected checks for target_feature, using validation_error and its exact check path. '
+                                            'Return the complete current feature object, not a patch or a full proposal. '
+                                            'earlier_acceptance and scope stay fixed; wire_examples illustrate format only. '
+                                            'Do not return feature_indexes or copy other features. Do not add restart/delete checks unless this feature needs them. '
+                                            'Preserve request.existing_project approved baseline checks. '
+                                            + ('Use assertion:{kind,expected}; no legacy assertion fields.' if stage_payload.get('acceptance_planning_policy')=='feature_v2'
+                                               else 'Each check needs meaningful contains/json_contains/json_equals, or empty_body:true.'))
                                 choices.insert(index+1, (selected, is_fallback))
                                 correction_prompts[index+1] = json.dumps(feedback)
                                 recoveries[index+1] = ("schema_correction", "")
@@ -615,11 +622,13 @@ class Workbench:
                 result.append({"name": name, "kind": "modified" if name in before else "added", "diff": "\n".join(lines)[:20000]})
         return result
 
-    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:
+    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None, acceptance_wire_version: int = 1) -> dict[str, Any]:
         if self.maintenance:
             raise ValueError("An update is being installed. Wait for the restart.")
         if plan_mode not in {'single','guided','proof','granular'}:
             raise ValueError('Choose single, guided, proof or granular planning.')
+        if type(acceptance_wire_version) is not int or acceptance_wire_version not in {1,2}:
+            raise ValueError('Acceptance wire version must be 1 or 2.')
         if local_timeout is not None and (type(local_timeout) is not int or local_timeout not in {120,300,600}):
             raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
         if type(use_reviewed_plan) is not bool or (use_reviewed_plan and starter != "arcade"):
@@ -643,7 +652,7 @@ class Workbench:
         self.trace(state, "project_created", {"starter":starter, "idea_characters":len(state["idea"]), "planner":planner, "coder":coder}, "user")
         if use_reviewed_plan:
             return self.load_starter_plan(ident)
-        self.start(ident, "plan", {"cloud_consent": cloud_consent, 'plan_mode':plan_mode, 'local_timeout':local_timeout})
+        self.start(ident, "plan", {"cloud_consent": cloud_consent, 'plan_mode':plan_mode, 'local_timeout':local_timeout, 'acceptance_wire_version':acceptance_wire_version})
         return self.load(ident)
 
     def insights(self):
@@ -679,6 +688,8 @@ class Workbench:
             if action=='build' and (state.get('plan') or {}).get('acceptance_policy')=='evidence_v1' and options.get('execute') and options.get('milestones',True) is not True:
                 raise ValueError('This evidence-ready plan requires its approved checkpoints during execution. Enable Check runnable milestones during this build, or generate files without execution.')
             if options.get('plan_mode','single') not in {'single','guided','proof','granular'}:raise ValueError('Choose single, guided, proof or granular planning.')
+            if 'acceptance_wire_version' in options and (type(options['acceptance_wire_version']) is not int or options['acceptance_wire_version'] not in {1,2}):
+                raise ValueError('Acceptance wire version must be 1 or 2.')
             if options.get('local_timeout') is not None and (type(options['local_timeout']) is not int or options['local_timeout'] not in {120,300,600}):raise ValueError('Guided local timeout must be 120, 300 or 600 seconds.')
             state['job_local_timeout']=options.get('local_timeout') if action=='plan' else None
             if type(options.get('stream_local',False)) is not bool:raise ValueError('Local streaming setting must be a JSON boolean.')
@@ -1330,7 +1341,9 @@ class Workbench:
                            "instruction": "For changes, preserve original features in order, append new ones, and plan only work needed for the change. Original checks and existing tests must still pass."}
                 state['builder_profile']=request['builder_profile']
                 if options.get('plan_mode') in {'proof','granular'}:state['evidence_planning']=True
-                if options.get('plan_mode')=='granular':state['feature_acceptance']=True
+                if options.get('plan_mode')=='granular':
+                    state['feature_acceptance']=True
+                    state['acceptance_wire_version']=options.get('acceptance_wire_version',state.get('acceptance_wire_version',1))
                 elif options.get('plan_mode') in {'single','guided','proof'}:state.pop('feature_acceptance',None)
                 if state.get('evidence_planning'):
                     from .acceptance import GUIDANCE
@@ -1383,7 +1396,7 @@ class Workbench:
                     # New drafts only: approved plans and legacy replay contracts stay intact.
                     request['task_planning_policy']='compiled_v1'
                     request['outline_planning_policy']='split_v1'
-                    if state.get('feature_acceptance'):request['acceptance_planning_policy']='feature_v1'
+                    if state.get('feature_acceptance'):request['acceptance_planning_policy']='feature_v2' if state.get('acceptance_wire_version')==2 else 'feature_v1'
                     def checkpoint(draft):
                         state['guided_draft']=draft
                         outline=draft.get('outline') or draft.get('scope') or {}

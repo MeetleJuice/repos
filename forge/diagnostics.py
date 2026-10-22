@@ -89,7 +89,8 @@ _IDENTIFIERS = {'provider', 'model', 'role', 'status', 'category', 'error_catego
                 'previous_version', 'command_template', 'before_sha256', 'after_sha256', 'disposition',
                 'review_codes', 'expected_codes', 'observed_codes', 'project_id', 'reviewer_version', 'planning_stage', 'task_planning_policy', 'outline_planning_policy', 'response_sha256', 'response_format_mode', 'api_family',
                 'repair_id', 'attempt_id', 'event_id', 'run_id', 'validation', 'validation_event_id', 'execution_stage', 'policy', 'prompt_sha256', 'recorded_status',
-                'expected_validation', 'observed_validation'}
+                'expected_validation', 'observed_validation', 'assertion_fields', 'invalid_assertion_fields',
+                'assertion_kind', 'schema_sha256', 'session_id', 'active_check', 'mode', 'checks_skipped_reason'}
 _FREE_TEXT = {'message', 'reason', 'meaning', 'notes', 'note', 'title', 'label', 'summary', 'description',
               'log', 'stdout', 'stderr', 'error', 'error_detail', 'detail', 'diagnosis', 'criteria',
               'done_when', 'expected', 'observed', 'outcome', 'issues', 'request', 'response',

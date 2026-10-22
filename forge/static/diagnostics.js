@@ -3,9 +3,19 @@
 let diagBusy = false;
 let diagProjectId = null;
 let diagReportId = null;
+let diagSessionId = null;
+let diagTimer;
 let ideaHelperBusy = false;
 let ideaHelperActiveJobs = false;
 let ideaInputRevision = 0;
+const diagnosticCheckLabels = {
+  private_storage:'Private workspace storage', controller_smoke:'Planning validation checks',
+  planning_guards:'Adversarial planning checks', loop_guards:'Repair evidence safeguards',
+  project_execution:'Selected build · evidence audit only', project_plan:'Selected proposal · local review only',
+  local_catalogue:'Ollama connection', provider_catalogue:'Provider catalogue · not generation',
+  fixed_json_probe:'Model response test · small JSON fixture', planner_stage_probe:'Local planning · acceptance-schema fixture',
+  model_probe_setup:'No saved model route available',
+};
 
 function refreshIdeaHelper(projects) {
   ideaHelperActiveJobs = projects.some((project) => activeStatuses.has(project.status));
@@ -31,6 +41,12 @@ function renderDiagnosticReport(report) {
   const coverage = document.createElement("p");
   coverage.textContent = `${summary.detailed_project_count ?? "Unknown"} detailed projects · ${summary.history_records ?? "Unknown"} controller events · ${summary.recorder_records ?? "Unknown"} recorder events. Includes planning structure, validation rule codes and retained attempt metrics.`;
   $("diag-summary").append(coverage);
+  if (summary.selected_planning?.available) {
+    const run = summary.selected_planning;
+    const planning = document.createElement('p');
+    planning.textContent = `Latest selected planning run: ${run.recorded_attempts ?? 'unknown'} attempts · ${run.schema_rejections ?? 0} rejected drafts · ${run.timeout_attempts ?? 0} timeouts · ${run.model_seconds ?? 'unknown'} model seconds. Rules: ${(run.review_codes || []).join(', ') || 'none retained'}. No task execution is implied.`;
+    $("diag-summary").append(planning);
+  }
   if (summary.selected_execution?.available) {
     const run = summary.selected_execution;
     const execution = document.createElement('p');
@@ -100,40 +116,93 @@ function renderDiagnosticReport(report) {
   $("diag-status").textContent = `Collected ${report.created_at || "at an unrecorded time"}. Download the ZIP for the event records and evidence manifest.`;
 }
 
-$("diag-button").onclick = async () => {
-  if (!$("diag-dialog").open) $("diag-dialog").showModal();
-  if (diagBusy) return;
+function renderDiagnosticSession(session) {
+  diagSessionId = session.id || null;
+  diagBusy = session.status === 'running';
+  $("diag-dialog").setAttribute('aria-busy', String(diagBusy));
+  $("diag-run").disabled = diagBusy;
+  $("diag-stop").disabled = !diagBusy;
+  $("diag-progress").hidden = !diagBusy;
+  $("diag-export").disabled = !session.download_ready;
+  const rows = session.checks?.rows || [];
+  $("diag-checks").replaceChildren(...rows.map(row => {
+    const line = document.createElement('p');
+    line.dataset.status = ['passed','failed','skipped'].includes(row.status) ? row.status : 'unknown';
+    line.textContent = `${diagnosticCheckLabels[row.code] || row.code} · ${row.provider || 'this computer'} ${row.model || ''} · ${row.status}${row.failure_class ? ' · ' + row.failure_class : ''}${row.seconds == null ? '' : ' · ' + row.seconds + 's'}`;
+    return line;
+  }));
+  if (session.report) {
+    renderDiagnosticReport(session.report);
+    diagReportId = session.report.id;
+  }
+  const state = session.status || 'unknown';
+  $("diag-status").textContent = diagBusy
+    ? `Diagnostics running · ${session.phase || 'checks'}${session.checks?.active_check ? ' · ' + session.checks.active_check : ''} · ${rows.length} checks recorded. You can close this panel and return.`
+    : session.download_ready
+      ? `Evidence ready · ${state} · ${session.checks_passed ?? 0} checks passed, ${session.checks_failed ?? 0} failed, ${session.checks_skipped ?? 0} skipped.${session.checks_skipped_reason ? ' Checks not run: ' + session.checks_skipped_reason + '.' : ''} Download this snapshot below. These checks do not verify your generated app.`
+      : `Diagnostics ${state}.${session.exception_type ? ' Collection error: ' + session.exception_type + '.' : ''} Rerun to collect a new snapshot.`;
+  clearTimeout(diagTimer);
+  if (diagBusy && $("diag-dialog").open) diagTimer = setTimeout(pollDiagnosticSession, 1000);
+}
+async function pollDiagnosticSession() {
+  try { renderDiagnosticSession(await api('/api/diagnostics/session/status')); }
+  catch (error) {
+    $("diag-status").textContent = 'Could not read diagnostic progress: ' + error.message;
+    if ($("diag-dialog").open) diagTimer = setTimeout(pollDiagnosticSession, 2000);
+  }
+}
+async function startDiagnosticSession(mode = 'quick') {
   diagBusy = true;
   diagProjectId = current?.id || null;
   diagReportId = null;
+  diagSessionId = null;
+  clearTimeout(diagTimer);
   $("diag-dialog").setAttribute("aria-busy", "true");
-  $("diag-status").textContent = "Inspecting local evidence, environment, and Ollama availability…";
+  $("diag-run").disabled = true;
+  $("diag-status").textContent = "Starting safe checks and evidence collection…";
   $("diag-summary").replaceChildren();
   $("diag-findings").replaceChildren();
   $("diag-completeness").textContent = "Collection in progress.";
   $("diag-export-status").textContent = "";
   $("diag-export").disabled = true;
   try {
-    const report = await api("/api/diagnostics", {project_id: diagProjectId});
-    renderDiagnosticReport(report);
-    diagReportId = report.id || null;
+    renderDiagnosticSession(await api('/api/diagnostics/session/start', {
+      project_id: diagProjectId, mode, cloud_consent: mode === 'cloud' && $("diag-consent").checked,
+    }));
   } catch (error) {
-    $("diag-status").textContent = "Diagnostic collection did not finish: " + error.message;
-    $("diag-completeness").textContent = "The investigation is incomplete. You can still try exporting the evidence available to the server.";
-  } finally {
     diagBusy = false;
+    $("diag-run").disabled = false;
     $("diag-dialog").setAttribute("aria-busy", "false");
-    $("diag-export").disabled = false;
+    $("diag-status").textContent = "Diagnostic session did not start: " + error.message;
   }
+}
+$("diag-button").onclick = async () => {
+  if (!$("diag-dialog").open) $("diag-dialog").showModal();
+  try {
+    const session = await api('/api/diagnostics/session/status');
+    if (session.status === 'running') renderDiagnosticSession(session);
+    else await startDiagnosticSession();
+  } catch (error) { $("diag-status").textContent = error.message; }
+};
+$("diag-run").onclick = () => startDiagnosticSession($("diag-mode").value);
+$("diag-mode").onchange = () => {
+  const cloud = $("diag-mode").value === 'cloud';
+  $("diag-consent-label").hidden = !cloud;
+  if (!cloud) $("diag-consent").checked = false;
+};
+$("diag-stop").onclick = async () => {
+  try { renderDiagnosticSession(await api('/api/diagnostics/session/stop', {})); }
+  catch (error) { $("diag-status").textContent = error.message; }
 };
 $("close-diag").onclick = () => $("diag-dialog").close();
+$("diag-dialog").addEventListener('close', () => clearTimeout(diagTimer));
 $("diag-export").onclick = async () => {
   $("diag-export").disabled = true;
   $("diag-export-status").textContent = "Preparing a sanitized diagnostic ZIP. Your recorded history is kept.";
   try {
-    const response = await fetch("/api/diagnostics/export", {
+    const response = await fetch("/api/diagnostics/session/export", {
       method: "POST", headers: {"X-Foundry-Token": token, "Content-Type": "application/json"},
-      body: JSON.stringify({project_id: diagProjectId, report_id: diagReportId}),
+      body: JSON.stringify({session_id: diagSessionId}),
     });
     if (!response.ok) {
       const result = await response.json();

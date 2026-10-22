@@ -31,6 +31,7 @@ from .diagnostics import FlightRecorder, ResourceSampler
 from .diagnostic_report import collect_report, export_report, ollama_process_health
 from .ideas import generate_idea
 from .system_tests import SystemTests,probe_targets
+from .diagnostic_session import DiagnosticSession
 from .lifecycle import exception_hooks, record_exception
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +55,7 @@ def make_server(port=8765, workbench=None, credentials=None):
     diagnostic_lock = threading.Lock()
     diagnostic_cache = {}
     system_tests = SystemTests(bench,cloud.check,lambda:connection_info().get('ollama',{}))
+    diagnostic_session = DiagnosticSession(bench,ROOT,system_tests,updater)
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -108,7 +110,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                             raise ValueError("Request body must be a JSON object.")
                     else:
                         body = {}
-                    if post and path in {"/api/updates/check", "/api/diagnostics", "/api/diagnostics/export", "/api/ideas/generate", "/api/system-tests/start", "/api/system-tests/stop"}:
+                    if post and path in {"/api/updates/check", "/api/diagnostics", "/api/diagnostics/export", "/api/ideas/generate", "/api/system-tests/start", "/api/system-tests/stop", "/api/diagnostics/session/start", "/api/diagnostics/session/stop", "/api/diagnostics/session/export"}:
                         self.api(path, post, body)
                     elif post:
                         with bench.lock:
@@ -149,6 +151,24 @@ def make_server(port=8765, workbench=None, credentials=None):
                         'seconds': elapsed, 'diagnostic_operation': path.startswith('/api/diagnostics')})
 
         def api(self, path, post, body):
+            if path == '/api/diagnostics/session/status' and not post:
+                self.json(diagnostic_session.status());return
+            if path == '/api/diagnostics/session/stop' and post:
+                self.json(diagnostic_session.stop());return
+            if path == '/api/diagnostics/session/start' and post:
+                mode=body.get('mode','quick');ident=body.get('project_id')
+                if ident:
+                    state=bench.load(ident)
+                    profiles=[state['planner'],state['coder']] if mode=='planning' else [state['coder'],state['planner']]
+                else:
+                    saved=cloud.saved_profiles()
+                    profiles=[saved.get('planner',{}),saved.get('coder',{})] if mode=='planning' else [saved.get('coder',{}),saved.get('planner',{})]
+                self.json(diagnostic_session.start(ident,profiles,mode,body.get('cloud_consent') is True),202);return
+            if path == '/api/diagnostics/session/export' and post:
+                ident=body.get('session_id')
+                if not isinstance(ident,str):raise ValueError('A completed diagnostic session ID is required.')
+                content=diagnostic_session.export(ident)
+                self.send_bytes(200,content,'application/zip','Idea-Foundry-Diag-'+ident[:12]+'.zip');return
             if path == '/api/system-tests/status' and not post:
                 self.json(system_tests.status());return
             if path == '/api/system-tests/stop' and post:
@@ -230,7 +250,7 @@ def make_server(port=8765, workbench=None, credentials=None):
                     self.cloud_consent(body.get("planner", {}), body.get("coder", {}), body)
                     if not bench.installed_ollama_models and body.get('planner',{}).get('provider')=='ollama':
                         bench.installed_ollama_models=list(connection_info().get('ollama',{}).get('models',[]))
-                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True, body.get("use_reviewed_plan", False), body.get('plan_mode','single'), body.get('local_timeout')), 201)
+                    self.json(bench.create(body["idea"], body["planner"], body["coder"], body.get("starter"), body.get("cloud_consent") is True, body.get("use_reviewed_plan", False), body.get('plan_mode','single'), body.get('local_timeout'), body.get('acceptance_wire_version',1)), 201)
                 else:
                     self.json(bench.list_projects())
                 return
@@ -359,6 +379,7 @@ def make_server(port=8765, workbench=None, credentials=None):
     server.daemon_threads = True
     server.workbench = bench
     server.updater = updater
+    server.diagnostic_session = diagnostic_session
     return server
 
 

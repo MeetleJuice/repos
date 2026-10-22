@@ -62,10 +62,14 @@ class SystemTests:
         self.path=bench.root.parent/'diagnostics'/'system-tests-v1.json'
         self.lock=threading.RLock();self.cancel=threading.Event();self.worker: threading.Thread | None=None
         self.report=read_tests(self.path)
+        self.completed: dict[str, dict[str,Any]] = {}
         if self.report.get('status')=='running':self.report['status']='interrupted'
 
     def status(self) -> dict[str, Any]:
         with self.lock:return copy.deepcopy(self.report)
+
+    def result(self, ident: str) -> dict[str,Any]:
+        with self.lock:return copy.deepcopy(self.completed.get(ident, {}))
 
     def _save(self) -> None:
         self.path.parent.mkdir(parents=True,exist_ok=True)
@@ -75,7 +79,7 @@ class SystemTests:
     def stop(self) -> dict[str, Any]:
         self.cancel.set();return self.status()
 
-    def start(self, profiles: list[dict[str, Any]], generation: bool=False, cloud_consent: bool=False, project_id: str | None=None) -> dict[str, Any]:
+    def start(self, profiles: list[dict[str, Any]], generation: bool=False, cloud_consent: bool=False, project_id: str | None=None, planning: bool=False, session_id: str | None=None) -> dict[str, Any]:
         targets=probe_targets(profiles) if generation else []
         if any(target['provider'] not in LOCAL_PROVIDERS for target in targets) and not cloud_consent:
             raise ValueError('Allow the fixed cloud model probes explicitly. Charges may apply; no project content is sent.')
@@ -88,6 +92,7 @@ class SystemTests:
         with self.lock:
             self.cancel.clear()
             self.report={'schema':1,'available':True,'id':uuid.uuid4().hex,'status':'running',
+                'session_id':session_id,'planning_probe_requested':planning,
                 'started':datetime.now(timezone.utc).isoformat(),'generation_requested':generation,
                 'cloud_consent':cloud_consent,'planned_probes':len(targets),'probe_limit':MAX_PROBES,'rows':[],
                 'generated_code_executed':False,'project_content_sent':False,'routes_changed':False}
@@ -102,6 +107,7 @@ class SystemTests:
     def _row(self, code: str, operation: Callable[[], dict[str, Any]]) -> None:
         if self.cancel.is_set():return
         started=time.monotonic()
+        with self.lock:self.report['active_check']=code
         try:result=operation();row={'code':code,**result}
         except Exception as exc:
             row={'code':code,'status':'failed','exception_type':type(exc).__name__,
@@ -109,6 +115,7 @@ class SystemTests:
             if isinstance(exc,ModelError):row['http_status']=exc.http_status;row['transport_kind']=exc.transport_kind
         row.setdefault('seconds',round(time.monotonic()-started,3));row['report_id']=self.report['id']
         with self.lock:
+            self.report['active_check']=None
             self.report['rows'].append(sanitize_event_data('system_test_result',row));self._save()
         self.bench.diagnostics.record('system_test_result',row)
 
@@ -163,6 +170,27 @@ class SystemTests:
         result=audit_plan(state['plan'],state.get('starter'))
         return {'status':'passed' if result['passed'] else 'failed','project_id':state['id'],**result}
 
+    def _planning_probe(self, target: dict[str,Any]) -> dict[str,Any]:
+        from .planner_probe import run_probe
+        provider,model=target['provider'],target['model']
+        client=self.bench.client_factory(provider,model)
+        self.bench.model_status.start(provider,model,'system_test')
+        outcome='failed'
+        try:
+            result=run_probe(client,provider,model,target,self.bench.root.parent/'model-capabilities-v1.json')
+            outcome='responded' if result['response_accepted'] else 'schema_error'
+            return result
+        except ModelError as exc:
+            outcome=exc.category
+            metadata=getattr(client,'last_metadata',{})
+            return {'provider':provider,'model':model,'status':'failed','failure_class':exc.category,
+                    'http_status':exc.http_status,'transport_kind':exc.transport_kind,'response_accepted':False,
+                    'response_received':metadata.get('finish_reason') is not None or metadata.get('observed_output_tokens') is not None,
+                    **{key:value for key,value in getattr(client,'last_metadata',{}).items() if key in {
+                        'configured_num_ctx','requested_max_output_tokens','observed_output_tokens','finish_reason',
+                        'timeout_seconds','transport_attempted','schema_sha256','schema_version','response_format_mode'}}}
+        finally:self.bench.model_status.finish(provider,model,outcome,remember=False)
+
     def _project_execution(self) -> dict[str, Any]:
         from .run_diagnostics import latest_execution
         from .diagnostic_report import _safe_history
@@ -192,7 +220,9 @@ class SystemTests:
                 with self.lock:self.report['catalogue_sweep_seconds']=round(time.monotonic()-catalogue_started,3)
                 for provider,result in catalogues.items():
                     self._row('provider_catalogue',partial(catalogue_result,provider,result))
-            for target in targets:self._row('fixed_json_probe',partial(self._probe,target))
+            for target in targets:
+                self._row('planner_stage_probe' if self.report.get('planning_probe_requested') else 'fixed_json_probe',
+                          partial(self._planning_probe if self.report.get('planning_probe_requested') else self._probe,target))
             if self.report['generation_requested'] and not targets:
                 self._row('model_probe_setup',lambda:{'status':'skipped','failure_class':'no_saved_models','inference_tested':False})
         except Exception as exc:
@@ -200,10 +230,12 @@ class SystemTests:
         finally:
             with self.lock:
                 self.report.update(status='stopped' if self.cancel.is_set() else 'finished',finished=datetime.now(timezone.utc).isoformat(),
-                    completed_probes=sum(row['code']=='fixed_json_probe' for row in self.report['rows']),
-                    not_attempted_probes=max(0,len(targets)-sum(row['code']=='fixed_json_probe' for row in self.report['rows'])),
+                    completed_probes=sum(row['code'] in {'fixed_json_probe','planner_stage_probe'} for row in self.report['rows']),
+                    not_attempted_probes=max(0,len(targets)-sum(row['code'] in {'fixed_json_probe','planner_stage_probe'} for row in self.report['rows'])),
                     passed=not self.cancel.is_set() and not self.report.get('exception_type') and all(row['status'] in {'passed','skipped'} for row in self.report['rows']))
                 try:self._save()
                 except OSError:self.report['persistence_failed']=True
+                self.completed[self.report['id']]=copy.deepcopy(self.report)
+                while len(self.completed)>3:self.completed.pop(next(iter(self.completed)))
             self.bench.diagnostics.record('system_tests_finished',{'report_id':self.report['id'],'status':self.report['status'],'passed':self.report['passed'],'rows':len(self.report['rows'])})
             with self.bench.lock:self.bench.test_busy=False;self.bench.inference_lock.release()

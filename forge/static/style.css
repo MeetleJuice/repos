@@ -1770,6 +1770,15 @@ a:focus-visible {
 .idea-heading button { font-size:12px; padding:8px 12px; }
 #idea-generation-status { font-size:12px; line-height:1.6; margin:8px 0 14px; }
 #diag-dialog { width:min(820px,calc(100% - 28px)); }
+#diag-progress { width:100%; accent-color:#60d8fa; margin:8px 0; }
+#diag-checks { display:grid; gap:6px; max-height:240px; overflow:auto; margin:12px 0; }
+#diag-checks:empty { display:none; }
+#diag-checks p { margin:0; padding:9px 12px; font-size:12px; line-height:1.5; overflow-wrap:anywhere; border:1px solid #304054; border-left:3px solid #8095aa; border-radius:8px; background:#101c29; }
+#diag-checks p[data-status="passed"] { border-left-color:#63d7b1; }
+#diag-checks p[data-status="failed"] { border-left-color:#ff9ab1; }
+#diag-advanced { padding:12px; border:1px solid #304054; border-radius:10px; margin:12px 0; }
+#diag-advanced summary { cursor:pointer; color:#a3dffa; }
+#diag-advanced select { width:100%; margin:8px 0; }
 #diag-status { line-height:1.6; overflow-wrap:anywhere; }
 .diag-summary { padding:14px 16px; margin:16px 0; border:1px solid #3c617a; border-radius:12px; background:#102332; }
 .diag-summary:empty { display:none; }

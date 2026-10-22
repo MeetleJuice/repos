@@ -9,7 +9,7 @@ function renderSystemTests(report) {
     : "Choose your checks, then click Run checks. No inference runs merely by opening this panel.";
   if (report.generation_requested && report.planned_probes === 0) $("system-test-status").textContent += " No saved model route was available, so no inference was tested. Choose a project or configure studio defaults first.";
   $("system-test-results").replaceChildren(...(report.rows || []).map(row => {
-    const labels = {private_storage:"Private workspace storage", controller_smoke:"Planning validation checks", planning_guards:"Adversarial planning checks", loop_guards:"Repair evidence safeguards", project_execution:"Selected build · evidence audit only", project_plan:"Selected proposal · local review only", local_catalogue:"Ollama connection", provider_catalogue:"Provider catalogue · not generation", fixed_json_probe:"Model response test · small JSON fixture", model_probe_setup:"No saved model route available"};
+    const labels = diagnosticCheckLabels;
     const failures = {quota:"Credits or quota required", rate_limit:"Rate limit reached", auth:"Authentication or access refused", provider:"Provider service error", transport:"Connection or timeout error", format:"Unexpected response format", truncated_output:"Output budget exhausted · provider replied", probe_assertion:"The response did not match the fixed test"};
     const article = document.createElement("article"); article.className = "diag-finding";
     const title = document.createElement("strong"); title.textContent = `${labels[row.code] || row.code} · ${row.provider || "this computer"} ${row.model || ""}`;
@@ -40,7 +40,7 @@ async function pollSystemTests() {
   try { renderSystemTests(await api("/api/system-tests/status")); }
   catch (error) { $("system-test-status").textContent = "Could not read test status: " + error.message; }
 }
-$("system-test-button").onclick = () => { $("system-test-dialog").showModal(); pollSystemTests(); };
+$("system-test-button").onclick = () => { $("diag-dialog").close(); $("system-test-dialog").showModal(); pollSystemTests(); };
 $("system-test-close").onclick = () => $("system-test-dialog").close();
 $("system-test-dialog").addEventListener("close", () => clearTimeout(systemTestTimer));
 $("system-test-mode").onchange = () => {

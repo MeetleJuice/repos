@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 from .evidence import validate_evidence
 from .workflow import ownership_warnings
 from .tasks import MAX_TASKS, validate_tasks
+from .assertions import AssertionErrorDetail
 
 Plan = dict[str, Any]
 
@@ -58,7 +59,7 @@ def validate_structure(plan: dict[str, Any], *, outline: bool = False, partial_a
     if not isinstance(checks, list) or not (0 if partial_acceptance else 1) <= len(checks) <= 15:
         raise ValueError("Proposal must contain 1–15 behavioral HTTP checks.")
     behavior = False
-    for check in checks:
+    for check_index, check in enumerate(checks):
         if not isinstance(check, dict):
             raise ValueError("Each check must be an object.")
         path = check.get("path", "")
@@ -75,11 +76,11 @@ def validate_structure(plan: dict[str, Any], *, outline: bool = False, partial_a
         has_equals = "json_equals" in check
         has_empty = check.get("empty_body") is True
         if "empty_body" in check and type(check["empty_body"]) is not bool:
-            raise ValueError("empty_body must be true or false.")
+            raise AssertionErrorDetail('assertion_value', f'/checks/{check_index}/empty_body', "empty_body must be true or false.")
         if not (has_contains or has_json or has_equals or has_empty):
-            raise ValueError("Every check needs contains, nonempty json_contains, or json_equals.")
+            raise AssertionErrorDetail('assertion_required', f'/checks/{check_index}', "Every check needs contains, nonempty json_contains, or json_equals.")
         if "contains" in check and not has_contains or "json_contains" in check and not has_json:
-            raise ValueError("Invalid response assertion.")
+            raise AssertionErrorDetail('assertion_value', f'/checks/{check_index}', "Invalid response assertion.")
         if path.split("?")[0] not in {"/", "/health"} and not re.search(r"\.(?:js|css|png|svg|ico|html)$", path.split("?")[0], re.I):
             behavior = True
     if not partial_acceptance and not behavior and not (plan.get("app_kind") == "browser" and (manual or browser)):
@@ -193,6 +194,8 @@ def review_plan(plan: Plan, starter: str | None = None, *, outline: bool = False
         validate_structure(plan, outline=outline, partial_acceptance=partial_acceptance)
         json.dumps(plan, allow_nan=False)
     except (ValueError, TypeError) as exc:
+        if isinstance(exc, AssertionErrorDetail):
+            return Review((Finding(exc.code, exc.path, str(exc)),))
         return Review((Finding('structure', '/', str(exc)),))
     for warning in ownership_warnings(plan):
         findings.append(Finding("controller_owned_reference", "/tasks/"+str(warning["task"]-1), warning["message"]+" Files: "+", ".join(warning["files"]), "warning"))

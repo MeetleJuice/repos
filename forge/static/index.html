@@ -75,7 +75,6 @@
         <aside id="model-status-panel" aria-label="Model activity"><span class="muted">Model activity · green = observed/catalogue, not app verification</span><div id="model-status-icons"></div></aside>
         <div class="topbar-actions">
           <button id="diag-button" class="quiet" type="button" title="Inspect local evidence and download a private diagnostic report">Diag</button>
-          <button id="system-test-button" class="quiet" type="button">Test</button>
           <button id="update-button" class="update-button">↻ Update</button
           ><button id="connections-button" class="quiet">Models</button
           ><button id="sound-toggle" class="quiet" aria-pressed="false" title="Optional completion sounds">Sound off</button><button id="workspace-button" class="quiet">
@@ -833,7 +832,19 @@ Generated files will appear here after approval.</pre
       </div>
       <p class="muted">The flight recorder works in the background. These checks inspect saved evidence and local services without running your app or sending content to cloud models.</p>
       <p class="muted">Expanded evidence is automatic: planning stages, task references, rejected rule codes, attempt timing and token counts, up to 25 detailed projects and 20,000 recorder events. Coverage limits and missing records are listed in the report.</p>
+      <p class="muted">Diag runs safe checks, collects evidence, and prepares one matching snapshot. No app code runs. While a job is active, it collects evidence and marks checks skipped.</p>
       <p id="diag-status" role="status" aria-live="polite"></p>
+      <progress id="diag-progress" aria-label="Diagnostic progress" hidden></progress>
+      <div id="diag-checks" aria-label="Checks completed in this session"></div>
+      <details id="diag-advanced"><summary>More checks & tools</summary>
+        <label for="diag-mode">Next diagnostic run</label>
+        <select id="diag-mode"><option value="quick">Safe checks · no model generation</option><option value="local">Also test local models · tiny JSON fixture</option><option value="planning">Also test local planning · real acceptance schema</option><option value="cloud">Also test cloud & local models · tiny JSON fixture</option></select>
+        <p class="muted">Optional inference uses fixed synthetic examples, never your project. Local planning keeps your configured context and output floor, tests up to two saved local models, and may take several minutes. A passing probe does not prove project fitness or GPU fit.</p>
+        <label id="diag-consent-label" hidden><input id="diag-consent" type="checkbox">I allow fixed cloud probes. API charges may apply.</label>
+        <button id="diag-run" type="button">Run selected checks & collect</button>
+        <button id="system-test-button" class="quiet" type="button">Open separate Test tools</button>
+      </details>
+      <button id="diag-stop" type="button" class="quiet" disabled>Stop & collect available evidence</button>
       <div id="diag-summary" class="diag-summary"></div>
       <div id="diag-findings" aria-label="Diagnostic findings"></div>
       <details id="diag-coverage"><summary>What this report covers</summary><pre id="diag-completeness"></pre></details>

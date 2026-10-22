@@ -38,11 +38,14 @@ def main():
                 errors, posts, idea_routes, export_bodies = [], [], [], []
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.on("request", lambda request: posts.append(request.url) if request.method == "POST" and request.url.endswith("/api/projects") else None)
-                page.route("**/api/diagnostics", lambda route: route.fulfill(json=report))
+                session={'id':'session-fixture-1','status':'finished','download_ready':True,'report':report,
+                         'checks_passed':2,'checks_failed':1,'checks_skipped':0}
+                page.route("**/api/diagnostics/session/status", lambda route: route.fulfill(json=session))
+                page.route("**/api/diagnostics/session/start", lambda route: route.fulfill(json=session))
                 def download_diagnostics(route):
                     export_bodies.append(route.request.post_data_json)
                     route.fulfill(status=200, content_type="application/zip", body=stream.getvalue(), headers={"Content-Disposition": 'attachment; filename="Idea-Foundry-Diagnostics.zip"'})
-                page.route("**/api/diagnostics/export", download_diagnostics)
+                page.route("**/api/diagnostics/session/export", download_diagnostics)
                 page.route("**/api/ideas/generate", lambda route: idea_routes.append(route))
                 page.goto("http://127.0.0.1:" + str(server.server_port))
                 expect(page.locator("#diag-button")).to_be_visible(timeout=3000)
@@ -55,7 +58,7 @@ def main():
                     page.locator("#diag-export").click()
                 target = Path(folder) / "diagnostics.zip"
                 pending.value.save_as(target)
-                assert export_bodies == [{"project_id": None, "report_id": "diagnostic-fixture-1"}]
+                assert export_bodies == [{"session_id": "session-fixture-1"}]
                 with zipfile.ZipFile(target) as archive:
                     assert archive.read("START_HERE.md") == b"Fixture diagnostic export"
                 page.locator("#close-diag").click()

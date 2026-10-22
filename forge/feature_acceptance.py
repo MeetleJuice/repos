@@ -11,6 +11,7 @@ from .contracts import review_plan
 from .guided import StageValidationError
 from .outline_planning import ACCEPTANCE_SCHEMA, ACCEPTANCE_EXAMPLES, assemble
 from .scaffolds import CATALOG
+from .assertions import compile_wire
 
 POLICY='feature_v1'
 PROMPT='''GOAL: Plan acceptance evidence for exactly target_feature, not the entire app. Return a JSON object matching the supplied schema.
@@ -26,6 +27,20 @@ for field in ('checks','manual_checks','browser_checks'):
     item['required'].remove('feature_indexes')
     item['additionalProperties']=False
     SCHEMA['properties'][field]['maxItems']=4
+
+WIRE_POLICY = 'feature_v2'
+WIRE_PROMPT = '''GOAL: Plan acceptance for target_feature only. Return JSON using the supplied wire v2 schema.
+CONTEXT: request preserves the user's requirements and approved baseline. scope and earlier_acceptance are fixed context; wire_examples illustrate format only.
+CONSTRAINTS: Each HTTP check requires assertion:{kind,expected}. kind is text (nonempty string), json_subset (nonempty object/array), json_exact (any exact JSON value), or empty (expected:null). No legacy contains/json_contains/json_equals/empty_body fields in your response. The controller compiles assertions and assigns feature references before review. Return no feature_indexes, tasks, wrappers, source or execution claims. UI-only features may use checks:[] plus meaningful manual_checks. Preserve actual API shapes and earlier checks. Define api_contracts for business endpoints. All checks run sequentially on shared data; do not reuse undeleted IDs. Persistence needs a seeded-value GET with restart_before:true before deletion. Ordering needs two distinct records and order-sensitive json_exact or an explicit manual comparison. Do not add restart/delete scenarios to unrelated features.
+DONE WHEN: Return one small feature-specific evidence object. Full review and human approval still follow.'''
+WIRE_SCHEMA: dict[str,Any] = copy.deepcopy(SCHEMA)
+_wire_check = WIRE_SCHEMA['properties']['checks']['items']
+_wire_check.pop('anyOf', None)
+for _field in ('contains','json_contains','json_equals','empty_body'):
+    _wire_check['properties'].pop(_field, None)
+_wire_check['required'].append('assertion')
+_wire_check['properties']['assertion'] = {'type':'object','additionalProperties':False,'required':['kind','expected'],
+    'properties':{'kind':{'type':'string','enum':['text','json_subset','json_exact','empty']},'expected':{}}}
 
 
 def packet_request(request: dict[str,Any]) -> tuple[dict[str,Any],dict[str,Any]]:
@@ -79,9 +94,10 @@ def compile_feature(scope: dict[str,Any], earlier: dict[str,Any], candidate: dic
 
 def create_acceptance(request: dict[str,Any], scope: dict[str,Any], generate: Callable[...,dict[str,Any]],
                       checkpoint: Callable[[dict[str,Any]],None], draft: dict[str,Any], cancel: threading.Event) -> dict[str,Any]:
-    saved=draft.get('acceptance_draft') or {'policy':POLICY,'next_feature':0,'fields':{'checks':[]}}
+    policy = WIRE_POLICY if request.get('acceptance_planning_policy') == WIRE_POLICY else POLICY
+    saved=draft.get('acceptance_draft') or {'policy':policy,'next_feature':0,'fields':{'checks':[]}}
     saved=copy.deepcopy(saved);first=saved.get('next_feature')
-    if saved.get('policy')!=POLICY or type(first) is not int or not 0<=first<=len(scope['features']):raise ValueError('Invalid feature acceptance checkpoint.')
+    if saved.get('policy')!=policy or type(first) is not int or not 0<=first<=len(scope['features']):raise ValueError('Invalid feature acceptance checkpoint.')
     fields=saved.get('fields')
     if not isinstance(fields,dict):raise ValueError('Invalid saved acceptance fields.')
     _review(scope,fields,request,first)
@@ -90,18 +106,26 @@ def create_acceptance(request: dict[str,Any], scope: dict[str,Any], generate: Ca
     for row in examples['persistence_sequence']:row.pop('feature_indexes',None)
     examples['ui_coverage'].pop('feature_indexes',None)
     examples['coverage_rule']='Provide evidence for target_feature only; the controller assigns its index. Do not repeat earlier checks.'
+    if policy == WIRE_POLICY:
+        for row in examples['persistence_sequence']:
+            for field, kind in (('json_contains','json_subset'),('json_equals','json_exact'),('contains','text'),('empty_body','empty')):
+                if field in row:
+                    value=row.pop(field)
+                    row['assertion']={'kind':kind,'expected':None if kind=='empty' else value}
     for target in range(first,len(scope['features'])):
         if cancel.is_set():raise InterruptedError('Validated feature acceptance saved; resume at the next feature.')
         prior=copy.deepcopy(fields)
-        def validate(candidate: dict[str,Any]) -> None:compile_feature(scope,prior,candidate,target,request)
-        reply=generate(PROMPT,{'planning_stage':'acceptance_feature','task_planning_policy':'compiled_v1',
-            'acceptance_planning_policy':POLICY,'request':projected,'context_manifest':manifest,'scope':scope,
+        def canonical(candidate: dict[str,Any]) -> dict[str,Any]:
+            return compile_wire(candidate) if policy == WIRE_POLICY else candidate
+        def validate(candidate: dict[str,Any]) -> None:compile_feature(scope,prior,canonical(candidate),target,request)
+        reply=generate(WIRE_PROMPT if policy==WIRE_POLICY else PROMPT,{'planning_stage':'acceptance_feature','task_planning_policy':'compiled_v1',
+            'acceptance_planning_policy':policy,'request':projected,'context_manifest':manifest,'scope':scope,
             'target_feature_index':target,'target_feature':scope['features'][target],
             'target_feature_indexes':[target],
             'earlier_acceptance':prior,'wire_examples':examples,
             'max_new_http_checks':min(4,15-len(prior.get('checks',[])))},validate)
-        fields=compile_feature(scope,prior,reply,target,request)
-        draft['acceptance_draft']={'policy':POLICY,'next_feature':target+1,'fields':copy.deepcopy(fields)}
+        fields=compile_feature(scope,prior,canonical(reply),target,request)
+        draft['acceptance_draft']={'policy':policy,'next_feature':target+1,'fields':copy.deepcopy(fields)}
         checkpoint(copy.deepcopy(draft))
     if cancel.is_set():raise InterruptedError('All feature acceptance saved; resume for the complete outline review.')
     return assemble(scope,fields,request)

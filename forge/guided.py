@@ -35,6 +35,8 @@ BATCH_SCHEMA: dict[str,Any]={'type':'object','required':['tasks'],'additionalPro
 
 
 def planner_schema(system: str) -> dict[str,Any] | None:
+    from .feature_acceptance import WIRE_PROMPT, WIRE_SCHEMA
+    if system==WIRE_PROMPT:return WIRE_SCHEMA
     from .feature_acceptance import PROMPT as FEATURE_ACCEPTANCE_PROMPT, SCHEMA as FEATURE_ACCEPTANCE_SCHEMA
     if system==FEATURE_ACCEPTANCE_PROMPT:return FEATURE_ACCEPTANCE_SCHEMA
     from .outline_planning import SCOPE_PROMPT,SCOPE_SCHEMA,ACCEPTANCE_PROMPT,ACCEPTANCE_SCHEMA
@@ -113,6 +115,8 @@ def stage_review(validate: Callable[[dict[str,Any]],None], candidate: dict[str,A
     try:validate(candidate)
     except (ValueError,TypeError,KeyError) as exc:
         if isinstance(exc,StageValidationError):return candidate,exc.review
+        from .assertions import AssertionErrorDetail
+        if isinstance(exc,AssertionErrorDetail):return candidate,Review((Finding(exc.code,exc.path,str(exc)),))
         from .planning_diagnostics import classify_finding
         code,path=classify_finding('guided_contract','/',str(exc))
         return candidate,Review((Finding(code,path,str(exc)),))

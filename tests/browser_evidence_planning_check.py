@@ -40,6 +40,8 @@ def main(granular=False,hybrid=False):
     if granular:
         from tests.test_feature_acceptance import feature_replies
         packets=feature_replies(acceptance,2);invalid=copy.deepcopy(packets[0]);invalid['checks'][0]['restart_before']=True
+        from tests.test_diag_revision import wire
+        packets=[wire(packet) for packet in packets];invalid=wire(invalid)
         planning=[scope,invalid,*packets]
     else:planning=[scope,invalid,acceptance]
     models=ScriptedModels([*planning,*feature_batches(plan['tasks']),claim,{'files':{'index.html':HTML,'style.css':CSS}}])

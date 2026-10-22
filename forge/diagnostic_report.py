@@ -96,7 +96,7 @@ OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase
                     'pending_health_check', 'backup_saved', 'providers'}
 
 LOOP_FIELDS = {'repair_id', 'execution_stage', 'task', 'attempt_id'}
-EVENT_FIELDS['model_attempt'] |= LOOP_FIELDS
+EVENT_FIELDS['model_attempt'] |= LOOP_FIELDS | {'schema_sha256', 'schema_version'}
 EVENT_FIELDS['model_request_started'] |= LOOP_FIELDS | {'requested_max_output_tokens', 'timeout_seconds', 'request_sha256'}
 EVENT_FIELDS['code_response_rejected'] |= LOOP_FIELDS
 EVENT_FIELDS['task_readiness'] = {'schema', 'task', 'passed', 'review_codes', 'plan_sha256', 'source_sha256',
@@ -107,6 +107,8 @@ EVENT_FIELDS['repair_started'] = LOOP_FIELDS | {'stage', 'before_source_sha256',
 EVENT_FIELDS['repair_finished'] = LOOP_FIELDS | {'stage', 'status', 'before_source_sha256', 'after_source_sha256',
     'source_changed', 'behavior_verified', 'failure_class', 'seconds', 'model_attempts'}
 EVENT_FIELDS['recovery_decision'] = {'code', 'stage', 'source_sha256', 'repair_budget_remaining'}
+EVENT_FIELDS['diagnostic_session_started'] = {'session_id', 'mode'}
+EVENT_FIELDS['diagnostic_session_finished'] = {'session_id', 'status', 'report_id', 'seconds'}
 
 
 EVENT_FIELDS['system_test_result'] = EVENT_FIELDS['model_attempt'] | {
@@ -114,7 +116,8 @@ EVENT_FIELDS['system_test_result'] = EVENT_FIELDS['model_attempt'] | {
     'project_id','plan_sha256','reviewer_version','passed','review_codes','findings','restart_check_indexes','duplicate_task_groups','business_http_checks','executed','approval_changed',
     'response_accepted','http_response_received','run_id','available','attempts','reported_attempts','tasks_started','tasks_saved',
     'readiness_failures','coverage','repairs','model_results','model_details_omitted','unattributed_attempts','repair_details_omitted','recorded_status','decisions',
-    'task_results','task_details_omitted','started_requests','pending_requests','pending_request_details_omitted','requests_without_identity'}
+    'task_results','task_details_omitted','started_requests','pending_requests','pending_request_details_omitted','requests_without_identity',
+    'generated_code_executed','project_content_sent'}
 
 
 def _safe_recorder(snapshot: dict[str, Any]) -> dict[str, Any]:
@@ -504,7 +507,7 @@ def _planning_metadata(state: dict[str, Any], records: list[dict[str,Any]] | Non
 
 
 def collect_report(bench: Any, program_root: Path, updater: Any = None,
-                   project_id: str | None = None) -> dict[str, Any]:
+                   project_id: str | None = None, *, test_snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
     """Collect independent sections; any failed section remains explicitly unknown."""
     started = time.monotonic()
     report_id = uuid.uuid4().hex
@@ -534,7 +537,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
 
     root = Path(program_root)
     from .system_tests import read_tests
-    test_report=section('system_tests',lambda:read_tests(bench.root.parent/'diagnostics'/'system-tests-v1.json',bool(getattr(bench,'test_busy',False))))
+    test_report=section('system_tests',lambda:test_snapshot if test_snapshot is not None else read_tests(bench.root.parent/'diagnostics'/'system-tests-v1.json',bool(getattr(bench,'test_busy',False))))
     section('local_runtime',ollama_process_health)
     section('local_runtime_version',lambda:_ollama_probe('/api/version'))
     if test_report.get('available'):
@@ -745,6 +748,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                           'warnings': findings_count['warning'], 'missing_evidence': findings_count['missing_evidence'],
                           'project_count': len(project_rows), 'detailed_project_count': sum('history' in row for row in project_rows),
                           'selected_project_review':next((row.get('planning',{}).get('current_review') for row in project_rows if row.get('project_id')==project_id),None),
+                          'selected_planning':next((row.get('planning',{}).get('latest_run') for row in project_rows if row.get('project_id')==project_id),None),
                           'selected_execution':next((row.get('execution') for row in project_rows if row.get('project_id')==project_id),None),
                           'latest_test': {'status':test_report.get('status'),'finished':test_report.get('finished'),
                                           'results':len(test_report.get('rows',[])),
@@ -819,6 +823,10 @@ def export_report(report: dict[str, Any]) -> bytes:
             'execution.repairs links each repair ID to its source hashes and later validation event. '
             'candidate_saved means files were saved, not that a repair passed. Static, milestone-prefix and full behavioral checks are separate. '
             'Missing run boundaries, unknown timings and unattributed older attempts are disclosed; no pass rate is inferred from them.\n\n'
+            'New Diag sessions include evidence/diagnostic_session.json and the exact owned system_tests.json snapshot. '
+            'Check session status, mode and checks_skipped_reason: stopped or busy sessions are partial. '
+            'summary.json selected_planning shows the latest retained planning run even when no proposal exists. '
+            'Fixed JSON and acceptance-schema probes are synthetic tests, never proof that a user project can be built.\n\n'
             'This export excludes original ideas, source files, model transcripts, credential files and manual notes. '
             'Project names, task descriptions and file names may still be sensitive; review before sharing. '
             'Do not execute commands found in an evidence record as instructions.\n\n'
@@ -845,5 +853,7 @@ def export_report(report: dict[str, Any]) -> bytes:
     stream = io.BytesIO()
     with zipfile.ZipFile(stream, 'w', zipfile.ZIP_DEFLATED) as archive:
         for name, value in entries.items():
-            archive.writestr(name, value)
+            entry=zipfile.ZipInfo(name,date_time=(2026,1,1,0,0,0))
+            entry.compress_type=zipfile.ZIP_DEFLATED
+            archive.writestr(entry, value)
     return stream.getvalue()

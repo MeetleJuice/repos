@@ -48,12 +48,14 @@ ui=proc('render()')
 flow('startup','Document & deferred scripts','Workbench & session',[root,deferred])
 
 backend_files={'Workbench':'forge/core.py','ModelStatus':'forge/model_status.py','CloudSetup':'forge/cloud.py',
-               'SystemTests':'forge/system_tests.py',
+               'SystemTests':'forge/system_tests.py','DiagnosticSession':'forge/diagnostic_session.py',
                'CredentialStore':'forge/credentials.py','UpdateManager':'forge/updates.py',
                'collect_report':'forge/diagnostic_report.py','export_report':'forge/diagnostic_report.py','generate_idea':'forge/ideas.py'}
 endpoints=json.loads((FEATURE/'docs/endpoints.json').read_text())
 for index,(method,path,trigger,backend,frontend,detail,after,category) in enumerate(endpoints):
     file='forge/static/'+frontend;text=(ROOT/file).read_text()
+    legacy = path in {'/api/diagnostics','/api/diagnostics/export'}
+    if legacy:file='forge/server.py';text=(ROOT/file).read_text()
     suffix=path.rsplit('/',1)[-1]
     needle=path if path in text else '/'+suffix if '/'+suffix in text else '/api/projects' if '/api/projects' in text else 'api('
     trigger_id=node('action-'+str(index),trigger,'action',category,file,needle,detail)
@@ -70,7 +72,7 @@ for index,(method,path,trigger,backend,frontend,detail,after,category) in enumer
                 'Returns to '+detail+'. This is UI/controller progress, not behavioral verification.')
     # Health and inline ZIP downloads fetch directly; do not invent a call
     # through saveDownload() or the JSON wrapper for those sites.
-    transports=[direct] if path=='/api/backup' else [] if path=='/health' or path.endswith('/download') or path=='/api/diagnostics/export' else [api_wrapper]
+    transports=[direct] if path=='/api/backup' else [] if legacy or path=='/health' or path.endswith('/download') or path=='/api/diagnostics/session/export' else [api_wrapper]
     checks=[guard] if path=='/health' else [guard,token]
     flow('endpoint-'+str(index),method+' '+path,category,[root,deferred,trigger_id,*transports,api_id,*checks,business,end_id])
     flow('rejection-'+str(index),method+' '+path+' · rejected request',category,
@@ -201,6 +203,17 @@ flow('diagnostic-recorder','Controller event · shared IDs and independent persi
      [root,job,trace,proc('append()','forge/history.py','Delivery & recovery'),persist])
 flow('diagnostic-investigation','Diag · read-only local evidence export','Delivery & recovery',
      [root,investigate,proc('FlightRecorder.snapshot()','forge/diagnostics.py','Delivery & recovery'),proc('export_report()','forge/diagnostic_report.py','Delivery & recovery')])
+diag_start=proc('DiagnosticSession.start()','forge/diagnostic_session.py','Delivery & recovery')
+diag_run=proc('DiagnosticSession._run()','forge/diagnostic_session.py','Delivery & recovery')
+flow('unified-diag','Diag · checks then immutable report, exact export','Delivery & recovery',
+     [root,diag_start,diag_run,proc('SystemTests.start()','forge/system_tests.py'),proc('SystemTests._run()','forge/system_tests.py'),
+      proc('SystemTests.result()','forge/system_tests.py'),investigate,proc('DiagnosticSession.export()','forge/diagnostic_session.py'),proc('export_report()','forge/diagnostic_report.py')])
+flow('diag-planner-probe','Explicit local planning probe · synthetic stage, actual schema and reviewer','Delivery & recovery',
+     [root,diag_start,diag_run,proc('SystemTests._planning_probe()','forge/system_tests.py'),proc('run_probe()','forge/planner_probe.py'),model,
+      proc('compile_wire()','forge/assertions.py'),proc('compile_feature()','forge/feature_acceptance.py'),review_plan_node])
+flow('acceptance-wire-v2','New feature acceptance · portable assertion wire to unchanged approval checks','Planning & approval',
+     [root,start,job,proc('create_acceptance()','forge/feature_acceptance.py'),call,model,proc('compile_wire()','forge/assertions.py'),
+      proc('compile_assertion()','forge/assertions.py'),proc('compile_feature()','forge/feature_acceptance.py'),review_plan_node])
 flow('local-idea-helper','Generate Idea · local request without a project','Planning & approval',
      [root,proc('generate_idea()','forge/ideas.py','Planning & approval'),proc('choose_model()','forge/ideas.py','Planning & approval'),model,
       node('idea-prompt-insertion','Insert editable idea; no project submission','state','Planning & approval','forge/static/diagnostics.js','value = result.idea.trim()')])

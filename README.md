@@ -1,12 +1,12 @@
-# Idea Foundry 0.37.0
+# Idea Foundry 0.38.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
-**New: follow each task and repair through its evidence.** Task readiness is checked before implementation; structured builder instructions separate goal, context, constraints and completion. Unchanged static repairs stop wasting calls. **Test** adds six repair-evidence safeguards alongside the eight planning cases. **Diag** links tasks, model attempts, repairs and later matching-source checks while keeping old history and unknowns explicit. [v0.37.0 findings and update guide](docs/RELEASE-0.37.0.md).
+**New: one Diag workflow.** Click **Diag**, watch safe checks and evidence collection, then download the matching ZIP. Optional tests include a real acceptance-schema probe using fixed synthetic data. Planning failures now have precise assertion paths and validity flags; new feature-by-feature drafts use a portable assertion format compiled into the existing approval checks. [v0.38.0 findings and test steps](docs/RELEASE-0.38.0.md).
 
 **New: Plan feature by feature.** An explicit new workflow saves acceptance for one feature at a time, gives bookkeeping to the controller and excludes obsolete rejected-plan context from feature requests. Final approval and behavioral tests remain required. The larger forge emblem has flowing blue/cyan flame contours and a pause control. [v0.35.0 audit, changes and test steps](docs/RELEASE-0.35.0.md).
 
-**Test → Diag.** Click **Test**, run quick storage/controller/catalogue checks, then optionally select local or explicitly consented cloud response probes. Close Test when finished, click **Diag**, and download its ZIP. Tiny probes do not establish project-building ability or change saved routes. [Test guide](docs/RELEASE-0.33.0.md).
+**Diag → Download ZIP.** Default checks do not generate text or run app code. Under **More checks & tools**, explicitly select local JSON, local planning or consented cloud probes, then **Run selected checks & collect**. Close/reopen to rejoin a running session; Stop collects partial evidence after the current operation returns. Busy jobs get passive collection with checks marked skipped. Separate Test tools remain under this section for compatibility. Probes never change saved routes or establish project-building ability.
 
 An original, local-first Python workbench for Windows and VS Code. Ollama is the default;
 Gemini, Groq, Cloudflare Workers AI, OpenRouter, NVIDIA, Requesty, and Hugging Face are optional. No Python packages need installing for the workbench

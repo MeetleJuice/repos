@@ -5,6 +5,7 @@ import math
 from typing import Any
 
 RULES = {
+    'assertion_value': 'An assertion field has an empty or invalid value.',
     'task_endpoint_mismatch': 'A task names an endpoint outside the accepted API/check contract.',
     'duplicate_task': 'A task repeats earlier instructions, outcome, criteria and file scope.',
     'missing_persistence_scenario': 'A declared server persistence feature has no mapped restart read.',
@@ -54,6 +55,7 @@ def classify_finding(code: str, path: str, message: str) -> tuple[str, str]:
 
 
 def candidate_shape(candidate: Any) -> dict[str, Any]:
+    from .assertions import assertion_shape
     if not isinstance(candidate, dict): return {'object': False}
     result: dict[str, Any] = {'object': True}
     for field in ('features', 'checks', 'manual_checks', 'browser_checks', 'tasks'):
@@ -63,7 +65,8 @@ def candidate_shape(candidate: Any) -> dict[str, Any]:
         'feature_indexes': [n for n in check.get('feature_indexes', [])[:32] if type(n) is int] if isinstance(check.get('feature_indexes', []), list) else [],
         'restart_before': check.get('restart_before') is True,
         'has_body': 'body' in check,
-        'has_assertion': any(key in check for key in ('contains', 'json_contains', 'json_equals', 'empty_body')),
+        'has_assertion': any(key in check for key in ('contains', 'json_contains', 'json_equals', 'empty_body', 'assertion')),
+        **assertion_shape(check),
     } for index, check in enumerate(candidate.get('checks', [])[:32]) if isinstance(check, dict)] if isinstance(candidate.get('checks', []), list) else []
     result['task_structure'] = [{
         'index': index, 'file_count': len(task.get('files', [])) if isinstance(task.get('files'), list) else None,
@@ -104,6 +107,9 @@ def latest_planning_run(records: list[dict[str, Any]]) -> dict[str, Any]:
     return {'available':True,'run_id':start['run_id'],'started':start.get('time'),
         'status':finish.get('status'),'seconds':finish.get('seconds'),
         'recorded_attempts':len(attempts),'reported_attempts':finish.get('model_attempts'),
+        'schema_rejections':sum(a.get('category')=='schema_error' or a.get('failure_class')=='schema_error' for a in attempts),
+        'timeout_attempts':sum(a.get('transport_kind')=='timeout' for a in attempts),
+        'model_seconds':round(sum(a['seconds'] for a in attempts if type(a.get('seconds')) in {int,float} and math.isfinite(a['seconds']) and a['seconds']>=0),3) if attempts and all(type(a.get('seconds')) in {int,float} and math.isfinite(a['seconds']) and a['seconds']>=0 for a in attempts) else None,
         'stages':stages,'timeout_seconds':round(sum(a['seconds'] for a in attempts if a.get('transport_kind')=='timeout' and type(a.get('seconds')) in {int,float} and math.isfinite(a['seconds']) and a['seconds']>=0),3),
         'review_codes':sorted({code for attempt in attempts for code in attempt.get('review_codes',[]) if isinstance(code,str)}),
         'history_may_be_partial':len(attempts)!=finish.get('model_attempts')}

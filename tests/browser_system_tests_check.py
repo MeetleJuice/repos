@@ -34,6 +34,9 @@ def main():
                 page=browser.new_page(viewport={'width':1440,'height':1100});errors=[]
                 page.on('pageerror',lambda error:errors.append(str(error)))
                 page.goto(base);page.locator('#projects .project-link').first.click()
+                page.locator('#diag-button').click()
+                expect(page.locator('#diag-status')).to_contain_text('Evidence ready',timeout=15000)
+                page.locator('#diag-advanced summary').click()
                 page.locator('#system-test-button').click()
                 expect(page.locator('#system-test-dialog')).to_be_visible()
                 assert len(models.calls)==1
@@ -51,18 +54,21 @@ def main():
                 assert len(models.calls)==3
                 assert all(call=={'numbers':[2,5],'operation':'add'} for call in models.calls[1:])
                 page.locator('#system-test-close').click();page.locator('#diag-button').click()
-                expect(page.locator('#diag-status')).to_contain_text('Collected',timeout=15000)
+                expect(page.locator('#diag-status')).to_contain_text('Evidence ready',timeout=15000)
                 expect(page.locator('#diag-summary')).to_contain_text('Latest Test: finished')
                 with page.expect_download() as pending:page.locator('#diag-export').click()
                 target=Path(folder)/'diag.zip';pending.value.save_as(target)
                 with zipfile.ZipFile(target) as z:
                     report=json.loads(z.read('evidence/system_tests.json'))
-                    assert report['status']=='finished' and report['generation_requested']
-                    assert len([r for r in report['rows'] if r['code']=='fixed_json_probe'])==2
+                    assert report['status']=='finished' and not report['generation_requested']
+                    assert len([r for r in report['rows'] if r['code']=='fixed_json_probe'])==0
+                    assert json.loads(z.read('evidence/diagnostic_session.json'))['test_report_id']==report['id']
                     assert b'PRIVATE TEST PROJECT IDEA' not in b''.join(z.read(n) for n in z.namelist())
                 assert json.dumps(bench.load(state['id'])['plan'],sort_keys=True)==original
                 assert page.request.post(base+'/api/system-tests/start',data={'mode':'quick'}).status==403
                 page.locator('#close-diag').click();page.set_viewport_size({'width':390,'height':844})
+                page.locator('#diag-button').click()
+                expect(page.locator('#diag-status')).to_contain_text('Evidence ready',timeout=15000)
                 page.locator('#system-test-button').click();expect(page.locator('#system-test-dialog')).to_be_visible()
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth+1')
                 assert not errors,errors
