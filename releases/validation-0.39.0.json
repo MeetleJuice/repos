@@ -1,0 +1,498 @@
+{
+  "schema": 1,
+  "version": "0.39.0",
+  "theme": "Stage-specific planning context and bound project memory",
+  "source_commit": "6525680e389803591cbfc1661e885759bc8690ae",
+  "artifact": {
+    "identity": {
+      "schema": 1,
+      "version": "0.39.0",
+      "source_commit": "6525680e389803591cbfc1661e885759bc8690ae",
+      "tracked_modified_files": 0,
+      "meaning": "Git identity at packaging time; source_tree_sha256 identifies packaged file bytes excluding this metadata.",
+      "source_tree_sha256": "975b04594c89ef89671dd991266187deaa3b5c1728f32fdbbca82a10baf1877e",
+      "source_file_count": 466
+    },
+    "bytes": 3007425,
+    "sha256": "013f917a700c7f1ead61ac75b5c6372ee113b60209d0293461886dca545d46a6",
+    "archive_source_matches_checkout": true,
+    "production_extractor_passed": true
+  },
+  "diagnostic_basis": {
+    "report_id": "f911bae465334efd8748a632f3a2fe2b",
+    "version": "0.38.0",
+    "latest_run_attempts": 12,
+    "schema_rejections": 7,
+    "timeouts": 3,
+    "model_seconds": 497.18,
+    "timeout_seconds": 360.27,
+    "accepted_feature_prefix": 1,
+    "builder_started": false,
+    "rejected_response_bodies_available": false
+  },
+  "checks": {
+    "source": {
+      "command": "python -m unittest discover -q",
+      "tests": 600,
+      "seconds": 161.207,
+      "output": "Ran 600 tests in 161.207s\n\nOK\n"
+    },
+    "extracted": {
+      "command": "python -m unittest discover -q",
+      "tests": 600,
+      "seconds": 162.6,
+      "output": "Ran 600 tests in 162.600s\n\nOK\n"
+    }
+  },
+  "strict_types": {
+    "command": "PYTHONPATH=/tmp/foundry-typecheck python -m mypy --strict forge/contracts.py forge/planning.py forge/routing.py forge/schemas.py forge/models.py forge/evidence.py forge/edits.py forge/cloud.py forge/credentials.py forge/handoffs.py forge/capabilities.py forge/context.py forge/history.py forge/reporting.py forge/providers.py forge/model_status.py forge/build_contract.py forge/workflow.py forge/http_io.py forge/tasks.py forge/circuit.py forge/execution.py forge/focus.py forge/calibration.py forge/streaming.py forge/guided.py forge/model_inventory.py forge/acceptance.py forge/diagnostics.py forge/diagnostic_report.py forge/lifecycle.py forge/ideas.py forge/task_planning.py forge/planning_diagnostics.py forge/outline_planning.py forge/system_tests.py forge/feature_acceptance.py forge/coherence.py forge/run_diagnostics.py forge/assertions.py forge/planner_probe.py forge/diagnostic_session.py forge/stage_context.py",
+    "modules": 43,
+    "output": "Success: no issues found in 43 source files"
+  },
+  "red_green": {
+    "before_command": "python -m unittest tests.test_stage_harness -q (initial two-test file)",
+    "before_output_excerpt": "ERROR: test_registered_starter_contracts_do_not_need_model_redeclaration (tests.test_stage_harness.StageHarnessTests.test_registered_starter_contracts_do_not_need_model_redeclaration)\nforge.guided.StageValidationError: /checks/0: Declare the successful endpoint response shape in api_contracts; reuse it across task interfaces and tests.\nFAIL: test_scope_context_defers_builder_details_but_keeps_original_requirements (tests.test_stage_harness.StageHarnessTests.test_scope_context_defers_builder_details_but_keeps_original_requirements)\nAssertionError: 'BULKY_ROUTE_DATA' unexpectedly found in '{\"idea\": \"Keep Caf\u00e9 \ud83d\udc1c exactly\", \"planning_context_policy\": \"stage_v1\", \"builder_profile\": {\"irrelevant_route_description\": \"BULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DATABULKY_ROUTE_DA\nRan 2 tests in 0.002s\nFAILED (failures=1, errors=1)",
+    "excerpt_line_limit": 500,
+    "after_command": "python -m unittest tests.test_stage_harness -q",
+    "after_output": "Ran 13 tests in 0.816s\n\nOK\n",
+    "covered_boundaries": [
+      "Full original Unicode requirements retained",
+      "Known starter contracts seed declarations without weakening unknown/shape/body errors",
+      "Bound memory exact-prefix resume/drift",
+      "Native adapter full five-stage planning at 16K with unchanged 8192 output floor",
+      "Content rejection scoped to stage; configuration failures still excluded",
+      "Budget refusal facts retained before transport and in sanitized history",
+      "Planning probe requires concrete saved-title mutation",
+      "Browser automation explicit without execution approval",
+      "Explicit legacy policy upgrade retains old draft"
+    ]
+  },
+  "paired_controller_measurement": {
+    "schema": 1,
+    "provenance": "Synthetic identical request, real controller/native adapter, mocked responses. No live inference or speed/quality claim.",
+    "before": {
+      "version": "0.38.0",
+      "status": "error",
+      "error": "Configured route exhausted. Some models could not fit the output/context reservation; other provider failures are listed here: ollama: output_budget; ollama: output_budget; ollama: output_budget; ollama: output_budget; ollama: output_budget; ollama: output_budget",
+      "fixture_adapter_invocations": 0,
+      "stages": [],
+      "budgets": [
+        {
+          "model": "qwen2.5-coder:7b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "qwen2.5-coder:7b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "qwen3.5:9b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "qwen3.5:9b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "deepseek-r1:7b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "deepseek-r1:7b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "qwen2.5:7b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "qwen2.5:7b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "qwen3:8b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "qwen3:8b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "granite4.2:8b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        },
+        {
+          "model": "granite4.2:8b",
+          "input_estimate": 9565,
+          "output_reserved": 8192,
+          "fits": false
+        }
+      ],
+      "real_network_calls": 0,
+      "live_model_quality_claim": false
+    },
+    "after": {
+      "version": "0.39.0",
+      "status": "proposed",
+      "error": null,
+      "fixture_adapter_invocations": 5,
+      "stages": [
+        "scope",
+        "acceptance_feature",
+        "acceptance_feature",
+        "feature_tasks",
+        "feature_tasks"
+      ],
+      "budgets": [
+        {
+          "model": "qwen2.5-coder:7b",
+          "input_estimate": 4530,
+          "output_reserved": 8192,
+          "fits": true
+        },
+        {
+          "model": "qwen2.5-coder:7b",
+          "input_estimate": 8002,
+          "output_reserved": 8192,
+          "fits": true
+        },
+        {
+          "model": "qwen2.5-coder:7b",
+          "input_estimate": 8075,
+          "output_reserved": 8192,
+          "fits": true
+        },
+        {
+          "model": "qwen2.5-coder:7b",
+          "input_estimate": 8066,
+          "output_reserved": 8192,
+          "fits": true
+        },
+        {
+          "model": "qwen2.5-coder:7b",
+          "input_estimate": 8063,
+          "output_reserved": 8192,
+          "fits": true
+        }
+      ],
+      "real_network_calls": 0,
+      "live_model_quality_claim": false
+    }
+  },
+  "frozen_regressions": {
+    "manifest": "tests/fixture_data/frozen-regressions-v23.json",
+    "sets": 24,
+    "new_fixture": "tests/fixture_data/stage-harness-v1.json",
+    "prior_sets_unchanged": true,
+    "provenance": "Captured sanitized Diagnostic (11) ledger plus explicitly synthetic contract scenarios; no captured failed response reconstruction."
+  },
+  "dashboard": {
+    "nodes": 341,
+    "edges": 549,
+    "scenarios": 202,
+    "node_tests": 4,
+    "node_tests_command": "npm test",
+    "node_tests_output": "tests 4; pass 4; fail 0",
+    "typecheck_command": "npm run typecheck",
+    "typecheck": "passed",
+    "production_build_command": "npm run build",
+    "production_build": "Built local dashboard assets. Dependencies remain in the OS temporary build cache.",
+    "source_browser_command": "python forge/dashboard/browser_check.py",
+    "source_browser_output": "PASS: Chromium desktop/mobile; local ELK worker; 341 disjoint HTML nodes / 549 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors.",
+    "source_launcher_command": "python forge/dashboard/launcher_check.py",
+    "source_launcher_output": "PASS: visible top workbench Dashboard button; distinct Chromium browser window; graph loads; opener detached; repeated clicks reuse window; blocked popup exposes keyboard-focusable fallback; reopen works; unsaved idea preserved; mobile has no overflow; no project/model job or JavaScript error."
+  },
+  "workbench_browsers": [
+    {
+      "name": "diagnostic_session",
+      "returncode": 0,
+      "seconds": 7.071,
+      "command": "python tests/browser_diagnostic_session_check.py",
+      "output": "PASS: one Diag entry -> progress -> close/rejoin same session -> stop/partial ZIP with checksummed owned evidence -> explicit native-schema planner fixture -> cloud consent -> busy passive snapshot; unchanged project, mobile layout and auth. No live model quality claim.\n"
+    },
+    {
+      "name": "run_diagnostics",
+      "returncode": 0,
+      "seconds": 8.676,
+      "command": "python tests/browser_run_diagnostics_check.py",
+      "output": "PASS: real fixture application failure -> repair -> matching-source behavioral pass -> quick Test/Diag UI -> correlated ZIP evidence and manifest; no extra inference, project mutation, private prompt/source export or browser errors. No live model claim.\n"
+    },
+    {
+      "name": "planning_coherence",
+      "returncode": 0,
+      "seconds": 14.77,
+      "command": "python tests/browser_planning_coherence_check.py",
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "name": "feature_acceptance",
+      "returncode": 0,
+      "seconds": 9.406,
+      "command": "python tests/browser_feature_acceptance_check.py",
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: granular creation through feature acceptance correction, scoped task generation, unchanged human approval, actual SQLite/server/browser checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "name": "brand",
+      "returncode": 0,
+      "seconds": 5.138,
+      "command": "python tests/browser_brand_check.py",
+      "output": "PASS: larger desktop/mobile emblem; independent flame animation; true in-flight controller activity and completion; status-error clearing; persistent motion pause; reduced motion; no horizontal overflow or JavaScript errors. No live model quality tested.\n"
+    },
+    {
+      "name": "system_tests",
+      "returncode": 0,
+      "seconds": 9.96,
+      "command": "python tests/browser_system_tests_check.py",
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> delayed Diag reopen disables stale download -> owned persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n"
+    },
+    {
+      "name": "diagnostics",
+      "returncode": 0,
+      "seconds": 2.617,
+      "command": "python tests/browser_diagnostics_check.py",
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested.\n"
+    },
+    {
+      "name": "evidence_planning",
+      "returncode": 0,
+      "seconds": 10.23,
+      "command": "python tests/browser_evidence_planning_check.py",
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\n"
+    },
+    {
+      "name": "capacity_delivery",
+      "returncode": 0,
+      "seconds": 7.779,
+      "command": "python tests/browser_capacity_delivery_check.py",
+      "output": "PASS: Plan for my builder -> validated outline/scoped tasks -> unchanged approval -> rejected Python -> same-model exact-edit correction -> sequential build -> real acceptance/tests/launch -> verified ZIP; frozen foundation retained; metadata-only model limits and embedding exclusion; mobile/no JS errors. Model replies are fixtures, not live-model quality evidence.\n"
+    },
+    {
+      "name": "workflow_overview",
+      "returncode": 0,
+      "seconds": 7.949,
+      "command": "python tests/browser_workflow_overview_check.py",
+      "output": "PASS: fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "task_contract",
+      "returncode": 0,
+      "seconds": 7.788,
+      "command": "python tests/browser_task_contract_check.py",
+      "output": "PASS: structured task UI, scope rejection/correction and protected ZIP export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "hybrid_execution",
+      "returncode": 0,
+      "seconds": 7.565,
+      "command": "python tests/browser_hybrid_execution_check.py",
+      "output": "PASS: hybrid mode setup, cloud planner/local builder dispatch, source-supported no-change receipt and real verification/ZIP; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "delivery_control",
+      "returncode": 0,
+      "seconds": 10.662,
+      "command": "python tests/browser_delivery_control_check.py",
+      "output": "PASS: explicit local-only calibration, focused source request, task readiness/evidence and source-bound export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "orchestration",
+      "returncode": 0,
+      "seconds": 12.052,
+      "command": "python tests/browser_orchestration_check.py",
+      "output": "PASS: explicit orchestration preset; primary/secondary cloud failures reach local planning; no pre-consent inference; sequential local-only coding without unused cloud consent; task outcome/criteria/checklist; real milestone/final HTTP, unit and launch checks; invocation allowance; verified ZIP/work checklist; mobile/privacy/no JS errors. Model replies are fixtures, not live quality measurements.\n"
+    },
+    {
+      "name": "local_harness",
+      "returncode": 0,
+      "seconds": 10.971,
+      "command": "python tests/browser_local_harness_check.py",
+      "output": "Version 0.40.0 is ready. Press the Update button in the app to apply changes.\nPASS: local-compatible setup/discovery choices persist; no cloud requests/consent; actual local SSE preview; scoped Stop control; finish gate; real generated-app verification and ZIP; human-controlled update-ready event/banner; mobile/reduced motion/no JS errors. Model responses are fixtures.\n"
+    },
+    {
+      "name": "guided_planning",
+      "returncode": 0,
+      "seconds": 10.043,
+      "command": "python tests/browser_guided_planning_check.py",
+      "output": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence.\n"
+    },
+    {
+      "name": "local_failover",
+      "returncode": 0,
+      "seconds": 7.688,
+      "command": "python tests/browser_local_failover_check.py",
+      "output": "PASS: fresh project automatically detects local backups without model setup; two transport failures advance to third distinct Ollama model; two rejected code responses advance to third distinct builder; unchanged saved primary/approved plan; actual app verification and ZIP; no cloud calls/mobile overflow/JS errors. Model replies are fixtures.\n"
+    },
+    {
+      "name": "model_studio",
+      "returncode": 0,
+      "seconds": 11.002,
+      "command": "python tests/browser_model_studio_check.py",
+      "output": "PASS: local-only no-cloud setup, two-local failover, existing plan/files preservation, separate route previews, keyboard details, persistent accents/volume/mute, user-gesture audio with silent reload/history, one cue per observed terminal transition, reduced-motion/mobile and real generated-app verification/ZIP. No live provider or GPU claims.\n"
+    },
+    {
+      "name": "model_activity",
+      "returncode": 0,
+      "seconds": 5.859,
+      "command": "python tests/browser_model_activity_check.py",
+      "output": "PASS: seven provider icons and installed local models, embedding distinction, true in-flight animation, reduced-motion state, success and quota transitions, working cleared, model dialog navigation, mobile, privacy and no JS errors.\n"
+    },
+    {
+      "name": "automatic_routing",
+      "returncode": 0,
+      "seconds": 8.788,
+      "command": "python tests/browser_automatic_routing_check.py",
+      "output": "PASS: automatic catalogue setup, role routes persisted, missing Cloudflare config skipped, no pre-consent inference, model error and invalid proposals advance without restart, actual app verification, current project preservation, mobile, no secret values or JavaScript errors.\n"
+    },
+    {
+      "name": "proposal_import",
+      "returncode": 0,
+      "seconds": 2.982,
+      "command": "python tests/browser_proposal_import_check.py",
+      "output": "PASS: five-task stale proposal \u2192 imported two-task reviewed repair \u2192 persistent reload/cards \u2192 explicit editor save/check feedback \u2192 approval; no inference, source mutation or execution; token and recycled-plan guards; mobile.\n"
+    },
+    {
+      "name": "upgrade",
+      "returncode": 0,
+      "seconds": 11.099,
+      "command": "python tests/browser_upgrade_check.py",
+      "output": "Version 0.40.0 is ready. Press the Update button in the app to apply changes.\nPASS: tested foundation, clear missing-Docker state, consent, actual verification, protected test export, project search, update dialog, desktop/mobile and no JS errors.\n"
+    },
+    {
+      "name": "arcade",
+      "returncode": 0,
+      "seconds": 28.154,
+      "command": "python tests/browser_arcade_check.py",
+      "output": "PASS: real plan/build/HTTP/tests/launch/Chromium/manual/export pipeline; rendered keyboard/pointer movement, pause freeze, collision/game-over, restart, high-score refresh persistence; mobile layout; broken JS rejected.\n"
+    },
+    {
+      "name": "cloud",
+      "returncode": 0,
+      "seconds": 10.664,
+      "command": "python tests/browser_cloud_check.py",
+      "output": "PASS: UTF-16 Notepad .env.txt \u2192 private key import \u2192 checked catalogues \u2192 persisted cloud route \u2192 consent gate \u2192 Gemini/Groq/OpenRouter failover \u2192 real generated-app HTTP/tests/launch \u2192 cooldown skip \u2192 saved project settings; no secret responses, auth boundary, mobile and no JS errors.\n"
+    },
+    {
+      "name": "provider_pool",
+      "returncode": 0,
+      "seconds": 9.389,
+      "command": "python tests/browser_provider_pool_check.py",
+      "output": "PASS: seven-key private import; missing Cloudflare account then local configuration import; seven catalogues; reordered route; timeout/JSON settings persisted; seven-tier failover; actual app verification/export; mobile; no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "repair",
+      "returncode": 0,
+      "seconds": 33.771,
+      "command": "python tests/browser_repair_check.py",
+      "output": "PASS: actual uploaded shield collision fails in Chromium \u2192 bounded exact-edit repair \u2192 same frozen browser/HTTP/regression checks pass; collection/pause/consumption/second collision/restart verified; failed format recovery retains notes and enables retry; direct successful repair makes one coder request, no planning/execution, mobile and no JavaScript errors.\n"
+    },
+    {
+      "name": "starter_recovery",
+      "returncode": 0,
+      "seconds": 2.312,
+      "command": "python tests/browser_starter_recovery_check.py",
+      "output": "PASS: actual failed empty-plan screen \u2192 explicit standard-plan recovery \u2192 approval; direct standard creation; zero extra model calls; no code execution; authenticated endpoint; mobile layout.\n"
+    },
+    {
+      "name": "planning",
+      "returncode": 0,
+      "seconds": 7.332,
+      "command": "python tests/browser_planning_check.py",
+      "output": "PASS: semantic recovery in 3 requests, explicit fallback, context/output controls, cloud consent visibility, live edit review with no inference, approval gate, restart evidence and mobile layout.\n"
+    }
+  ],
+  "extracted_browser_checks": [
+    {
+      "command": "python tests/browser_evidence_planning_check.py",
+      "returncode": 0,
+      "seconds": 10.718,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\n"
+    },
+    {
+      "command": "python tests/browser_diagnostic_session_check.py",
+      "returncode": 0,
+      "seconds": 8.666,
+      "output": "PASS: one Diag entry -> progress -> close/rejoin same session -> stop/partial ZIP with checksummed owned evidence -> explicit native-schema planner fixture -> cloud consent -> busy passive snapshot; unchanged project, mobile layout and auth. No live model quality claim.\n"
+    },
+    {
+      "command": "python tests/browser_planning_coherence_check.py",
+      "returncode": 0,
+      "seconds": 17.531,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "command": "python tests/browser_feature_acceptance_check.py",
+      "returncode": 0,
+      "seconds": 10.433,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: granular creation through feature acceptance correction, scoped task generation, unchanged human approval, actual SQLite/server/browser checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "command": "python tests/browser_system_tests_check.py",
+      "returncode": 0,
+      "seconds": 11.379,
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> delayed Diag reopen disables stale download -> owned persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n"
+    },
+    {
+      "command": "python tests/browser_run_diagnostics_check.py",
+      "returncode": 0,
+      "seconds": 8.52,
+      "output": "PASS: real fixture application failure -> repair -> matching-source behavioral pass -> quick Test/Diag UI -> correlated ZIP evidence and manifest; no extra inference, project mutation, private prompt/source export or browser errors. No live model claim.\n"
+    },
+    {
+      "command": "python forge/dashboard/browser_check.py",
+      "returncode": 0,
+      "seconds": 26.931,
+      "output": "PASS: Chromium desktop/mobile; local ELK worker; 341 disjoint HTML nodes / 549 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors.\n"
+    },
+    {
+      "command": "python forge/dashboard/launcher_check.py",
+      "returncode": 0,
+      "seconds": 4.075,
+      "output": "PASS: visible top workbench Dashboard button; distinct Chromium browser window; graph loads; opener detached; repeated clicks reuse window; blocked popup exposes keyboard-focusable fallback; reopen works; unsaved idea preserved; mobile has no overflow; no project/model job or JavaScript error.\n"
+    }
+  ],
+  "limitations": [
+    "No real model inference, live provider quota or physical Windows/GPU performance tested in cloud.",
+    "Mocked-response controller success is not live-model success rate, latency, cost or repair-quality evidence.",
+    "Larger ideas, correction packets and long prefixes can still exceed 16K. Output floor and hard capacity gates are unchanged.",
+    "Default Diag performs no model inference or generated-app execution. Optional fixed probes require explicit selection and do not rank models.",
+    "Saved memory is validated unapproved planning data. It is not execution evidence or protection against malicious same-user host rewriting.",
+    "Existing approved plans/checks, legacy v1/v2 drafts, route choices, execution/cloud consent and archive compatibility are preserved."
+  ],
+  "prepublication_diagnostic_race": {
+    "failed_unpublished_candidate_sha256": "f5255d857985cdef821fa64ba0cbe8d7479f00d2fd804960e2a2a3a8a57a5872",
+    "failed_extracted_browser": {
+      "command": "python tests/browser_system_tests_check.py",
+      "returncode": 1,
+      "seconds": 37.207,
+      "output": "Traceback (most recent call last):\n  File \"/tmp/foundry-039-release-tv3imrnc/tests/browser_system_tests_check.py\", line 80, in <module>\n    if __name__=='__main__':main()\n                            ^^^^^^\n  File \"/tmp/foundry-039-release-tv3imrnc/tests/browser_system_tests_check.py\", line 59, in main\n    with page.expect_download() as pending:page.locator('#diag-export').click()\n         ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py\", line 85, in __exit__\n    self._event.value\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py\", line 59, in value\n    raise exception\nplaywright._impl._errors.TimeoutError: Timeout 30000ms exceeded while waiting for event \"download\"\n=========================== logs ===========================\nwaiting for event \"download\"\n============================================================\n"
+    },
+    "deterministic_red_command": "python tests/browser_system_tests_check.py",
+    "deterministic_red_output_excerpt": "lf._impl_obj.to_be_disabled(timeout=to_milliseconds(timeout)))\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_sync_base.py\", line 115, in _sync\n    return task.result()\n           ^^^^^^^^^^^^^\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py\", line 738, in to_be_disabled\n    await self._expect_impl(\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py\", line 128, in _expect_impl\n    _record_soft_or_raise(\n  File \"/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/playwright/_impl/_assertions.py\", line 60, in _record_soft_or_raise\n    raise error\nAssertionError: Locator expected to be disabled\nActual value: enabled \nCall log:\n  - Expect \"to_be_disabled\" with timeout 5000ms\n  - waiting for locator(\"#diag-export\")\n    14 \u00d7 locator resolved to <button type=\"button\" class=\"primary\" id=\"diag-export\">Download diagnostic ZIP \u2193</button>\n       - unexpected value \"enabled\"\n\nAria snapshot:\n- button \"Download diagnostic ZIP \u2193\"\n",
+    "green_command": "python tests/browser_system_tests_check.py",
+    "green_output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> delayed Diag reopen disables stale download -> owned persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n",
+    "fix": "Disable the previous export and mark lookup busy synchronously before awaiting session status. Preserve owned-session IDs, rejoin behavior and successful ZIP export.",
+    "published_failed_candidate": false
+  }
+}

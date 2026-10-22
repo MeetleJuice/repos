@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "version": "0.38.0",
+  "version": "0.39.0",
   "data_schema": 2,
   "python": [
     3,
     11
   ],
-  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.38.0.zip",
-  "sha256": "8df8287d2cb7f740f2efa2572ab59508a958bcefae733f5095518d41d2630722",
-  "notes": "One Diag workflow: safe checks, visible progress, collection and a matching downloadable snapshot. Close/rejoin, stop/partial evidence and completed reports survive without attaching unrelated Test runs. Busy work collects evidence and discloses skipped checks. Optional local JSON, real acceptance-schema and consented cloud probes use fixed synthetic inputs, never project content or generated-code execution. Latest planning attempts, rejected drafts and timeouts are shown before a proposal exists. New browser feature-by-feature plans use portable assertion wire v2, compiled losslessly to the unchanged approval contract. Precise assertion paths and value validity replace generic structure errors; correction packets use current feature context. Existing saved v1 plans/checkpoints, approved checks, routes, consent and output floors remain intact. No dependency, reviewer loop or live model/GPU performance claim."
+  "url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/Idea-Foundry-0.39.0.zip",
+  "sha256": "013f917a700c7f1ead61ac75b5c6372ee113b60209d0293461886dca545d46a6",
+  "notes": "Planning harness v3: scope, feature acceptance and task design receive separate versioned context packets. Project-local memory binds validated prefixes to the full request, known API contracts and declared scenario references. Reviewed starter contracts are reused instead of model redeclaration; starter-shaped examples and concrete contract feedback keep wrappers, mutation bodies and persistence checks consistent. Static interface indexing supplies source names/hashes without importing code. New-stage content rejection no longer excludes a model from later different stages; provider/account/transport controls and call limits remain. Budget estimates use the actual stage schema, preserve the 8192 output floor and expose required/effective context on refusal. A prominent Plan feature by feature button chooses the new workflow. Diag adds four semantic guards and a stricter create-record planning probe; old probe success is not full-plan evidence. Approved plans/checks, v1/v2 drafts, routes, consent and exports remain compatible. No new dependency, extra model reviewer or live success-rate claim."
 }
