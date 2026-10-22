@@ -163,6 +163,19 @@ class SystemTests:
         result=audit_plan(state['plan'],state.get('starter'))
         return {'status':'passed' if result['passed'] else 'failed','project_id':state['id'],**result}
 
+    def _project_execution(self) -> dict[str, Any]:
+        from .run_diagnostics import latest_execution
+        from .diagnostic_report import _safe_history
+        state = self.project_snapshot
+        if not state:
+            return {'status': 'skipped', 'failure_class': 'no_selected_project', 'executed': False}
+        history = _safe_history(self.bench.directory(state['id']))
+        result = latest_execution(history.get('records', []), history.get('coverage'))
+        if not result['available']:
+            return {'status': 'skipped', 'failure_class': 'no_execution_history', 'executed': False}
+        # An audit succeeded; the recorded project outcome is separate.
+        return {**result, 'recorded_status': result.get('status'), 'status': 'passed', 'executed': False}
+
     def _run(self, targets: list[dict[str, Any]]) -> None:
         try:
             self.path.parent.mkdir(parents=True,exist_ok=True)
@@ -171,6 +184,8 @@ class SystemTests:
             self._row('private_storage',self._storage);self._row('controller_smoke',self._controller)
             from .coherence import guard_probes
             self._row('planning_guards',guard_probes);self._row('project_plan',self._project_review)
+            from .run_diagnostics import loop_guards
+            self._row('loop_guards',loop_guards);self._row('project_execution',self._project_execution)
             self._row('local_catalogue',lambda:{'status':'passed' if self.local().get('connected') else 'failed','generation_tested':False})
             if not self.cancel.is_set():
                 catalogue_started=time.monotonic();catalogues=self.catalogues()

@@ -9,6 +9,7 @@ export class ReadOnlyObserver {
   private seen=new Set<string>();
   private timer: ReturnType<typeof setTimeout> | null=null;
   private activeNode='';
+  private repairNode='';
   constructor(private engine: FlowEngine,private graph: GraphRecord) {}
   private async get(path: string,signal: AbortSignal): Promise<unknown> {
     const response=await fetch(path,{headers:{'X-Foundry-Token':this.token},cache:'no-store',signal});
@@ -44,18 +45,29 @@ export class ReadOnlyObserver {
           const byKind: Record<string,string>={model_request_started:'ModelClient.complete()',model_attempt:'ModelClient.complete()',proposal_review:'require_consistent()',
             static_inspection:'Workbench._inspect_and_repair()',checkpoint_saved:'Workbench.checkpoint()',
             task_saved:'finish_task()',verification_finished:'verify()',job_finished:'Workbench._job()',
+            task_readiness:'task_readiness()',handoff_prepared:'Workbench._generate_and_apply()',
+            repair_started:'repair_started · correlated repair ID',repair_finished:'repair_finished · candidate, not behavioral pass',
             code_response_rejected:'Workbench.generate_and_apply()'};
           const label=byKind[record.kind];
           const node=record.kind==='guided_plan_checkpoint' && record.data.stage==='feature acceptance saved'
             ?this.graph.nodes.find(node=>node.id==='acceptance-feature-saved')
             :this.graph.nodes.find(node=>node.label===label);
-          if(node)this.engine.publish(node.id,record.kind==='model_request_started'?'running':record.kind==='code_response_rejected'||record.data.passed===false||record.data.success===false||record.data.status==='error'?'failed':'completed','observed',record.kind+' · '+String(record.data.reason||record.time).slice(0,500));
+          if(record.kind==='repair_finished' && this.repairNode) {
+            this.engine.publish(this.repairNode,'idle','observed','Observed repair finished; candidate outcome is separate from verification');
+            this.repairNode='';
+          }
+          if(record.kind==='repair_started' && node)this.repairNode=node.id;
+          if(node)this.engine.publish(node.id,['model_request_started','repair_started'].includes(record.kind)?'running':record.kind==='code_response_rejected'||record.data.passed===false||record.data.success===false||['error','failed','cancelled'].includes(String(record.data.status))?'failed':'completed','observed',record.kind+' · '+String(record.data.reason||record.time).slice(0,500));
         }
         first=false;
         if(this.seen.size>10000)throw new Error('Observation session reached 10,000 retained event IDs. Reconnect to begin a fresh cursor.');
         // A snapshot proves only the reported controller state, not missing internal transitions.
         const active=this.graph.nodes.find(node=>node.id==='state-'+state.status.replaceAll('_','-'));
         const next=active && ['planning','building','checking','repairing','queued'].includes(state.status)?active.id:'';
+        if(!next && this.repairNode) {
+          this.engine.publish(this.repairNode,'idle','observed','Controller is idle; missing repair completion remains unknown');
+          this.repairNode='';
+        }
         if(next!==this.activeNode) {
           if(this.activeNode)this.engine.publish(this.activeNode,'idle','observed','Controller left this active state; intermediate transitions are unknown');
           this.activeNode=next;
@@ -74,5 +86,7 @@ export class ReadOnlyObserver {
     if(this.timer!==null)clearTimeout(this.timer);this.timer=null;
     if(this.activeNode)this.engine.publish(this.activeNode,'idle','observed','Observation stopped');
     this.activeNode='';
+    if(this.repairNode)this.engine.publish(this.repairNode,'idle','observed','Observation stopped; repair outcome unknown');
+    this.repairNode='';
   }
 }

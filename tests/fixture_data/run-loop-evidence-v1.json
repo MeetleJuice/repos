@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "version": 1,
+  "provenance": "Synthetic controller-evidence scenarios. No live model benchmark or historical provider replies.",
+  "cases": [
+    {
+      "code": "changed_not_verified",
+      "expected": "not_retested"
+    },
+    {
+      "code": "static_not_behavior",
+      "expected": "static_pass"
+    },
+    {
+      "code": "same_source_pass",
+      "expected": "behavioral_pass"
+    },
+    {
+      "code": "other_source_ignored",
+      "expected": "not_retested"
+    },
+    {
+      "code": "prefix_not_full",
+      "expected": "milestone_pass"
+    },
+    {
+      "code": "environment_not_app",
+      "expected": "environment_failure"
+    }
+  ],
+  "constraints": [
+    "Preserve approved checks and source scope",
+    "No generated code or inference from Test/Diag guards",
+    "Later validation must match the saved source",
+    "Unknown usage and missing history remain explicit"
+  ]
+}

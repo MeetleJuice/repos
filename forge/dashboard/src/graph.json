@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "baseline": "core 0.36.0 \u00b7 source excerpts checked by tests",
+  "baseline": "core 0.37.0 \u00b7 source excerpts checked by tests",
   "nodes": [
     {
       "id": "document",
@@ -118,7 +118,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 235,
+      "line": 236,
       "excerpt": "    def list_projects(self):",
       "description": ""
     },
@@ -158,7 +158,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 612,
+      "line": 618,
       "excerpt": "    def create(self, idea: str, planner: dict[str, Any], coder: dict[str, Any], starter: str | None = None, cloud_consent: bool = False, use_reviewed_plan: bool = False, plan_mode: str = 'single', local_timeout: int | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -198,7 +198,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 185,
+      "line": 186,
       "excerpt": "    def present(self, ident):",
       "description": ""
     },
@@ -238,7 +238,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 661,
+      "line": 667,
       "excerpt": "    def start(self, ident, action, options):",
       "description": ""
     },
@@ -278,7 +278,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 793,
+      "line": 799,
       "excerpt": "    def save_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -318,7 +318,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 850,
+      "line": 856,
       "excerpt": "    def review_proposal(self, ident: str, plan: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -358,7 +358,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 810,
+      "line": 816,
       "excerpt": "    def load_starter_plan(self, ident: str) -> dict[str, Any]:",
       "description": ""
     },
@@ -398,7 +398,7 @@
       "kind": "process",
       "category": "Planning & approval",
       "source": "forge/core.py",
-      "line": 767,
+      "line": 773,
       "excerpt": "    def approve(self, ident, plan):",
       "description": ""
     },
@@ -498,7 +498,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 759,
+      "line": 765,
       "excerpt": "    def stop(self, ident):",
       "description": ""
     },
@@ -538,7 +538,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 177,
+      "line": 178,
       "excerpt": "    def workflow(self, ident):",
       "description": ""
     },
@@ -578,7 +578,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 169,
+      "line": 170,
       "excerpt": "    def history(self, ident):",
       "description": ""
     },
@@ -618,7 +618,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 890,
+      "line": 896,
       "excerpt": "    def files(self, ident):",
       "description": ""
     },
@@ -658,7 +658,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 199,
+      "line": 200,
       "excerpt": "    def export_snapshot(self, ident):",
       "description": ""
     },
@@ -698,7 +698,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 593,
+      "line": 599,
       "excerpt": "    def diff(self, ident):",
       "description": ""
     },
@@ -738,7 +738,7 @@
       "kind": "process",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 829,
+      "line": 835,
       "excerpt": "    def record_manual(self, ident: str, results: list[bool], notes: list[str] | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -778,7 +778,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 928,
+      "line": 934,
       "excerpt": "    def restore(self, ident, snapshot):",
       "description": ""
     },
@@ -818,7 +818,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 513,
+      "line": 519,
       "excerpt": "    def configure_models(self, ident: str, planner: dict[str, Any], coder: dict[str, Any]) -> dict[str, Any]:",
       "description": ""
     },
@@ -858,7 +858,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 524,
+      "line": 530,
       "excerpt": "    def fork(self, ident: str, request: str, cloud_consent: bool = False) -> dict[str, Any]:",
       "description": ""
     },
@@ -898,7 +898,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 746,
+      "line": 752,
       "excerpt": "    def adopt_resume_baseline(self, ident):",
       "description": ""
     },
@@ -1258,7 +1258,7 @@
       "kind": "process",
       "category": "Models & routing",
       "source": "forge/core.py",
-      "line": 735,
+      "line": 741,
       "excerpt": "    def calibrate_local(self, model):",
       "description": ""
     },
@@ -1338,7 +1338,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 643,
+      "line": 649,
       "excerpt": "    def insights(self):",
       "description": ""
     },
@@ -1378,7 +1378,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/core.py",
-      "line": 575,
+      "line": 581,
       "excerpt": "    def backup(self):",
       "description": ""
     },
@@ -1558,7 +1558,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 96,
+      "line": 117,
       "excerpt": "    const report = await api(\"/api/diagnostics\", {project_id: diagProjectId});",
       "description": "Read-only local investigation; no inference or generated code execution"
     },
@@ -1578,7 +1578,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostic_report.py",
-      "line": 489,
+      "line": 506,
       "excerpt": "def collect_report(bench: Any, program_root: Path, updater: Any = None,",
       "description": ""
     },
@@ -1588,7 +1588,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 96,
+      "line": 117,
       "excerpt": "    const report = await api(\"/api/diagnostics\", {project_id: diagProjectId});",
       "description": "Returns to Read-only local investigation; no inference or generated code execution. This is UI/controller progress, not behavioral verification."
     },
@@ -1598,7 +1598,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 113,
+      "line": 134,
       "excerpt": "    const response = await fetch(\"/api/diagnostics/export\", {",
       "description": "Export the displayed evidence snapshot through direct authenticated fetch"
     },
@@ -1618,7 +1618,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostic_report.py",
-      "line": 781,
+      "line": 808,
       "excerpt": "def export_report(report: dict[str, Any]) -> bytes:",
       "description": ""
     },
@@ -1628,7 +1628,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/diagnostics.js",
-      "line": 113,
+      "line": 134,
       "excerpt": "    const response = await fetch(\"/api/diagnostics/export\", {",
       "description": "Returns to Export the displayed evidence snapshot through direct authenticated fetch. This is UI/controller progress, not behavioral verification."
     },
@@ -1638,7 +1638,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/system-tests.js",
-      "line": 49,
+      "line": 54,
       "excerpt": "    renderSystemTests(await api(\"/api/system-tests/start\", {",
       "description": "Explicit bounded checks; optional fixed model probes require cloud consent"
     },
@@ -1668,7 +1668,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/system-tests.js",
-      "line": 49,
+      "line": 54,
       "excerpt": "    renderSystemTests(await api(\"/api/system-tests/start\", {",
       "description": "Returns to Explicit bounded checks; optional fixed model probes require cloud consent. This is UI/controller progress, not behavioral verification."
     },
@@ -1678,7 +1678,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/system-tests.js",
-      "line": 56,
+      "line": 61,
       "excerpt": "  try { renderSystemTests(await api(\"/api/system-tests/stop\", {})); }",
       "description": "Stop between checks; in-flight requests retain their socket timeout"
     },
@@ -1708,7 +1708,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/system-tests.js",
-      "line": 56,
+      "line": 61,
       "excerpt": "  try { renderSystemTests(await api(\"/api/system-tests/stop\", {})); }",
       "description": "Returns to Stop between checks; in-flight requests retain their socket timeout. This is UI/controller progress, not behavioral verification."
     },
@@ -1718,7 +1718,7 @@
       "kind": "action",
       "category": "Delivery & recovery",
       "source": "forge/static/system-tests.js",
-      "line": 35,
+      "line": 40,
       "excerpt": "  try { renderSystemTests(await api(\"/api/system-tests/status\")); }",
       "description": "Read latest in-memory test state without running checks"
     },
@@ -1748,7 +1748,7 @@
       "kind": "state",
       "category": "Delivery & recovery",
       "source": "forge/static/system-tests.js",
-      "line": 35,
+      "line": 40,
       "excerpt": "  try { renderSystemTests(await api(\"/api/system-tests/status\")); }",
       "description": "Returns to Read latest in-memory test state without running checks. This is UI/controller progress, not behavioral verification."
     },
@@ -1758,7 +1758,7 @@
       "kind": "action",
       "category": "Planning & approval",
       "source": "forge/static/diagnostics.js",
-      "line": 167,
+      "line": 188,
       "excerpt": "    const result = await api(\"/api/ideas/generate\", {project_id: projectId,",
       "description": "One isolated local inference request; edit existing input only"
     },
@@ -1788,7 +1788,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/diagnostics.js",
-      "line": 167,
+      "line": 188,
       "excerpt": "    const result = await api(\"/api/ideas/generate\", {project_id: projectId,",
       "description": "Returns to One isolated local inference request; edit existing input only. This is UI/controller progress, not behavioral verification."
     },
@@ -2048,7 +2048,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 249,
+      "line": 250,
       "excerpt": "            state[\"status\"] = \"queued\"",
       "description": ""
     },
@@ -2058,7 +2058,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1149,
+      "line": 1217,
       "excerpt": "            state[\"status\"] = \"repairing\"",
       "description": ""
     },
@@ -2068,7 +2068,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 117,
+      "line": 118,
       "excerpt": "                state[\"status\"] = \"interrupted\"",
       "description": ""
     },
@@ -2078,7 +2078,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 532,
+      "line": 538,
       "excerpt": "            state.update(id=uuid.uuid4().hex, parent_id=ident, parent_title=parent[\"title\"],",
       "description": ""
     },
@@ -2088,7 +2088,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 753,
+      "line": 759,
       "excerpt": "            state.update(status='approved',error=None,checks=None,manual_results={},verification_fingerprint=None)",
       "description": ""
     },
@@ -2098,7 +2098,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 803,
+      "line": 809,
       "excerpt": "            state.update(plan=candidate, title=candidate[\"title\"], status=\"proposed\", error=None,",
       "description": ""
     },
@@ -2108,7 +2108,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1139,
+      "line": 1197,
       "excerpt": "                state[\"status\"] = \"needs_attention\"",
       "description": ""
     },
@@ -2118,7 +2118,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1412,
+      "line": 1485,
       "excerpt": "                state[\"status\"] = \"building\"",
       "description": ""
     },
@@ -2128,7 +2128,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1434,
+      "line": 1507,
       "excerpt": "                state[\"status\"] = \"generated\"",
       "description": ""
     },
@@ -2138,7 +2138,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1442,
+      "line": 1515,
       "excerpt": "                state[\"status\"] = \"checking\"",
       "description": ""
     },
@@ -2148,7 +2148,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1490,
+      "line": 1565,
       "excerpt": "            state[\"status\"] = \"stopped\"",
       "description": ""
     },
@@ -2158,7 +2158,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 723,
+      "line": 729,
       "excerpt": "            state[\"status\"] = \"planning\" if action == \"plan\" else \"building\"",
       "description": ""
     },
@@ -2168,7 +2168,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1494,
+      "line": 1569,
       "excerpt": "            state[\"status\"], state[\"error\"] = \"error\", str(exc)[:2000]",
       "description": ""
     },
@@ -2178,7 +2178,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1470,
+      "line": 1543,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2188,7 +2188,7 @@
       "kind": "state",
       "category": "Build & verification",
       "source": "forge/core.py",
-      "line": 1470,
+      "line": 1543,
       "excerpt": "                    state[\"status\"] = \"review_required\" if state[\"plan\"].get(\"manual_checks\") else \"verified\"",
       "description": ""
     },
@@ -2198,7 +2198,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 245,
+      "line": 246,
       "excerpt": "    def call_model(self, state: dict[str, Any], role: str, system: str, prompt: str, cancel: threading.Event, fallback: bool = False, allow_fallback: bool = True, review_candidate: Callable[[dict[str, Any]], tuple[dict[str, Any], Review]] | None = None, only_model: tuple[str,str]",
       "description": ""
     },
@@ -2208,7 +2208,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1109,
+      "line": 1163,
       "excerpt": "    def _inspect_and_repair(self, state, cancel, remaining, complete=True, repair_task=None):",
       "description": ""
     },
@@ -2228,7 +2228,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1226,
+      "line": 1294,
       "excerpt": "    def _job(self, state, action, options, cancel):",
       "description": ""
     },
@@ -2258,7 +2258,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 952,
+      "line": 958,
       "excerpt": "    def apply(self, state, response, repair=False):",
       "description": ""
     },
@@ -2268,8 +2268,8 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 1014,
-      "excerpt": "    def generate_and_apply(self, state, payload, cancel, repair=False):",
+      "line": 1020,
+      "excerpt": "    def generate_and_apply(self, state, payload, cancel, repair=False, repair_stage='repair'):",
       "description": ""
     },
     {
@@ -2328,7 +2328,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 909,
+      "line": 915,
       "excerpt": "    def checkpoint(self, state, label):",
       "description": ""
     },
@@ -2643,12 +2643,52 @@
       "description": ""
     },
     {
+      "id": "proc-task-readiness",
+      "label": "task_readiness()",
+      "kind": "process",
+      "category": "Build & verification",
+      "source": "forge/run_diagnostics.py",
+      "line": 11,
+      "excerpt": "def task_readiness(state: dict[str, Any], index: int, files: dict[str, str]) -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "proc-latest-execution",
+      "label": "latest_execution()",
+      "kind": "process",
+      "category": "Delivery & recovery",
+      "source": "forge/run_diagnostics.py",
+      "line": 48,
+      "excerpt": "def latest_execution(records: list[dict[str, Any]], coverage: dict[str, Any] | None = None) -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "repair-start-event",
+      "label": "repair_started \u00b7 correlated repair ID",
+      "kind": "state",
+      "category": "Build & verification",
+      "source": "forge/core.py",
+      "line": 1031,
+      "excerpt": "            self.trace(state, 'repair_started', {**context, 'stage': repair_stage,",
+      "description": ""
+    },
+    {
+      "id": "repair-end-event",
+      "label": "repair_finished \u00b7 candidate, not behavioral pass",
+      "kind": "state",
+      "category": "Build & verification",
+      "source": "forge/core.py",
+      "line": 1053,
+      "excerpt": "                self.trace(state, 'repair_finished', {**context, 'stage': repair_stage, 'status': status,",
+      "description": ""
+    },
+    {
       "id": "proc-workbench-trace",
       "label": "Workbench.trace()",
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/core.py",
-      "line": 153,
+      "line": 154,
       "excerpt": "    def trace(self, state, kind, data, origin=\"controller\"):",
       "description": ""
     },
@@ -2658,7 +2698,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostics.py",
-      "line": 220,
+      "line": 222,
       "excerpt": "    def record(self, kind: str, data: dict[str, Any] | None = None, *, project_id: str | None = None, run_id: str | None = None, origin: str = 'controller', event_id: str | None = None, time_utc: str | None = None) -> str | None:",
       "description": ""
     },
@@ -2678,7 +2718,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/diagnostic_report.py",
-      "line": 463,
+      "line": 480,
       "excerpt": "def _planning_metadata(state: dict[str, Any], records: list[dict[str,Any]] | None = None) -> dict[str, Any]:",
       "description": ""
     },
@@ -2688,7 +2728,7 @@
       "kind": "process",
       "category": "Workbench & session",
       "source": "forge/system_tests.py",
-      "line": 166,
+      "line": 179,
       "excerpt": "    def _run(self, targets: list[dict[str, Any]]) -> None:",
       "description": ""
     },
@@ -2723,6 +2763,36 @@
       "description": ""
     },
     {
+      "id": "proc-loop-guards",
+      "label": "loop_guards()",
+      "kind": "process",
+      "category": "Workbench & session",
+      "source": "forge/run_diagnostics.py",
+      "line": 191,
+      "excerpt": "def loop_guards() -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "proc-systemtests-project-execution",
+      "label": "SystemTests._project_execution()",
+      "kind": "process",
+      "category": "Workbench & session",
+      "source": "forge/system_tests.py",
+      "line": 166,
+      "excerpt": "    def _project_execution(self) -> dict[str, Any]:",
+      "description": ""
+    },
+    {
+      "id": "proc-project-detail",
+      "label": "_project_detail()",
+      "kind": "process",
+      "category": "Workbench & session",
+      "source": "forge/diagnostic_report.py",
+      "line": 428,
+      "excerpt": "def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[str, Any]:",
+      "description": ""
+    },
+    {
       "id": "proc-append",
       "label": "append()",
       "kind": "process",
@@ -2738,7 +2808,7 @@
       "kind": "process",
       "category": "Delivery & recovery",
       "source": "forge/diagnostics.py",
-      "line": 257,
+      "line": 259,
       "excerpt": "    def snapshot(self, limit: int = 5000) -> dict[str, Any]:",
       "description": ""
     },
@@ -2758,7 +2828,7 @@
       "kind": "state",
       "category": "Planning & approval",
       "source": "forge/static/diagnostics.js",
-      "line": 174,
+      "line": 195,
       "excerpt": "    $(\"idea\").value = result.idea.trim();",
       "description": ""
     },
@@ -5425,6 +5495,54 @@
       "label": "recorded call / continuation"
     },
     {
+      "id": "proc-workbench-job--proc-task-readiness",
+      "source": "proc-workbench-job",
+      "target": "proc-task-readiness",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-task-readiness--proc-workbench-generate-and-apply",
+      "source": "proc-task-readiness",
+      "target": "proc-workbench-generate-and-apply",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-workbench-generate-and-apply--proc-workbench-generate-and-apply",
+      "source": "proc-workbench-generate-and-apply",
+      "target": "proc-workbench-generate-and-apply",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-workbench-apply--proc-finish-gate",
+      "source": "proc-workbench-apply",
+      "target": "proc-finish-gate",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-workbench-generate-and-apply--repair-start-event",
+      "source": "proc-workbench-generate-and-apply",
+      "target": "repair-start-event",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "repair-start-event--proc-workbench-generate-and-apply",
+      "source": "repair-start-event",
+      "target": "proc-workbench-generate-and-apply",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-workbench-apply--repair-end-event",
+      "source": "proc-workbench-apply",
+      "target": "repair-end-event",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "repair-end-event--proc-latest-execution",
+      "source": "repair-end-event",
+      "target": "proc-latest-execution",
+      "label": "recorded call / continuation"
+    },
+    {
       "id": "document--proc-refresh-local-limits",
       "source": "document",
       "target": "proc-refresh-local-limits",
@@ -5506,6 +5624,54 @@
       "id": "proc-review-plan--proc-systemtests-row",
       "source": "proc-review-plan",
       "target": "proc-systemtests-row",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-systemtests-run--proc-loop-guards",
+      "source": "proc-systemtests-run",
+      "target": "proc-loop-guards",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-loop-guards--proc-latest-execution",
+      "source": "proc-loop-guards",
+      "target": "proc-latest-execution",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-latest-execution--proc-systemtests-project-execution",
+      "source": "proc-latest-execution",
+      "target": "proc-systemtests-project-execution",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-systemtests-project-execution--proc-latest-execution",
+      "source": "proc-systemtests-project-execution",
+      "target": "proc-latest-execution",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-latest-execution--proc-systemtests-row",
+      "source": "proc-latest-execution",
+      "target": "proc-systemtests-row",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-collect-report--proc-project-detail",
+      "source": "proc-collect-report",
+      "target": "proc-project-detail",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-project-detail--proc-latest-execution",
+      "source": "proc-project-detail",
+      "target": "proc-latest-execution",
+      "label": "recorded call / continuation"
+    },
+    {
+      "id": "proc-latest-execution--proc-collect-report",
+      "source": "proc-latest-execution",
+      "target": "proc-collect-report",
       "label": "recorded call / continuation"
     },
     {
@@ -8094,6 +8260,44 @@
       "failures": []
     },
     {
+      "id": "task-readiness",
+      "label": "Task readiness \u00b7 approval, dependencies and source identity",
+      "category": "Build & verification",
+      "path": [
+        "document",
+        "proc-workbench-job",
+        "proc-task-readiness",
+        "proc-workbench-generate-and-apply",
+        "proc-workbench-generate-and-apply",
+        "proc-focused-handoff",
+        "proc-workbench-call-model",
+        "proc-modelclient-complete",
+        "proc-validate-task-response",
+        "proc-workbench-apply",
+        "proc-finish-gate"
+      ],
+      "failures": []
+    },
+    {
+      "id": "repair-observation",
+      "label": "Repair \u00b7 source-bound attempt and later validation",
+      "category": "Build & verification",
+      "path": [
+        "document",
+        "proc-workbench-job",
+        "proc-workbench-generate-and-apply",
+        "repair-start-event",
+        "proc-workbench-generate-and-apply",
+        "proc-workbench-call-model",
+        "proc-modelclient-complete",
+        "proc-validate-task-response",
+        "proc-workbench-apply",
+        "repair-end-event",
+        "proc-latest-execution"
+      ],
+      "failures": []
+    },
+    {
       "id": "model-metadata",
       "label": "Installed model limits \u00b7 no generation",
       "category": "Models & routing",
@@ -8133,6 +8337,34 @@
         "proc-audit-plan",
         "proc-review-plan",
         "proc-systemtests-row"
+      ],
+      "failures": []
+    },
+    {
+      "id": "test-loop-evidence",
+      "label": "Test \u00b7 fixed evidence safeguards and selected build audit",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "proc-systemtests-run",
+        "proc-loop-guards",
+        "proc-latest-execution",
+        "proc-systemtests-project-execution",
+        "proc-latest-execution",
+        "proc-systemtests-row"
+      ],
+      "failures": []
+    },
+    {
+      "id": "diag-loop-evidence",
+      "label": "Diag \u00b7 task and repair evidence for latest build",
+      "category": "Delivery & recovery",
+      "path": [
+        "document",
+        "proc-collect-report",
+        "proc-project-detail",
+        "proc-latest-execution",
+        "proc-collect-report"
       ],
       "failures": []
     },

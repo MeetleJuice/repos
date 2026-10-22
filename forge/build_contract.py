@@ -35,16 +35,16 @@ def focused_handoff(payload: dict[str,Any], files: dict[str,str]) -> dict[str,An
     packet=payload.get('task_packet')
     if not packet or not packet.get('structured'):return payload
     names=packet['files']
-    return {**payload,'builder_handoff':{'schema':1,'active_task_index':packet['task_index'],
+    return {**payload,'builder_handoff':{'schema':2,'active_task_index':packet['task_index'],
+        'goal':'task_packet.outcome; preserve current_task/proposal.',
+        'context':'Complete files + interface_context. Retrieve omitted files via task_context; never guess.',
         'editable_files':copy.deepcopy(names),'existing_editable_files':[name for name in names if name in files],
         'new_editable_files':[name for name in names if name not in files],
         'read_only_files':sorted(set(files)-set(names)),
-        'delivery_steps':['Read the current scoped files and declared interfaces.',
-            'Implement only this task outcome; use exact edits for small changes to existing files.',
-            'Create only the approved new files. Leave starter/UI/foundation tests outside scope untouched.',
-            'Return JSON; the controller will validate syntax, scope and behavior separately.'],
-        'instruction':'Do not rebuild the app or inline existing HTML into Python. Preserve the starter server and its static assets. '
-        'Test files may use any approved task path; do not replace test_foundation.py. A rejected candidate was never saved: correct the current source, not an imagined previous write.'}}
+        'constraints':'Only editable_files. Preserve interfaces, frozen tests, starter assets and protected files. No future tasks/rewrites.',
+        'done_when':'task_packet.done_when. Return changed files/exact edits or existing-source citations. Controller checks behavior; never claim execution.',
+        'instruction':'Inspect source; repair supplied failure/feedback first. Rejected edits were not saved. '
+        'Do not inline existing HTML into Python or replace test_foundation.py.'}}
 
 
 def generation_contract(payload: dict[str, Any], project_files: dict[str,str] | None = None) -> dict[str, Any]:

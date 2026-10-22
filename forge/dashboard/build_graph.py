@@ -173,6 +173,15 @@ flow('feature-acceptance','Feature planning · saved acceptance batches before t
       call,model,proc('compile_feature()','forge/feature_acceptance.py'),feature_saved,
       proc('run_compiled()','forge/task_planning.py'),call,model,proc('compile_tasks()','forge/task_planning.py'),proposal,state_ids['proposed']])
 flow('focused-builder','Focused Ollama task · native scoped JSON','Build & verification',[root,job,generate,handoff,call,model,native,response,apply])
+ready=proc('task_readiness()','forge/run_diagnostics.py','Build & verification')
+worker=proc('Workbench._generate_and_apply()')
+execution_audit=proc('latest_execution()','forge/run_diagnostics.py','Delivery & recovery')
+flow('task-readiness','Task readiness · approval, dependencies and source identity','Build & verification',
+     [root,job,ready,generate,worker,handoff,call,model,response,apply,proc('finish_gate()','forge/execution.py','Build & verification')])
+repair_begin=node('repair-start-event','repair_started · correlated repair ID','state','Build & verification','forge/core.py',"'repair_started'")
+repair_end=node('repair-end-event','repair_finished · candidate, not behavioral pass','state','Build & verification','forge/core.py',"'repair_finished'")
+flow('repair-observation','Repair · source-bound attempt and later validation','Build & verification',
+     [root,job,generate,repair_begin,worker,call,model,response,apply,repair_end,execution_audit])
 flow('model-metadata','Installed model limits · no generation','Models & routing',[root,inventory,show])
 trace=proc('Workbench.trace()')
 persist=proc('FlightRecorder.record()','forge/diagnostics.py','Delivery & recovery')
@@ -183,6 +192,11 @@ flow('current-proposal-audit','Diag · current proposal review separate from sto
 flow('test-planning-guards','Test · fixed adversarial checks and selected proposal · no execution','Delivery & recovery',
      [root,proc('SystemTests._run()','forge/system_tests.py'),proc('guard_probes()','forge/coherence.py'),review_plan_node,coherence,
       proc('SystemTests._project_review()','forge/system_tests.py'),audit,review_plan_node,proc('SystemTests._row()','forge/system_tests.py')])
+flow('test-loop-evidence','Test · fixed evidence safeguards and selected build audit','Delivery & recovery',
+     [root,proc('SystemTests._run()','forge/system_tests.py'),proc('loop_guards()','forge/run_diagnostics.py'),execution_audit,
+      proc('SystemTests._project_execution()','forge/system_tests.py'),execution_audit,proc('SystemTests._row()','forge/system_tests.py')])
+flow('diag-loop-evidence','Diag · task and repair evidence for latest build','Delivery & recovery',
+     [root,investigate,proc('_project_detail()','forge/diagnostic_report.py'),execution_audit,investigate])
 flow('diagnostic-recorder','Controller event · shared IDs and independent persistence','Delivery & recovery',
      [root,job,trace,proc('append()','forge/history.py','Delivery & recovery'),persist])
 flow('diagnostic-investigation','Diag · read-only local evidence export','Delivery & recovery',

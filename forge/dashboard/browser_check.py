@@ -105,6 +105,15 @@ def main():
                 assert page.locator('.react-flow__viewport').get_attribute('style')==viewport,'Unchecked Follow moved the viewport'
                 page.get_by_label('Follow activity',exact=True).check()
                 centered('Workbench.generate_and_apply()')
+                bench.trace(state,'task_readiness',{'task':1,'passed':True})
+                expect(page.locator('.ifd-events')).to_contain_text('task_readiness()',timeout=5000)
+                centered('task_readiness()')
+                bench.trace(state,'repair_started',{'repair_id':'fixture-repair','stage':'static_repair'})
+                expect(page.locator('[data-id="repair-start-event"] .ifd-running')).to_have_count(1,timeout=5000)
+                centered('repair_started · correlated repair ID')
+                bench.trace(state,'repair_finished',{'repair_id':'fixture-repair','status':'failed'})
+                expect(page.locator('[data-id="repair-end-event"] .ifd-failed')).to_have_count(1,timeout=5000)
+                centered('repair_finished · candidate, not behavioral pass')
                 state['status']='generated';bench.save(state)
                 expect(page.locator('.ifd-observed-status')).to_have_text('generated',timeout=5000)
                 assert page.locator('.ifd-running').count()==0

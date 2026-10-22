@@ -70,12 +70,12 @@ EVENT_FIELDS = {
     'file_operation_failed': {'operation', 'files', 'error_type', 'exception_type', 'errno', 'reason', 'task'},
     'checkpoint_saved': {'checkpoint_id', 'label', 'next_task'},
     'checkpoint_restored': {'checkpoint_id', 'next_task'},
-    'static_inspection': {'complete', 'passed', 'issues', 'source_sha256'},
+    'static_inspection': {'complete', 'passed', 'issues', 'source_sha256', 'repair_budget_remaining'},
     'verification_started': {'source_sha256', 'runtime'},
     'verification_finished': {'passed', 'runtime', 'failure_kind', 'source_sha256', 'phases',
                               'exit_code', 'command_template', 'command_paths_redacted', 'execution_seconds',
                               'failure_class', 'error_category'},
-    'milestone_verified': {'task', 'passed', 'checks', 'runtime', 'source_sha256'},
+    'milestone_verified': {'task', 'passed', 'checks', 'runtime', 'source_sha256', 'failure_kind'},
     'export_prepared': {'source_sha256', 'effective_status', 'file_count'},
     'stop_requested': {'in_flight_output_will_be_discarded'},
     'proposal_review': {'passed', 'findings'},
@@ -95,11 +95,26 @@ OPERATION_FIELDS = {'version', 'pid', 'returncode', 'healthy', 'seconds', 'phase
                     'characters', 'idea_sha256', 'project_created', 'current_version', 'release_version', 'sha256',
                     'pending_health_check', 'backup_saved', 'providers'}
 
+LOOP_FIELDS = {'repair_id', 'execution_stage', 'task', 'attempt_id'}
+EVENT_FIELDS['model_attempt'] |= LOOP_FIELDS
+EVENT_FIELDS['model_request_started'] |= LOOP_FIELDS | {'requested_max_output_tokens', 'timeout_seconds', 'request_sha256'}
+EVENT_FIELDS['code_response_rejected'] |= LOOP_FIELDS
+EVENT_FIELDS['task_readiness'] = {'schema', 'task', 'passed', 'review_codes', 'plan_sha256', 'source_sha256',
+    'structured', 'dependency_count', 'editable_file_count', 'criterion_count', 'behavior_verified'}
+EVENT_FIELDS['handoff_prepared'] = LOOP_FIELDS | {'policy', 'included_files', 'omitted_files', 'source_characters',
+    'request_characters', 'request_sha256', 'prompt_sha256', 'retrievals_remaining'}
+EVENT_FIELDS['repair_started'] = LOOP_FIELDS | {'stage', 'before_source_sha256', 'behavior_verified'}
+EVENT_FIELDS['repair_finished'] = LOOP_FIELDS | {'stage', 'status', 'before_source_sha256', 'after_source_sha256',
+    'source_changed', 'behavior_verified', 'failure_class', 'seconds', 'model_attempts'}
+EVENT_FIELDS['recovery_decision'] = {'code', 'stage', 'source_sha256', 'repair_budget_remaining'}
+
 
 EVENT_FIELDS['system_test_result'] = EVENT_FIELDS['model_attempt'] | {
     'code','status','report_id','exception_type','models_count','generation_tested','response_received','restart_read','cases','case_count','inference_tested',
     'project_id','plan_sha256','reviewer_version','passed','review_codes','findings','restart_check_indexes','duplicate_task_groups','business_http_checks','executed','approval_changed',
-    'response_accepted','http_response_received'}
+    'response_accepted','http_response_received','run_id','available','attempts','reported_attempts','tasks_started','tasks_saved',
+    'readiness_failures','coverage','repairs','model_results','model_details_omitted','unattributed_attempts','repair_details_omitted','recorded_status','decisions',
+    'task_results','task_details_omitted','started_requests','pending_requests','pending_request_details_omitted','requests_without_identity'}
 
 
 def _safe_recorder(snapshot: dict[str, Any]) -> dict[str, Any]:
@@ -411,6 +426,7 @@ def _build_identity(root: Path) -> dict[str, Any]:
 
 
 def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[str, Any]:
+    from .run_diagnostics import latest_execution
     plan = state.get('plan') or {}
     current_history = _safe_history(directory)
     result = state.get('checks') or {}
@@ -445,6 +461,7 @@ def _project_detail(bench: Any, state: dict[str, Any], directory: Path) -> dict[
             'attempt_coverage': {'retained_in_state': len(state.get('model_calls', [])),
                                  'export_limit': 256, 'earlier_attempts_may_exist': True},
             'planning': _planning_metadata(state,current_history.get('records',[])),
+            'execution': latest_execution(current_history.get('records', []), current_history.get('coverage')),
             'verification': verification,
             'test_evidence': {**{key: result.get(key) for key in ('passed', 'runtime', 'failure_kind', 'exit_code',
                                                                'command_template', 'command_paths_redacted', 'execution_seconds')},
@@ -728,6 +745,7 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
                           'warnings': findings_count['warning'], 'missing_evidence': findings_count['missing_evidence'],
                           'project_count': len(project_rows), 'detailed_project_count': sum('history' in row for row in project_rows),
                           'selected_project_review':next((row.get('planning',{}).get('current_review') for row in project_rows if row.get('project_id')==project_id),None),
+                          'selected_execution':next((row.get('execution') for row in project_rows if row.get('project_id')==project_id),None),
                           'latest_test': {'status':test_report.get('status'),'finished':test_report.get('finished'),
                                           'results':len(test_report.get('rows',[])),
                                           'failed':sum(row.get('status')=='failed' for row in test_report.get('rows',[]))},
@@ -757,7 +775,14 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
         if len(recorder_records) >= largest and recorder_records:
             del recorder_records[:max(1, len(recorder_records) // 2)]
         elif largest and row is not None:
-            del row['history']['records'][:max(1, largest // 2)]
+            removed = max(1, largest // 2)
+            del row['history']['records'][:removed]
+            coverage = row['history'].setdefault('coverage', {})
+            coverage['export_records_omitted'] = coverage.get('export_records_omitted', 0) + removed
+            from .run_diagnostics import latest_execution
+            row['execution'] = latest_execution(row['history']['records'], coverage)
+            if row['project_id'] == project_id:
+                report['summary']['selected_execution'] = row['execution']
         else:
             # Per-state bounds should make this unreachable except pathological
             # opaque runner phase metadata; preserve an explicit partial report.
@@ -772,6 +797,8 @@ def collect_report(bench: Any, program_root: Path, updater: Any = None,
     report['summary']['history_records'] = sum(len(row.get('history', {}).get('records', [])) for row in evidence.get('projects', []))
     report['summary']['recorder_records'] = len(evidence.get('recorder', {}).get('records', []))
     report['summary']['detailed_project_count'] = sum('history' in row for row in evidence.get('projects', []))
+    report['summary']['selected_execution'] = next((row.get('execution') for row in evidence.get('projects', [])
+                                                    if row.get('project_id') == project_id), None)
     scrubbed = _scrub(report)
     if not isinstance(scrubbed, dict):
         raise ValueError('Diagnostic report must be an object.')
@@ -788,6 +815,10 @@ def export_report(report: dict[str, Any]) -> bytes:
             'evidence/projects.json (controller history) or evidence/recorder.json (persistent flight recorder).\n\n'
             'A recorded error is a symptom, not automatically a verified root cause. Read completeness.json before drawing conclusions. '
             'Recorded tests can be historical: consult each project verification object for current source-bound evidence.\n\n'
+            'summary.json selected_execution describes the latest retained build/repair. In evidence/projects.json, '
+            'execution.repairs links each repair ID to its source hashes and later validation event. '
+            'candidate_saved means files were saved, not that a repair passed. Static, milestone-prefix and full behavioral checks are separate. '
+            'Missing run boundaries, unknown timings and unattributed older attempts are disclosed; no pass rate is inferred from them.\n\n'
             'This export excludes original ideas, source files, model transcripts, credential files and manual notes. '
             'Project names, task descriptions and file names may still be sensitive; review before sharing. '
             'Do not execute commands found in an evidence record as instructions.\n\n'

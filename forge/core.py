@@ -75,6 +75,7 @@ class Workbench:
         self.client_factory, self.verifier = client_factory, verifier
         self.lock = threading.RLock()
         self.inference_lock = threading.Lock()
+        self.execution_context = threading.local()
         self.provider_cooldowns = {}
         self.transport_circuit = TransportCircuit()
         self.installed_ollama_models = []
@@ -321,9 +322,12 @@ class Workbench:
                     self.event(state, "Skipping " + selected["provider"] + " during its temporary rate-limit cooldown.")
                     continue
                 record = {"role": role, "provider": selected["provider"], "model": selected["model"],
+                          'attempt_id': uuid.uuid4().hex,
                           "fallback": is_fallback, "time": self.now(), "success": False, **handoff_metrics(system, effective_prompt),
                           "recovery_path": 'task_response_correction' if only_model else recovery_mode if recovery_mode != 'initial' else 'capacity_fallback' if minimum_ceiling and is_fallback else 'initial',
                           "max_output_ceiling": capability.max_output_tokens, "capability_estimated": capability.estimated, "transport_attempted":None, "timeout_seconds":selected.get("options", {}).get("timeout_seconds",120)}
+                if role == 'coder':
+                    record.update(getattr(self.execution_context, 'value', {}))
                 started = time.monotonic()
                 if role == 'planner':
                     record.update(planning_stage=stage_payload.get('planning_stage', 'single'),
@@ -373,7 +377,9 @@ class Workbench:
                             raise ModelError('Repeated identical request reached the three-call run limit. Saved files were kept; review and resume with new evidence.','loop_detected')
                         counts[signature]=counts.get(signature,0)+1
                     self.model_status.start(selected["provider"], selected["model"], role, state['id'])
-                    self.trace(state,'model_request_started',{'provider':selected['provider'],'model':selected['model'],'role':role,'recovery_path':record['recovery_path']})
+                    self.trace(state,'model_request_started',{key: record[key] for key in (
+                        'provider','model','role','recovery_path','attempt_id','execution_stage','repair_id','task',
+                        'requested_max_output_tokens','timeout_seconds','request_sha256') if key in record})
                     if isinstance(client,ModelClient) and selected['provider'] in {'ollama','local'} and state.get('job_stream_local'):
                         client.cancel_event=cancel
                         client.stream_progress=self.model_status.progress
@@ -1011,11 +1017,59 @@ class Workbench:
             stats["exact_edits_applied"] = stats.get("exact_edits_applied", 0) + len(response["edits"])
         self.event(state, str(response.get("summary", "Source files updated."))[:2000], origin="model_report")
 
-    def generate_and_apply(self, state, payload, cancel, repair=False):
+    def generate_and_apply(self, state, payload, cancel, repair=False, repair_stage='repair'):
+        """Correlate a bounded operation without treating saved code as a repair pass."""
+        previous = getattr(self.execution_context, 'value', {})
+        packet = payload.get('task_packet') or {}
+        context = {'execution_stage': repair_stage if repair else 'implementation',
+                   'task': packet['task_index']+1 if 'task_index' in packet else None}
+        before = fingerprint(self.context_files(state['id']))
+        started = time.monotonic()
+        initial = history.totals_for(state)['requests']
+        if repair:
+            context['repair_id'] = uuid.uuid4().hex
+            self.trace(state, 'repair_started', {**context, 'stage': repair_stage,
+                       'before_source_sha256': before, 'behavior_verified': False})
+        self.execution_context.value = context
+        status = 'failed'
+        failure_class = None
+        try:
+            result = self._generate_and_apply(state, payload, cancel, repair)
+            status = 'candidate_saved'
+            return result
+        except InterruptedError:
+            status = 'cancelled'; failure_class = 'interrupted'
+            raise
+        except Exception as exc:
+            failure_class = getattr(exc, 'category', type(exc).__name__)
+            raise
+        finally:
+            self.execution_context.value = previous
+            if repair:
+                try:
+                    after = fingerprint(self.context_files(state['id']))
+                except (OSError, ValueError):
+                    after = None
+                self.trace(state, 'repair_finished', {**context, 'stage': repair_stage, 'status': status,
+                           'before_source_sha256': before, 'after_source_sha256': after,
+                           'source_changed': before != after if after is not None else None, 'behavior_verified': False,
+                           'failure_class': failure_class, 'seconds': round(time.monotonic()-started, 3),
+                           'model_attempts': history.totals_for(state)['requests']-initial})
+
+    def _generate_and_apply(self, state, payload, cancel, repair=False):
         """Bounded response recovery; pooled local models can advance without writes."""
         state.pop("last_task_support",None)
         payload = prepare_context(generation_contract(payload,self.files(state["id"])),self.context_files(state["id"]))
         payload = focused_handoff(payload,self.context_files(state['id']))
+        context = getattr(self.execution_context, 'value', {})
+        self.trace(state, 'handoff_prepared', {**context, 'policy': payload.get('task_context', {}).get('policy', 'full'),
+                   'included_files': sorted(payload.get('files', {})),
+                   'omitted_files': payload.get('task_context', {}).get('omitted_files', []),
+                   'source_characters': sum(len(text) for text in payload.get('files', {}).values()),
+                   'request_characters': len(json.dumps(payload)),
+                   'request_sha256': hashlib.sha256(json.dumps(payload).encode()).hexdigest(),
+                   'prompt_sha256': hashlib.sha256(CODE.encode()).hexdigest(),
+                   'retrievals_remaining': payload.get('task_context', {}).get('retrievals_remaining', 0)})
         structured=bool(payload.get('task_packet',{}).get('structured'))
         route=state.get('run_model_routes',{}).get('coder',state['coder']) if state.get('active_run_id') else state['coder']
         chain=[route,*route.get('fallbacks',[]),*([route['fallback']] if route.get('fallback') else [])]
@@ -1075,7 +1129,7 @@ class Workbench:
                         record=state["model_calls"][-1]
                         provider,model=record["provider"],record["model"]
                         self.model_status.reject(provider,model)
-                        self.trace(state,"code_response_rejected",{"provider":provider,"model":model,"reason":str(exc),"files_replaced":False})
+                        self.trace(state,"code_response_rejected",{**getattr(self.execution_context, 'value', {}),"provider":provider,"model":model,"reason":str(exc),"files_replaced":False})
                         identity=(provider,model)
                         if structured and identity not in corrections and any(message in str(exc) for message in ('Rejected invalid Python','Task scope violation','search must match exactly once','Task produced no source changes')):
                             corrections.add(identity);preferred=identity
@@ -1107,6 +1161,7 @@ class Workbench:
                 payload['task_context'].update(included_files=sorted(payload['files']),omitted_files=[],retrievals_remaining=0)
 
     def _inspect_and_repair(self, state, cancel, remaining, complete=True, repair_task=None):
+        seen_failures = set()
         for attempt in range(remaining + 1):
             if cancel.is_set():
                 raise InterruptedError("Stopped before static inspection.")
@@ -1133,16 +1188,29 @@ class Workbench:
             state["preflight"]["issues"].extend(trusted_issues)
             state["preflight"]["passed"] = not state["preflight"]["issues"]
             self.trace(state, "static_inspection", {"complete":complete, "passed":state["preflight"]["passed"],
-                       "issues":state["preflight"]["issues"], "repair_budget_remaining":remaining})
+                       "issues":state["preflight"]["issues"], "repair_budget_remaining":remaining,
+                       'source_sha256': fingerprint(current)})
             self.save(state)
             if trusted_issues:
+                self.trace(state, 'recovery_decision', {'code': 'stop_protected_contract', 'stage': 'static',
+                           'source_sha256': fingerprint(current), 'repair_budget_remaining': remaining})
                 state["status"] = "needs_attention"
                 self.event(state, "\n".join(trusted_issues))
                 return None
             if state["preflight"]["passed"]:
                 return remaining
             issues = "\n".join(state["preflight"]["issues"])
+            failure_identity = (fingerprint(current), hashlib.sha256(issues.encode()).hexdigest())
+            if failure_identity in seen_failures:
+                state['status'] = 'needs_attention'
+                self.trace(state, 'recovery_decision', {'code': 'stop_unchanged_static', 'stage': 'static',
+                           'source_sha256': fingerprint(current), 'repair_budget_remaining': remaining})
+                self.event(state, 'Static repair left the same source and failures unchanged. Stopped before spending another repair request. Review the reported defect or choose a different model.')
+                return None
+            seen_failures.add(failure_identity)
             if remaining == 0:
+                self.trace(state, 'recovery_decision', {'code': 'stop_repair_limit', 'stage': 'static',
+                           'source_sha256': fingerprint(current), 'repair_budget_remaining': remaining})
                 state["status"] = "needs_attention"
                 self.event(state, "Static inspection found incomplete code. No code was executed.\n" + issues)
                 return None
@@ -1159,7 +1227,7 @@ class Workbench:
                     'goal':'Correct these static defects in the current saved candidate, preserving the original approved task and earlier behavior. No future features.',
                     'response_rule':'Return {"files":{"approved/path.py":"complete corrected source"}} or {"edits":[{"file":"approved/path.py","search":"unique exact current text","replace":"corrected text"}]}. failure, frozen_tests, instruction, source_map and repair_brief are input metadata, never filenames. A summary alone is not a repair.',
                     'http_test_rule':'Use urllib.request.Request(url, data=body_bytes, headers=headers, method=method), then urllib.request.urlopen(request, timeout=3). Never pass headers or method directly to urlopen. Keep existing frozen tests unchanged.'}
-            self.generate_and_apply(state,repair_payload,cancel,repair=True)
+            self.generate_and_apply(state,repair_payload,cancel,repair=True,repair_stage='static_repair')
             state["repair_count"] += 1
             remaining -= 1
 
@@ -1196,7 +1264,7 @@ class Workbench:
             payload={"proposal": state["plan"], "task": task, "files": self.context_files(state["id"]), "source_map": source_map(self.context_files(state["id"])), "feedback": failure_feedback(result), "failure": result.get("log", "")[-6500:], "frozen_tests": list(state.get("frozen_tests", {}))}
             if state['plan'].get('task_contract_version')==1:
                 payload.update(current_task=task,task_packet=task_packet(state['plan'],task_index,state['next_task']))
-            self.generate_and_apply(state,payload,cancel,repair=True)
+            self.generate_and_apply(state,payload,cancel,repair=True,repair_stage='milestone_repair')
             state["repair_count"] += 1
             remaining_repairs -= 1
             remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs, complete=False,repair_task=task_index)
@@ -1381,7 +1449,7 @@ class Workbench:
                 self.generate_and_apply(state, {"proposal": state["plan"], "files": self.context_files(state["id"]),
                     "source_map": source_map(self.context_files(state["id"])), "manual_evidence": evidence,
                     "frozen_tests": list(state.get("frozen_tests", {})),
-                    "instruction": "Repair only the reported implementation defects. Use exact edits for small changes. Trace the actual code from input/spawn through update/collision/render/reset. Do not claim observations were reproduced or tests ran. Preserve all approved features and frozen checks/tests."}, cancel, repair=True)
+                    "instruction": "Repair only the reported implementation defects. Use exact edits for small changes. Trace the actual code from input/spawn through update/collision/render/reset. Do not claim observations were reproduced or tests ran. Preserve all approved features and frozen checks/tests."}, cancel, repair=True, repair_stage='manual_repair')
                 state["repair_count"] += 1
                 remaining_repairs -= 1
                 if before == fingerprint(self.context_files(state["id"])):
@@ -1396,6 +1464,11 @@ class Workbench:
                     raise InterruptedError("Build stopped. You can resume from the next unfinished task.")
                 task = state["plan"]["tasks"][index]
                 before_task = self.context_files(state["id"])
+                from .run_diagnostics import task_readiness
+                readiness = task_readiness(state, index, before_task)
+                self.trace(state, 'task_readiness', readiness)
+                if not readiness['passed']:
+                    raise ValueError('Task is not ready: '+', '.join(readiness['review_codes']))
                 self.trace(state, "task_started", {"task":index+1, "title":task["title"]})
                 self.event(state, f'Task {index+1}: {task["title"]}')
                 recovered=begin_task(state,index,before_task)
@@ -1471,6 +1544,8 @@ class Workbench:
                     self.event(state, "Automated checks passed. Download the app and complete the manual checklist before marking it accepted." if state["plan"].get("manual_checks") else "Tests and HTTP acceptance checks passed. Download and try the app; review remaining requirements yourself.")
                     return
                 if result.get("failure_kind") == "environment":
+                    self.trace(state, 'recovery_decision', {'code': 'stop_environment', 'stage': 'behavioral',
+                               'source_sha256': checked_fingerprint, 'repair_budget_remaining': remaining_repairs})
                     state["status"] = "needs_attention"
                     self.event(state, "Verification environment failed. Fix the runtime/workspace error below before retrying; application code was not sent for repair.")
                     return
@@ -1480,7 +1555,7 @@ class Workbench:
                     return
                 state["status"] = "repairing"
                 self.event(state, f'Repair attempt {attempt+1}; approved checks and trusted regression tests remain frozen. New unverified tests may be corrected.')
-                self.generate_and_apply(state, {"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-6500:], "feedback": failure_feedback(result), "source_map": source_map(self.context_files(state["id"])), "diagnosis": result.get("diagnosis"), "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair the application and, if faulty, unverified test files. Never edit frozen_tests or approved checks. Test the actual imported app, send HTTP requests with timeouts, and preserve every approved feature."}, cancel, repair=True)
+                self.generate_and_apply(state, {"proposal": state["plan"], "files": self.context_files(state["id"]), "failure": result["log"][-6500:], "feedback": failure_feedback(result), "source_map": source_map(self.context_files(state["id"])), "diagnosis": result.get("diagnosis"), "frozen_tests": list(state.get("frozen_tests", {})), "instruction": "Repair the application and, if faulty, unverified test files. Never edit frozen_tests or approved checks. Test the actual imported app, send HTTP requests with timeouts, and preserve every approved feature."}, cancel, repair=True, repair_stage='behavioral_repair')
                 state["repair_count"] += 1
                 remaining_repairs -= 1
                 remaining_repairs = self._inspect_and_repair(state, cancel, remaining_repairs)

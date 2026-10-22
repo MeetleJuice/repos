@@ -31,6 +31,27 @@ function renderDiagnosticReport(report) {
   const coverage = document.createElement("p");
   coverage.textContent = `${summary.detailed_project_count ?? "Unknown"} detailed projects · ${summary.history_records ?? "Unknown"} controller events · ${summary.recorder_records ?? "Unknown"} recorder events. Includes planning structure, validation rule codes and retained attempt metrics.`;
   $("diag-summary").append(coverage);
+  if (summary.selected_execution?.available) {
+    const run = summary.selected_execution;
+    const execution = document.createElement('p');
+    execution.textContent = `Latest selected build: ${run.status || 'no terminal record'} · ${run.tasks_saved} task saves · ${run.attempts} retained model attempts · ${(run.repairs || []).length} repairs. ${run.unattributed_attempts || 0} older attempts lack task/stage attribution. Historical outcomes; check source freshness in the ZIP.`;
+    $("diag-summary").append(execution);
+    if (run.pending_requests?.length) {
+      const pending = document.createElement('p');
+      pending.textContent = `${run.pending_requests.length} request start(s) have no retained completion. They may be active, interrupted, or missing history; this alone does not prove a provider outage.`;
+      $("diag-summary").append(pending);
+    }
+    for (const repair of run.repairs || []) {
+      const detail = document.createElement('p');
+      detail.textContent = `Repair ${repair.repair_id} · ${repair.stage || 'unknown stage'} · ${repair.status} · later matching-source check: ${repair.validation}.`;
+      $("diag-summary").append(detail);
+    }
+    if (!run.coverage?.run_start_retained || !run.coverage?.run_end_retained || run.coverage?.history_gaps) {
+      const gap = document.createElement('p');
+      gap.textContent = 'This run has missing boundary records or a history coverage gap. An unfinished record may mean active work or interruption; it does not establish the cause.';
+      $("diag-summary").append(gap);
+    }
+  }
   if (summary.selected_project_review?.available) {
     const review = document.createElement('p');
     const result = summary.selected_project_review;

@@ -1,8 +1,8 @@
-# Idea Foundry 0.36.0
+# Idea Foundry 0.37.0
 
 **Describe an idea. Approve a proposal. Generate, test, and repair a small working Python web app.**
 
-**New: plans must agree with their tests.** Browser/API projects get backend checkpoints; contradictory routes, repeated tasks and missing restart/UI/ordering scenarios are rejected before approval. **Test** checks eight fixed planning cases and your selected proposal locally. **Diag** separates its current audit from old passes and workspace history. [v0.36.0 findings and update guide](docs/RELEASE-0.36.0.md).
+**New: follow each task and repair through its evidence.** Task readiness is checked before implementation; structured builder instructions separate goal, context, constraints and completion. Unchanged static repairs stop wasting calls. **Test** adds six repair-evidence safeguards alongside the eight planning cases. **Diag** links tasks, model attempts, repairs and later matching-source checks while keeping old history and unknowns explicit. [v0.37.0 findings and update guide](docs/RELEASE-0.37.0.md).
 
 **New: Plan feature by feature.** An explicit new workflow saves acceptance for one feature at a time, gives bookkeeping to the controller and excludes obsolete rejected-plan context from feature requests. Final approval and behavioral tests remain required. The larger forge emblem has flowing blue/cyan flame contours and a pause control. [v0.35.0 audit, changes and test steps](docs/RELEASE-0.35.0.md).
 

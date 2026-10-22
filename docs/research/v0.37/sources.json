@@ -1,0 +1,38 @@
+[
+  {
+    "url": "https://www.anthropic.com/engineering/building-effective-agents",
+    "status": "failed",
+    "exception_type": "URLError"
+  },
+  {
+    "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+    "status": "failed",
+    "exception_type": "URLError"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/anthropic-cookbook/main/patterns/agents/README.md",
+    "accessed": "2026-10-22",
+    "status": "retrieved",
+    "bytes": 848,
+    "sha256": "2425d60f34e1b071ac958d187a54e76b126bbd08517ba9f4377ec3304191c3db"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/openai/openai-cookbook/main/examples/agents_sdk/session_memory.ipynb",
+    "accessed": "2026-10-22",
+    "status": "retrieved",
+    "bytes": 63048,
+    "sha256": "e1f8e1f160005e7f219600dcd2666b885dfc1c4e230939eef3b3a52b5ac0c184"
+  },
+  {
+    "url": "https://api.github.com/repos/anthropics/anthropic-cookbook/contents/patterns/agents",
+    "status": "failed",
+    "exception_type": "URLError"
+  },
+  {
+    "url": "https://raw.githubusercontent.com/anthropics/anthropic-cookbook/main/patterns/agents/evaluator_optimizer.ipynb",
+    "accessed": "2026-10-22",
+    "status": "retrieved",
+    "bytes": 10815,
+    "sha256": "3d50881c3d7974ae30c27535f4ea0b344740c7b4c3efbd2acfa9e6e4a875493c"
+  }
+]
