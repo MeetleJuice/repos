@@ -494,5 +494,17 @@
     "green_output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> delayed Diag reopen disables stale download -> owned persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n",
     "fix": "Disable the previous export and mark lookup busy synchronously before awaiting session status. Preserve owned-session IDs, rejoin behavior and successful ZIP export.",
     "published_failed_candidate": false
+  },
+  "public_updater_proof": {
+    "command": "PYTHONPATH=. python /tmp/039-public-check.py",
+    "manifest_url": "https://raw.githubusercontent.com/MeetleJuice/repos/main/releases/latest.json",
+    "version": "0.39.0",
+    "sha256": "013f917a700c7f1ead61ac75b5c6372ee113b60209d0293461886dca545d46a6",
+    "bytes": 3007425,
+    "production_fetch_and_extraction": true,
+    "source_commit": "6525680e389803591cbfc1661e885759bc8690ae",
+    "previous_version_check": "available",
+    "current_version_check": "current",
+    "update_installed": false
   }
 }
