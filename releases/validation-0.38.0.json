@@ -1,0 +1,321 @@
+{
+  "schema": 1,
+  "version": "0.38.0",
+  "theme": "Owned diagnostic sessions and portable acceptance wire",
+  "source_commit": "55b461e177201cb863b2de0ed34f359fd295f50a",
+  "artifact": {
+    "identity": {
+      "schema": 1,
+      "version": "0.38.0",
+      "source_commit": "55b461e177201cb863b2de0ed34f359fd295f50a",
+      "tracked_modified_files": 0,
+      "meaning": "Git identity at packaging time; source_tree_sha256 identifies packaged file bytes excluding this metadata.",
+      "source_tree_sha256": "b4c49a4d5bd1f8e90c9a2f383e28c56adc05989f21407e9cb2150851064cbc81",
+      "source_file_count": 458
+    },
+    "bytes": 2976384,
+    "sha256": "8df8287d2cb7f740f2efa2572ab59508a958bcefae733f5095518d41d2630722",
+    "archive_source_matches_checkout": true,
+    "production_extractor_passed": true
+  },
+  "checks": {
+    "source": {
+      "command": "python -m unittest discover -q",
+      "tests": 587,
+      "seconds": 157.802,
+      "output": "Ran 587 tests in 157.802s\n\nOK\n"
+    },
+    "extracted": {
+      "command": "python -m unittest discover -q",
+      "tests": 587,
+      "seconds": 155.499,
+      "output": "Ran 587 tests in 155.499s\n\nOK\n"
+    }
+  },
+  "strict_types": {
+    "command": "PYTHONPATH=/tmp/foundry-typecheck python -m mypy --strict [tools.validate.TYPED modules]",
+    "modules": 42,
+    "output": "Success: no issues found in 42 source files"
+  },
+  "dashboard": {
+    "nodes": 331,
+    "edges": 524,
+    "scenarios": 197,
+    "node_tests": 4,
+    "node_tests_command": "npm test",
+    "node_tests_output": "tests 4; pass 4; fail 0",
+    "typecheck_command": "npm run typecheck",
+    "typecheck": "passed",
+    "production_build_command": "npm run build",
+    "production_build": "Built local dashboard assets. Dependencies remain in the OS temporary build cache.",
+    "source_browser_command": "python forge/dashboard/browser_check.py",
+    "source_browser_output": "PASS: Chromium desktop/mobile; local ELK worker; 331 disjoint HTML nodes / 524 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors.",
+    "source_launcher_command": "python forge/dashboard/launcher_check.py",
+    "source_launcher_output": "PASS: visible top workbench Dashboard button; distinct Chromium browser window; graph loads; opener detached; repeated clicks reuse window; blocked popup exposes keyboard-focusable fallback; reopen works; unsaved idea preserved; mobile has no overflow; no project/model job or JavaScript error."
+  },
+  "workbench_browsers": [
+    {
+      "name": "diagnostic_session",
+      "returncode": 0,
+      "seconds": 7.035,
+      "command": "python tests/browser_diagnostic_session_check.py",
+      "output": "PASS: one Diag entry -> progress -> close/rejoin same session -> stop/partial ZIP with checksummed owned evidence -> explicit native-schema planner fixture -> cloud consent -> busy passive snapshot; unchanged project, mobile layout and auth. No live model quality claim.\n"
+    },
+    {
+      "name": "run_diagnostics",
+      "returncode": 0,
+      "seconds": 11.712,
+      "command": "python tests/browser_run_diagnostics_check.py",
+      "output": "PASS: real fixture application failure -> repair -> matching-source behavioral pass -> quick Test/Diag UI -> correlated ZIP evidence and manifest; no extra inference, project mutation, private prompt/source export or browser errors. No live model claim.\n"
+    },
+    {
+      "name": "planning_coherence",
+      "returncode": 0,
+      "seconds": 17.429,
+      "command": "python tests/browser_planning_coherence_check.py",
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "name": "feature_acceptance",
+      "returncode": 0,
+      "seconds": 9.817,
+      "command": "python tests/browser_feature_acceptance_check.py",
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: granular creation through feature acceptance correction, scoped task generation, unchanged human approval, actual SQLite/server/browser checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "name": "brand",
+      "returncode": 0,
+      "seconds": 5.016,
+      "command": "python tests/browser_brand_check.py",
+      "output": "PASS: larger desktop/mobile emblem; independent flame animation; true in-flight controller activity and completion; status-error clearing; persistent motion pause; reduced motion; no horizontal overflow or JavaScript errors. No live model quality tested.\n"
+    },
+    {
+      "name": "system_tests",
+      "returncode": 0,
+      "seconds": 9.814,
+      "command": "python tests/browser_system_tests_check.py",
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n"
+    },
+    {
+      "name": "diagnostics",
+      "returncode": 0,
+      "seconds": 2.632,
+      "command": "python tests/browser_diagnostics_check.py",
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested.\n"
+    },
+    {
+      "name": "evidence_planning",
+      "returncode": 0,
+      "seconds": 9.458,
+      "command": "python tests/browser_evidence_planning_check.py",
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\n"
+    },
+    {
+      "name": "capacity_delivery",
+      "returncode": 0,
+      "seconds": 7.539,
+      "command": "python tests/browser_capacity_delivery_check.py",
+      "output": "PASS: Plan for my builder -> validated outline/scoped tasks -> unchanged approval -> rejected Python -> same-model exact-edit correction -> sequential build -> real acceptance/tests/launch -> verified ZIP; frozen foundation retained; metadata-only model limits and embedding exclusion; mobile/no JS errors. Model replies are fixtures, not live-model quality evidence.\n"
+    },
+    {
+      "name": "workflow_overview",
+      "returncode": 0,
+      "seconds": 7.563,
+      "command": "python tests/browser_workflow_overview_check.py",
+      "output": "PASS: fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "task_contract",
+      "returncode": 0,
+      "seconds": 7.144,
+      "command": "python tests/browser_task_contract_check.py",
+      "output": "PASS: structured task UI, scope rejection/correction and protected ZIP export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "hybrid_execution",
+      "returncode": 0,
+      "seconds": 7.672,
+      "command": "python tests/browser_hybrid_execution_check.py",
+      "output": "PASS: hybrid mode setup, cloud planner/local builder dispatch, source-supported no-change receipt and real verification/ZIP; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "delivery_control",
+      "returncode": 0,
+      "seconds": 9.453,
+      "command": "python tests/browser_delivery_control_check.py",
+      "output": "PASS: explicit local-only calibration, focused source request, task readiness/evidence and source-bound export; fresh-browser automatic route restore without inference, five-category workflow, declared coverage, exact task receipt, actual generated-app verification, ZIP guide/source hashes, manual route preservation, mobile, no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "orchestration",
+      "returncode": 0,
+      "seconds": 6.954,
+      "command": "python tests/browser_orchestration_check.py",
+      "output": "PASS: explicit orchestration preset; primary/secondary cloud failures reach local planning; no pre-consent inference; sequential local-only coding without unused cloud consent; task outcome/criteria/checklist; real milestone/final HTTP, unit and launch checks; invocation allowance; verified ZIP/work checklist; mobile/privacy/no JS errors. Model replies are fixtures, not live quality measurements.\n"
+    },
+    {
+      "name": "local_harness",
+      "returncode": 0,
+      "seconds": 10.101,
+      "command": "python tests/browser_local_harness_check.py",
+      "output": "Version 0.39.0 is ready. Press the Update button in the app to apply changes.\nPASS: local-compatible setup/discovery choices persist; no cloud requests/consent; actual local SSE preview; scoped Stop control; finish gate; real generated-app verification and ZIP; human-controlled update-ready event/banner; mobile/reduced motion/no JS errors. Model responses are fixtures.\n"
+    },
+    {
+      "name": "guided_planning",
+      "returncode": 0,
+      "seconds": 10.439,
+      "command": "python tests/browser_guided_planning_check.py",
+      "output": "PASS: guided outline timeout -> actionable diagnosis -> reload/resume without replay; full approval; fallback options preserved; sequential scoped tasks; actual app tests and ZIP evidence; mobile/reduced motion/no JS errors. Model replies are fixtures, not live-model evidence.\n"
+    },
+    {
+      "name": "local_failover",
+      "returncode": 0,
+      "seconds": 7.47,
+      "command": "python tests/browser_local_failover_check.py",
+      "output": "PASS: fresh project automatically detects local backups without model setup; two transport failures advance to third distinct Ollama model; two rejected code responses advance to third distinct builder; unchanged saved primary/approved plan; actual app verification and ZIP; no cloud calls/mobile overflow/JS errors. Model replies are fixtures.\n"
+    },
+    {
+      "name": "model_studio",
+      "returncode": 0,
+      "seconds": 10.236,
+      "command": "python tests/browser_model_studio_check.py",
+      "output": "PASS: local-only no-cloud setup, two-local failover, existing plan/files preservation, separate route previews, keyboard details, persistent accents/volume/mute, user-gesture audio with silent reload/history, one cue per observed terminal transition, reduced-motion/mobile and real generated-app verification/ZIP. No live provider or GPU claims.\n"
+    },
+    {
+      "name": "model_activity",
+      "returncode": 0,
+      "seconds": 6.193,
+      "command": "python tests/browser_model_activity_check.py",
+      "output": "PASS: seven provider icons and installed local models, embedding distinction, true in-flight animation, reduced-motion state, success and quota transitions, working cleared, model dialog navigation, mobile, privacy and no JS errors.\n"
+    },
+    {
+      "name": "automatic_routing",
+      "returncode": 0,
+      "seconds": 7.93,
+      "command": "python tests/browser_automatic_routing_check.py",
+      "output": "PASS: automatic catalogue setup, role routes persisted, missing Cloudflare config skipped, no pre-consent inference, model error and invalid proposals advance without restart, actual app verification, current project preservation, mobile, no secret values or JavaScript errors.\n"
+    },
+    {
+      "name": "proposal_import",
+      "returncode": 0,
+      "seconds": 2.732,
+      "command": "python tests/browser_proposal_import_check.py",
+      "output": "PASS: five-task stale proposal \u2192 imported two-task reviewed repair \u2192 persistent reload/cards \u2192 explicit editor save/check feedback \u2192 approval; no inference, source mutation or execution; token and recycled-plan guards; mobile.\n"
+    },
+    {
+      "name": "upgrade",
+      "returncode": 0,
+      "seconds": 11.41,
+      "command": "python tests/browser_upgrade_check.py",
+      "output": "Version 0.39.0 is ready. Press the Update button in the app to apply changes.\nPASS: tested foundation, clear missing-Docker state, consent, actual verification, protected test export, project search, update dialog, desktop/mobile and no JS errors.\n"
+    },
+    {
+      "name": "arcade",
+      "returncode": 0,
+      "seconds": 28.173,
+      "command": "python tests/browser_arcade_check.py",
+      "output": "PASS: real plan/build/HTTP/tests/launch/Chromium/manual/export pipeline; rendered keyboard/pointer movement, pause freeze, collision/game-over, restart, high-score refresh persistence; mobile layout; broken JS rejected.\n"
+    },
+    {
+      "name": "cloud",
+      "returncode": 0,
+      "seconds": 11.236,
+      "command": "python tests/browser_cloud_check.py",
+      "output": "PASS: UTF-16 Notepad .env.txt \u2192 private key import \u2192 checked catalogues \u2192 persisted cloud route \u2192 consent gate \u2192 Gemini/Groq/OpenRouter failover \u2192 real generated-app HTTP/tests/launch \u2192 cooldown skip \u2192 saved project settings; no secret responses, auth boundary, mobile and no JS errors.\n"
+    },
+    {
+      "name": "provider_pool",
+      "returncode": 0,
+      "seconds": 9.537,
+      "command": "python tests/browser_provider_pool_check.py",
+      "output": "PASS: seven-key private import; missing Cloudflare account then local configuration import; seven catalogues; reordered route; timeout/JSON settings persisted; seven-tier failover; actual app verification/export; mobile; no exposed keys or JS errors.\n"
+    },
+    {
+      "name": "repair",
+      "returncode": 0,
+      "seconds": 32.464,
+      "command": "python tests/browser_repair_check.py",
+      "output": "PASS: actual uploaded shield collision fails in Chromium \u2192 bounded exact-edit repair \u2192 same frozen browser/HTTP/regression checks pass; collection/pause/consumption/second collision/restart verified; failed format recovery retains notes and enables retry; direct successful repair makes one coder request, no planning/execution, mobile and no JavaScript errors.\n"
+    },
+    {
+      "name": "starter_recovery",
+      "returncode": 0,
+      "seconds": 2.515,
+      "command": "python tests/browser_starter_recovery_check.py",
+      "output": "PASS: actual failed empty-plan screen \u2192 explicit standard-plan recovery \u2192 approval; direct standard creation; zero extra model calls; no code execution; authenticated endpoint; mobile layout.\n"
+    },
+    {
+      "name": "planning",
+      "returncode": 0,
+      "seconds": 7.668,
+      "command": "python tests/browser_planning_check.py",
+      "output": "PASS: semantic recovery in 3 requests, explicit fallback, context/output controls, cloud consent visibility, live edit review with no inference, approval gate, restart evidence and mobile layout.\n"
+    }
+  ],
+  "extracted_browsers": [
+    {
+      "command": "python tests/browser_diagnostic_session_check.py",
+      "returncode": 0,
+      "seconds": 7.142,
+      "output": "PASS: one Diag entry -> progress -> close/rejoin same session -> stop/partial ZIP with checksummed owned evidence -> explicit native-schema planner fixture -> cloud consent -> busy passive snapshot; unchanged project, mobile layout and auth. No live model quality claim.\n"
+    },
+    {
+      "command": "python tests/browser_planning_coherence_check.py",
+      "returncode": 0,
+      "seconds": 15.303,
+      "output": "PASS: proof-mode proposal -> protected SQLite foundation -> unchanged approval -> executed 3-check milestone before UI -> real final tests -> mobile browser create/reload/filter/delete and literal text safety -> observed manual result -> verified ZIP. LLM replies are fixtures, not live model quality evidence.\nPASS: old green contradictory proposal blocked without mutation; eight planning guards and selected-plan failure in Test/Diag ZIP; hybrid browser/API granular planning, real early SQLite milestone, actual browser/manual checks and verified ZIP. Model replies are fixtures.\n"
+    },
+    {
+      "command": "python tests/browser_run_diagnostics_check.py",
+      "returncode": 0,
+      "seconds": 10.218,
+      "output": "PASS: real fixture application failure -> repair -> matching-source behavioral pass -> quick Test/Diag UI -> correlated ZIP evidence and manifest; no extra inference, project mutation, private prompt/source export or browser errors. No live model claim.\n"
+    },
+    {
+      "command": "python tests/browser_system_tests_check.py",
+      "returncode": 0,
+      "seconds": 9.625,
+      "output": "PASS: Test quick checks without inference -> explicit cloud consent -> two fixed model probes -> persisted results in real Diag ZIP; unchanged project, no project prompt sent, auth boundary, mobile/no JS errors. Fixture providers do not prove live quota or model capacity.\n"
+    },
+    {
+      "command": "python tests/browser_diagnostics_check.py",
+      "returncode": 0,
+      "seconds": 2.643,
+      "output": "PASS: Diag fixture findings/ZIP, literal text safety and mobile layout; local idea input only, no project submission; overwrite confirmation, in-flight edit preservation and model-error recovery. No live model request was tested.\n"
+    },
+    {
+      "command": "python forge/dashboard/browser_check.py",
+      "returncode": 0,
+      "seconds": 25.332,
+      "output": "PASS: Chromium desktop/mobile; local ELK worker; 331 disjoint HTML nodes / 524 SVG edges; running glow, animated paths, completion/failure, pause/resume/stop, fit/search/source inspector, reduced motion; simulation has no controller calls; observer ignores old history, maps new failure, clears finished activity and cancels polling; no mutations or JS errors.\n"
+    },
+    {
+      "command": "python forge/dashboard/launcher_check.py",
+      "returncode": 0,
+      "seconds": 3.532,
+      "output": "PASS: visible top workbench Dashboard button; distinct Chromium browser window; graph loads; opener detached; repeated clicks reuse window; blocked popup exposes keyboard-focusable fallback; reopen works; unsaved idea preserved; mobile has no overflow; no project/model job or JavaScript error.\n"
+    }
+  ],
+  "frozen_regressions": {
+    "manifest": "frozen-regressions-v22.json",
+    "sets": 23,
+    "previous_sets_unchanged": 22,
+    "provenance": "Observed sanitized Diagnostic (8) ledger plus labeled synthetic assertion cases; no captured failed model reply bodies."
+  },
+  "before": {
+    "command": "python -m unittest tests.test_diag_revision -q (the two original regression assertions before implementation)",
+    "output": "======================================================================\nFAIL: test_candidate_shape_distinguishes_present_but_empty_assertions (tests.test_diag_revision.DiagnosticRevisionTests.test_candidate_shape_distinguishes_present_but_empty_assertions)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_diag_revision.py\", line 26, in test_candidate_shape_distinguishes_present_but_empty_assertions\n    self.assertIs(check.get('assertion_valid'), False)\nAssertionError: None is not False\n\n======================================================================\nFAIL: test_missing_assertion_has_a_specific_rule_and_check_path (tests.test_diag_revision.DiagnosticRevisionTests.test_missing_assertion_has_a_specific_rule_and_check_path)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/workspace/repos/tests/test_diag_revision.py\", line 19, in test_missing_assertion_has_a_specific_rule_and_check_path\n    self.assertEqual([(f.code, f.path) for f in result.findings], [('assertion_required', '/checks/1')])\nAssertionError: Lists differ: [('structure', '/')] != [('assertion_required', '/checks/1')]\n\nFirst differing element 0:\n('structure', '/')\n('assertion_required', '/checks/1')\n\n- [('structure', '/')]\n+ [('assertion_required', '/checks/1')]\n\n----------------------------------------------------------------------\nRan 2 tests in 0.001s\n\nFAILED (failures=2)"
+  },
+  "after": {
+    "command": "python -m unittest tests.test_diag_revision -q",
+    "output": "Ran 15 tests in 1.217s\n\nOK",
+    "before_after_assertions": "Missing assertion now identifies assertion_required at /checks/1; empty assertion presence is recorded invalid. Both checks passed before the module expanded to 15 cases."
+  },
+  "research": "docs/research/diag-harness-0.38.md",
+  "limitations": [
+    "No live provider inference, physical Windows or Ollama/GPU performance test in this environment.",
+    "Schema subset compatibility is a research-supported hypothesis; the exact installed Ollama converter cause is not proven.",
+    "Synthetic planning/tiny JSON probe success is not project-building or model-ranking evidence.",
+    "No automated cloud consent, route changes, source self-modification or generated-code execution from Diag.",
+    "Stop is cooperative between checks; an in-flight socket operation must return or time out. Busy/stopped sessions disclose incomplete checks."
+  ]
+}
