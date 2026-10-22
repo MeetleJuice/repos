@@ -311,6 +311,18 @@
     "before_after_assertions": "Missing assertion now identifies assertion_required at /checks/1; empty assertion presence is recorded invalid. Both checks passed before the module expanded to 15 cases."
   },
   "research": "docs/research/diag-harness-0.38.md",
+  "public_verification": {
+    "commands": ["fetch_bytes(MANIFEST_URL, 30000)", "fetch_bytes(manifest['url'], MAX_ARCHIVE)", "extract_release(content, temporary_program, manifest)", "UpdateManager.check('0.37.0')"],
+    "version": "0.38.0",
+    "sha256": "8df8287d2cb7f740f2efa2572ab59508a958bcefae733f5095518d41d2630722",
+    "bytes": 2976384,
+    "production_manifest_download": true,
+    "production_archive_download": true,
+    "production_extraction": true,
+    "production_update_check": "available",
+    "source_commit": "55b461e177201cb863b2de0ed34f359fd295f50a",
+    "output": "Version 0.38.0 is ready. Press the Update button in the app to apply changes."
+  },
   "limitations": [
     "No live provider inference, physical Windows or Ollama/GPU performance test in this environment.",
     "Schema subset compatibility is a research-supported hypothesis; the exact installed Ollama converter cause is not proven.",
